@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Consumer Audio 进出口信息平台 - 脱敏测试版</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">CA</div>
+          <div>
+            <strong>Consumer Audio</strong>
+            <span>Import / Export Desk</span>
+          </div>
+        </div>
+
+        <nav aria-label="主导航">
+          <a class="active" href="#dashboard">总览 Dashboard</a>
+          <a href="#hs">HS Code 辅助</a>
+          <a href="#elements">申报要素</a>
+          <a href="#policy">政策变化</a>
+          <a href="#shipment">船期/船舶追踪</a>
+          <a href="#customs">通关状态入口</a>
+          <a href="#battery">Battery / DG</a>
+          <a href="#documents">文件助手</a>
+          <a href="#exception">异常记录</a>
+          <a href="#matrix">国家要求矩阵</a>
+          <a href="#integration">未来数据接口</a>
+        </nav>
+
+        <section class="access-panel" aria-labelledby="access-title">
+          <h2 id="access-title">访问身份</h2>
+          <label for="userSelect">授权人员</label>
+          <select id="userSelect"></select>
+          <p id="roleText"></p>
+        </section>
+      </aside>
+
+      <main>
+        <header class="topbar" id="dashboard">
+          <div class="hero-main">
+            <p class="eyebrow">No-IT MVP / Desensitized demo</p>
+            <h1>Consumer Audio 进出口信息汇总平台</h1>
+            <p class="hero-subtitle">HS Code · 政策变化 · 船期追踪 · 通关状态 · 未来数据接口</p>
+            <p class="hero-copy">
+              面向耳机、音箱、Soundbar、CD Player、配件和维修件的 HS 初筛、申报要素、政策关注、锂电池/DG 风险、文件清单与异常跟踪。
+            </p>
+            <div class="scope-card">
+              <strong>当前版本范围</strong>
+              <span>先不连接公司数据库，只做公开脱敏测试：官方入口、模拟数据、手工输入、文件/异常本地记录，以及未来 API 对接预留。</span>
+            </div>
+          </div>
+          <div class="release-panel">
+            <span class="language-pill">中 / EN</span>
+            <span>Demo build</span>
+            <strong>2026-05-12</strong>
+            <small>公开脱敏版，不含公司真实 SKU、供应商、价格或出货数据。</small>
+          </div>
+        </header>
+
+        <section class="kpi-grid" aria-label="Dashboard 总览">
+          <article class="kpi-card high">
+            <span>待关务复核</span>
+            <strong id="reviewCount">4</strong>
+            <small>HS / 监管 / 目的国资料</small>
+          </article>
+          <article class="kpi-card danger">
+            <span>Battery / DG 高风险</span>
+            <strong id="dgCount">3</strong>
+            <small>锂电池、UN38.3、MSDS</small>
+          </article>
+          <article class="kpi-card">
+            <span>官方入口</span>
+            <strong id="sourceCount">0</strong>
+            <small>海关、单一窗口、CNCA</small>
+          </article>
+          <article class="kpi-card warn">
+            <span>异常未关闭</span>
+            <strong id="openIssueCount">0</strong>
+            <small>Issue Log 本地记录</small>
+          </article>
+        </section>
+
+        <section class="module-board" aria-label="平台模块状态">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Platform map</p>
+              <h2>模块总览</h2>
+            </div>
+            <span class="quiet-tag">Phase 1: HTML Demo + Local MVP Ready</span>
+          </div>
+          <div id="moduleGrid" class="module-grid"></div>
+        </section>
+
+        <section id="hs" class="two-column">
+          <form class="panel classify-form" id="productForm">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">HS Code Assistant</p>
+                <h2>产品归类初筛</h2>
+              </div>
+              <button type="button" class="ghost-button" id="loadExample">载入 Consumer Audio 样例</button>
+            </div>
+
+            <div class="field-grid">
+              <label>
+                产品中文名称
+                <input id="productName" name="productName" placeholder="如：蓝牙耳机 / Soundbar / 维修遥控器" required />
+              </label>
+              <label>
+                英文名称
+                <input id="englishName" name="englishName" placeholder="Bluetooth headset / speaker / spare part" />
+              </label>
+              <label>
+                产品类别
+                <select id="productCategory" name="productCategory">
+                  <option>Headphone / Earbuds</option>
+                  <option>Speaker / Soundbar</option>
+                  <option>CD Player / Audio Player</option>
+                  <option>Remote / Accessory</option>
+                  <option>Repair Parts</option>
+                </select>
+              </label>
+              <label>
+                进出口方向
+                <select id="tradeDirection" name="tradeDirection">
+                  <option value="进口">进口</option>
+                  <option value="出口">出口</option>
+                </select>
+              </label>
+              <label>
+                主要材质
+                <input id="material" name="material" placeholder="塑料、金属、锂电池、电路板、喇叭单元等" />
+              </label>
+              <label>
+                功能用途
+                <input id="usage" name="usage" placeholder="播放声音、蓝牙接收、充电、控制音频设备等" />
+              </label>
+              <label>
+                关键参数
+                <input id="spec" name="spec" placeholder="是否无线、是否含电池、容量 Wh、额定功率、连接方式" />
+              </label>
+              <label>
+                目的国/地区
+                <input id="destination" name="destination" placeholder="China / EU / US / UK / GCC" />
+              </label>
+              <label class="full-span">
+                型号、品牌、随附部件
+                <textarea id="modelInfo" name="modelInfo" rows="3" placeholder="型号、套装内容、配件、包装状态、是否含电池/电源适配器/MSDS 等"></textarea>
+              </label>
+            </div>
+
+            <div class="action-row">
+              <button type="submit" class="primary-button">生成推荐</button>
+              <button type="button" class="secondary-button" id="clearForm">清空</button>
+            </div>
+          </form>
+
+          <section class="panel result-panel" aria-live="polite">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Recommendation</p>
+                <h2>推荐结果</h2>
+              </div>
+              <span class="pill" id="reviewState">待输入</span>
+            </div>
+
+            <div id="emptyState" class="empty-state">
+              <strong>尚未生成推荐</strong>
+              <p>请填写产品类别、用途、无线/电池信息和关键参数。测试版只做候选税号和风险提醒。</p>
+            </div>
+
+            <div id="resultState" class="result-state hidden">
+              <div class="score-ring" aria-label="推荐置信度">
+                <span id="confidenceValue">0%</span>
+                <small>置信度</small>
+              </div>
+              <div class="recommendation-copy">
+                <p class="eyebrow">首选候选税号</p>
+                <h3 id="bestCode">-</h3>
+                <p id="bestName"></p>
+                <p id="reasonText"></p>
+              </div>
+            </div>
+
+            <div id="candidateList" class="candidate-list"></div>
+            <div class="risk-box">
+              <h3>合规提醒</h3>
+              <ul id="riskList"></ul>
+            </div>
+          </section>
+        </section>
+
+        <section id="elements" class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Declaration Elements</p>
+              <h2>申报要素助手</h2>
+            </div>
+            <span class="quiet-tag">由产品类别 + 候选税号触发</span>
+          </div>
+          <div id="elementGrid" class="checklist-grid"></div>
+        </section>
+
+        <section id="policy" class="two-column">
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Policy Monitor</p>
+                <h2>政策更新关注</h2>
+              </div>
+            </div>
+            <div class="timeline" id="policyTimeline"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Official Sources</p>
+                <h2>权威核验入口</h2>
+              </div>
+            </div>
+            <div class="source-list" id="sourceList"></div>
+          </article>
+        </section>
+
+        <section id="shipment" class="tracking-section">
+          <div class="panel tracking-title-card">
+            <p class="eyebrow">Vessel & Schedule Tracking</p>
+            <h2>船期/船舶追踪</h2>
+            <span>输入船名、航次、目的港或 9 位 MMSI 后，优先通过船讯网查询船舶 ETA；如果接口未配置或查询失败，自动显示模拟结果。</span>
+          </div>
+
+          <form class="panel tracking-form" id="shipmentForm">
+            <div class="field-grid five-fields">
+              <label>
+                Vessel Name
+                <input id="vesselName" placeholder="EVER GIVEN / COSCO SHIPPING 等" />
+              </label>
+              <label>
+                Voyage No.
+                <input id="voyageNo" placeholder="001W / 045E" />
+              </label>
+              <label>
+                Origin Port
+                <input id="originPort" placeholder="Port Klang / Ningbo" />
+              </label>
+              <label>
+                Destination Port
+                <input id="destinationPort" placeholder="Shanghai / CNSHG / Rotterdam" />
+              </label>
+              <label>
+                IMO / MMSI
+                <input id="imoMmsi" placeholder="建议填 9 位 MMSI；IMO 可备注" />
+              </label>
+            </div>
+            <div class="action-row">
+              <button type="submit" class="primary-button">查询船期</button>
+              <button type="button" class="secondary-button" id="loadVesselExample">载入样例</button>
+            </div>
+          </form>
+
+          <div class="tracking-layout">
+            <article class="panel route-map" aria-label="船舶路线示意">
+              <div class="map-water">
+                <div class="route-line"></div>
+                <span class="map-chip origin">Origin: <strong id="mapOrigin">Port Klang</strong></span>
+                <span class="map-chip destination">Dest: <strong id="mapDestination">Shanghai</strong></span>
+                <span class="vessel-marker" aria-hidden="true">VESSEL</span>
+                <div class="wave wave-one"></div>
+                <div class="wave wave-two"></div>
+                <div class="wave wave-three"></div>
+              </div>
+            </article>
+
+            <aside class="panel tracking-result">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow" id="shipmentSourceLabel">Simulated Result</p>
+                  <h2 id="shipmentTitle">EVER GIVEN / 001W</h2>
+                </div>
+                <span class="pill" id="shipmentApiState">API 预留</span>
+              </div>
+              <div class="tracking-cards">
+                <div class="info-tile">
+                  <span>Position</span>
+                  <strong id="shipmentPosition">South China Sea</strong>
+                </div>
+                <div class="info-tile">
+                  <span>ETA</span>
+                  <strong id="shipmentEta">3 days</strong>
+                </div>
+                <div class="info-tile">
+                  <span>Status</span>
+                  <strong id="shipmentStatus">On schedule</strong>
+                </div>
+                <div class="info-tile warning">
+                  <span>Reminder</span>
+                  <strong id="shipmentReminder">确认截关、舱单和 DG 限制</strong>
+                </div>
+              </div>
+              <p class="api-note" id="shipmentApiNote">真实查询需要 Netlify 环境变量 SHIPXY_API_KEY；船司船期仍以订舱和货代确认为准。</p>
+            </aside>
+          </div>
+
+          <div class="ops-grid" id="opsGrid"></div>
+        </section>
+
+        <section id="customs" class="panel customs-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Customs / Manifest Status Links</p>
+              <h2>通关状态查询入口</h2>
+            </div>
+            <span class="quiet-tag">官方入口 + 字段建议</span>
+          </div>
+
+          <form id="customsForm" class="customs-query">
+            <div class="field-grid five-fields">
+              <label>
+                B/L No.
+                <input id="blNo" placeholder="提单号" />
+              </label>
+              <label>
+                Voyage No.
+                <input id="customsVoyage" placeholder="航次" />
+              </label>
+              <label>
+                Container No.
+                <input id="containerNo" placeholder="箱号" />
+              </label>
+              <label>
+                Customs Code
+                <input id="customsCode" placeholder="关区代码/口岸" />
+              </label>
+              <label>
+                Import / Export
+                <select id="customsDirection">
+                  <option>进口 Import</option>
+                  <option>出口 Export</option>
+                </select>
+              </label>
+            </div>
+            <div class="action-row">
+              <button type="submit" class="primary-button">生成查询建议</button>
+            </div>
+          </form>
+
+          <div class="customs-advice" id="customsAdvice"></div>
+          <div class="customs-link-grid" id="customsLinkGrid"></div>
+        </section>
+
+        <section id="battery" class="two-column">
+          <form class="panel" id="batteryForm">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Battery & Dangerous Goods</p>
+                <h2>电池 / 危险品风险判断</h2>
+              </div>
+              <button type="button" class="ghost-button" id="loadBatteryExample">载入耳机样例</button>
+            </div>
+
+            <div class="field-grid">
+              <label>
+                是否含电池
+                <select id="batteryIncluded">
+                  <option value="yes">是，内置或随附电池</option>
+                  <option value="no">否</option>
+                  <option value="unknown">不确定</option>
+                </select>
+              </label>
+              <label>
+                电池类型
+                <select id="batteryType">
+                  <option>锂离子 / Li-ion</option>
+                  <option>锂金属 / Lithium metal</option>
+                  <option>碱性 / Alkaline</option>
+                  <option>不确定</option>
+                </select>
+              </label>
+              <label>
+                额定能量 Wh
+                <input id="batteryWh" type="number" min="0" step="0.1" placeholder="如 1.2 / 7.4 / 100" />
+              </label>
+              <label>
+                包装方式
+                <select id="batteryPacking">
+                  <option>Contained in equipment</option>
+                  <option>Packed with equipment</option>
+                  <option>Battery only</option>
+                  <option>Unknown</option>
+                </select>
+              </label>
+              <label>
+                运输方式
+                <select id="transportMode">
+                  <option>Air</option>
+                  <option>Sea</option>
+                  <option>Courier</option>
+                  <option>Unknown</option>
+                </select>
+              </label>
+              <label>
+                文件状态
+                <select id="batteryDocs">
+                  <option>MSDS + UN38.3 已有</option>
+                  <option>只有 MSDS</option>
+                  <option>只有 UN38.3</option>
+                  <option>未确认</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="action-row">
+              <button type="submit" class="primary-button">判断 DG 风险</button>
+              <button type="button" class="secondary-button" id="resetBattery">重置</button>
+            </div>
+          </form>
+
+          <section class="panel result-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">DG Decision Support</p>
+                <h2>风险结论</h2>
+              </div>
+              <span class="pill danger-pill" id="batteryRiskLevel">待判断</span>
+            </div>
+            <div id="batteryResult" class="decision-box">
+              <strong>填写电池信息后生成提醒</strong>
+              <p>测试版不替代货代、航司、船司或 DG 专员判断。</p>
+            </div>
+          </section>
+        </section>
+
+        <section id="documents" class="two-column">
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Document Checklist</p>
+                <h2>文件清单</h2>
+              </div>
+              <button type="button" class="ghost-button" id="copyDocDraft">生成邮件草稿</button>
+            </div>
+            <div id="documentChecklist" class="checklist-grid"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Document Generator</p>
+                <h2>文件生成助手</h2>
+              </div>
+            </div>
+            <textarea id="docDraft" class="draft-box" rows="12" readonly></textarea>
+          </article>
+        </section>
+
+        <section id="exception" class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Exception / Issue Log</p>
+              <h2>异常记录</h2>
+            </div>
+            <button type="button" class="secondary-button" id="exportIssues">导出 CSV</button>
+          </div>
+          <form id="issueForm" class="issue-form">
+            <input id="issueTitle" placeholder="异常标题：如 HS 不确定 / 缺 UN38.3 / 舱单状态待确认" required />
+            <select id="issueType">
+              <option>HS Code</option>
+              <option>Battery / DG</option>
+              <option>Document</option>
+              <option>Policy</option>
+              <option>Shipment</option>
+              <option>Customs / Manifest</option>
+            </select>
+            <select id="issuePriority">
+              <option>High</option>
+              <option>Medium</option>
+              <option>Low</option>
+            </select>
+            <input id="issueOwner" placeholder="Owner" />
+            <button type="submit" class="primary-button">新增异常</button>
+          </form>
+          <div class="table-wrap compact">
+            <table>
+              <thead>
+                <tr>
+                  <th>状态</th>
+                  <th>类型</th>
+                  <th>优先级</th>
+                  <th>异常</th>
+                  <th>Owner</th>
+                  <th>日期</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="issueTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="matrix" class="two-column">
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Country Requirement Matrix</p>
+                <h2>国家/地区要求矩阵</h2>
+              </div>
+            </div>
+            <div class="table-wrap compact">
+              <table>
+                <thead>
+                  <tr>
+                    <th>市场</th>
+                    <th>关注点</th>
+                    <th>状态</th>
+                  </tr>
+                </thead>
+                <tbody id="countryTable"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Cost & Lead Time Benchmark</p>
+                <h2>成本与时效基准</h2>
+              </div>
+            </div>
+            <div id="benchmarkList" class="benchmark-list"></div>
+          </article>
+        </section>
+
+        <section id="integration" class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">File Upload / Data Import / Future Integration</p>
+              <h2>数据导入与未来接口</h2>
+            </div>
+          </div>
+          <div class="integration-grid">
+            <div>
+              <h3>当前可做</h3>
+              <p>CSV 导入历史 HS 样例、政策清单、船期表；本地浏览器保存异常记录；导出 CSV 给邮件或 Teams 分享。</p>
+            </div>
+            <div>
+              <h3>下一步可做</h3>
+              <p>Excel/CSV 本地解析、产品关键词规则库、政策待复核清单、船期表搜索、文件生成模板。</p>
+            </div>
+            <div>
+              <h3>正式系统</h3>
+              <p>接 SharePoint、ERP/WMS/TMS、报关行接口、AIS/船公司 API、SSO、权限、审计日志和集中数据库。</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./company-hs-data.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
