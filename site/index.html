@@ -7,6 +7,20 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <div class="access-gate" id="accessGate">
+      <div class="access-card">
+        <p class="eyebrow">Authorized access</p>
+        <h1>Consumer Audio 进出口信息平台</h1>
+        <p>当前是公开脱敏测试版，但仍建议只给指定同事使用。请输入内部测试访问码。</p>
+        <label>
+          访问码
+          <input id="accessCodeInput" type="password" placeholder="请输入访问码" autocomplete="off" />
+        </label>
+        <button type="button" class="primary-button" id="unlockAccess">进入平台</button>
+        <span id="accessError"></span>
+      </div>
+    </div>
+
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand">
@@ -22,10 +36,11 @@
           <a href="#hs">HS Code 辅助</a>
           <a href="#elements">申报要素</a>
           <a href="#policy">政策变化</a>
+          <a href="#trends">全球趋势</a>
           <a href="#shipment">船期/船舶追踪</a>
           <a href="#customs">通关状态入口</a>
+          <a href="#port-risk">港口风险</a>
           <a href="#battery">Battery / DG</a>
-          <a href="#documents">文件助手</a>
           <a href="#exception">异常记录</a>
           <a href="#matrix">国家要求矩阵</a>
           <a href="#integration">未来数据接口</a>
@@ -46,17 +61,17 @@
             <h1>Consumer Audio 进出口信息汇总平台</h1>
             <p class="hero-subtitle">HS Code · 政策变化 · 船期追踪 · 通关状态 · 未来数据接口</p>
             <p class="hero-copy">
-              面向耳机、音箱、Soundbar、CD Player、配件和维修件的 HS 初筛、申报要素、政策关注、锂电池/DG 风险、文件清单与异常跟踪。
+              面向耳机、音箱、Soundbar、CD Player、配件和维修件的 HS 初筛、申报要素、政策关注、锂电池/DG 风险、船期/港口风险与异常跟踪。
             </p>
             <div class="scope-card">
               <strong>当前版本范围</strong>
-              <span>先不连接公司数据库，只做公开脱敏测试：官方入口、模拟数据、手工输入、文件/异常本地记录，以及未来 API 对接预留。</span>
+              <span>先不连接公司数据库，只做公开脱敏测试：官方入口、公开新闻、手工输入、异常本地记录，以及未来 API 对接预留。</span>
             </div>
           </div>
           <div class="release-panel">
             <span class="language-pill">中 / EN</span>
             <span>Demo build</span>
-            <strong>2026-05-12</strong>
+            <strong>2026-05-17</strong>
             <small>公开脱敏版，不含公司真实 SKU、供应商、价格或出货数据。</small>
           </div>
         </header>
@@ -227,22 +242,35 @@
           </article>
         </section>
 
+        <section id="trends" class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Global Trend Watch</p>
+              <h2>过去一周全球趋势观察</h2>
+            </div>
+            <button type="button" class="secondary-button" id="refreshTrends">刷新趋势</button>
+          </div>
+          <p class="section-note">关注经济、政治、金融、贸易、供应链和地缘风险公开新闻，帮助同事理解宏观趋势。测试版仅供观察，不作投资或经营决策依据。</p>
+          <div id="trendStatus" class="quiet-tag">等待加载</div>
+          <div class="trend-grid" id="trendGrid"></div>
+        </section>
+
         <section id="shipment" class="tracking-section">
           <div class="panel tracking-title-card">
             <p class="eyebrow">Vessel & Schedule Tracking</p>
             <h2>船期/船舶追踪</h2>
-            <span>输入船名、航次、目的港或 9 位 MMSI 后，优先通过船讯网查询船舶 ETA；如果接口未配置或查询失败，自动显示模拟结果。</span>
+            <span>输入船名和目的港即可先查；MMSI 可提升准确度，航次作为备注字段。接口不可用时自动显示模拟结果。</span>
           </div>
 
           <form class="panel tracking-form" id="shipmentForm">
             <div class="field-grid five-fields">
               <label>
                 Vessel Name
-                <input id="vesselName" placeholder="EVER GIVEN / COSCO SHIPPING 等" />
+                <input id="vesselName" placeholder="EVER GIVEN / COSCO SHIPPING 等，可模糊搜索" />
               </label>
               <label>
-                Voyage No.
-                <input id="voyageNo" placeholder="001W / 045E" />
+                Voyage No. (Optional)
+                <input id="voyageNo" placeholder="001W / 045E，可不填" />
               </label>
               <label>
                 Origin Port
@@ -253,8 +281,8 @@
                 <input id="destinationPort" placeholder="Shanghai / CNSHG / Rotterdam" />
               </label>
               <label>
-                IMO / MMSI
-                <input id="imoMmsi" placeholder="建议填 9 位 MMSI；IMO 可备注" />
+                IMO / MMSI (Optional)
+                <input id="imoMmsi" placeholder="9 位 MMSI 最准确；可不填" />
               </label>
             </div>
             <div class="action-row">
@@ -350,7 +378,55 @@
           </form>
 
           <div class="customs-advice" id="customsAdvice"></div>
+          <div class="port-query-helper">
+            <div>
+              <p class="eyebrow">Shanghai Port Release Check</p>
+              <h3>上海港放行查询助手</h3>
+              <p>
+                上港集团公开查询页可按箱号或提单号查询上海港箱货状态。页面可能出现滑动验证，需人工完成；当前测试版不绕过验证码。
+              </p>
+            </div>
+            <div class="port-query-actions">
+              <a class="primary-button" href="https://www.sipg.com.cn/conquery/index" target="_blank" rel="noreferrer">打开上港查询</a>
+              <span>重点核对：海关放行、码头放行、理货、换单、授权、放箱、查验指令、出场时间。</span>
+            </div>
+          </div>
           <div class="customs-link-grid" id="customsLinkGrid"></div>
+        </section>
+
+        <section id="port-risk" class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Port & Logistics Risk</p>
+              <h2>港口与物流风险查询</h2>
+            </div>
+            <span class="quiet-tag">默认上海港</span>
+          </div>
+          <form id="portRiskForm" class="customs-query">
+            <div class="field-grid five-fields">
+              <label>
+                Port
+                <input id="portName" value="Shanghai Port" placeholder="Shanghai Port / Ningbo / Yantian / Los Angeles" />
+              </label>
+              <label>
+                Country / Region
+                <input id="portRegion" value="China" placeholder="China / EU / US" />
+              </label>
+              <label>
+                Cargo Watch
+                <select id="portCargo">
+                  <option>Consumer Audio</option>
+                  <option>Battery / DG</option>
+                  <option>General Cargo</option>
+                </select>
+              </label>
+            </div>
+            <div class="action-row">
+              <button type="submit" class="primary-button">查询港口风险</button>
+            </div>
+          </form>
+          <div id="portRiskStatus" class="quiet-tag">等待查询</div>
+          <div class="port-risk-grid" id="portRiskGrid"></div>
         </section>
 
         <section id="battery" class="two-column">
@@ -435,29 +511,6 @@
           </section>
         </section>
 
-        <section id="documents" class="two-column">
-          <article class="panel">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow">Document Checklist</p>
-                <h2>文件清单</h2>
-              </div>
-              <button type="button" class="ghost-button" id="copyDocDraft">生成邮件草稿</button>
-            </div>
-            <div id="documentChecklist" class="checklist-grid"></div>
-          </article>
-
-          <article class="panel">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow">Document Generator</p>
-                <h2>文件生成助手</h2>
-              </div>
-            </div>
-            <textarea id="docDraft" class="draft-box" rows="12" readonly></textarea>
-          </article>
-        </section>
-
         <section id="exception" class="panel">
           <div class="panel-heading">
             <div>
@@ -538,22 +591,22 @@
         <section id="integration" class="panel">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">File Upload / Data Import / Future Integration</p>
-              <h2>数据导入与未来接口</h2>
+              <p class="eyebrow">Future Integration</p>
+              <h2>未来接口与权限路线</h2>
             </div>
           </div>
           <div class="integration-grid">
             <div>
               <h3>当前可做</h3>
-              <p>CSV 导入历史 HS 样例、政策清单、船期表；本地浏览器保存异常记录；导出 CSV 给邮件或 Teams 分享。</p>
+              <p>公开权威入口、船讯网基础船舶查询、上海港公开放行入口、全球趋势公开新闻、港口风险公开新闻。</p>
             </div>
             <div>
               <h3>下一步可做</h3>
-              <p>Excel/CSV 本地解析、产品关键词规则库、政策待复核清单、船期表搜索、文件生成模板。</p>
+              <p>指定人员登录、真实权限控制、更多官方/船司/码头 API、政策订阅、查询历史和异常协同。</p>
             </div>
             <div>
               <h3>正式系统</h3>
-              <p>接 SharePoint、ERP/WMS/TMS、报关行接口、AIS/船公司 API、SSO、权限、审计日志和集中数据库。</p>
+              <p>如未来需要内部数据，再接 SharePoint、ERP/WMS/TMS、报关行接口、SSO、权限、审计日志和集中数据库。</p>
             </div>
           </div>
         </section>

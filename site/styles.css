@@ -35,6 +35,45 @@ body {
   color: var(--ink);
 }
 
+.access-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(238, 243, 248, 0.96);
+}
+
+.access-card {
+  display: grid;
+  gap: 14px;
+  width: min(520px, 100%);
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(41, 64, 92, 0.18);
+}
+
+.access-card h1 {
+  font-size: 28px;
+}
+
+.access-card p,
+#accessError {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+#accessError {
+  min-height: 20px;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 button,
 input,
 select,
@@ -254,7 +293,9 @@ h1 {
 .module-grid,
 .checklist-grid,
 .ops-grid,
-.integration-grid {
+.integration-grid,
+.trend-grid,
+.port-risk-grid {
   display: grid;
   gap: 14px;
 }
@@ -910,6 +951,124 @@ textarea:focus {
   line-height: 1.55;
 }
 
+.port-query-helper {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #f7fbfd;
+}
+
+.port-query-helper h3 {
+  margin: 4px 0 8px;
+}
+
+.port-query-helper p,
+.port-query-actions span {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.port-query-actions {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+
+.section-note {
+  max-width: 900px;
+  margin: 0 0 14px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.trend-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 14px;
+}
+
+.trend-card,
+.risk-card {
+  display: grid;
+  gap: 9px;
+  align-content: start;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fbfdff;
+}
+
+.trend-card span,
+.risk-card span {
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.trend-card h3 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.trend-card p,
+.risk-card p,
+.risk-card li {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.trend-card a,
+.risk-card a,
+.mini-link-list a {
+  color: var(--accent-strong);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.port-risk-grid {
+  grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.1fr) minmax(220px, 0.8fr) minmax(0, 1.2fr);
+  margin-top: 14px;
+}
+
+.risk-card strong {
+  color: var(--ink);
+  font-size: 26px;
+}
+
+.risk-card ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.level-medium {
+  background: var(--yellow-soft);
+}
+
+.level-watch {
+  background: #eaf5ff;
+}
+
+.level-low {
+  background: #eef8f1;
+}
+
+.mini-link-list,
+.articles-card {
+  display: grid;
+  gap: 8px;
+}
+
 .customs-link-card h3 {
   margin: 0;
   font-size: 15px;
@@ -1011,6 +1170,8 @@ td {
   .ops-grid,
   .checklist-grid,
   .integration-grid,
+  .trend-grid,
+  .port-risk-grid,
   .field-grid.five-fields,
   .customs-link-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1046,6 +1207,8 @@ td {
   .ops-grid,
   .checklist-grid,
   .integration-grid,
+  .trend-grid,
+  .port-risk-grid,
   .field-grid.five-fields,
   .customs-link-grid,
   .tracking-cards,
