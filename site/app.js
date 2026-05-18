@@ -64,18 +64,16 @@ const users = [
 
 const moduleItems = [
   ["总览", "一眼看到待复核事项、电池风险、异常记录、政策和港口风险。", "已上线"],
-  ["税号推荐", "输入产品名称、用途、材质和关键参数，给出候选税号和风险提醒。", "已上线"],
-  ["申报要素", "告诉同事报关时通常要准备哪些产品信息和资料。", "已上线"],
-  ["政策变化", "集中放海关、认证、归类和目的国政策入口，并抓取公开相关新闻。", "已上线"],
-  ["全球趋势", "看过去一周经济、政治、金融、贸易、物流新闻，并给中文摘要。", "已上线"],
-  ["船期和船舶位置", "输入船名和目的港，查询船舶大致位置、下一港和预计到港信息。", "已上线"],
+  ["税号/申报要素", "输入产品名称、用途、材质和关键参数，给出候选税号、风险提醒和申报资料清单。", "已上线"],
+  ["政策变化", "集中放海关、认证、归类、目的国政策入口，并抓取公开新闻和政策解读。", "已上线"],
+  ["全球趋势", "搜索过去一周经济、政治、金融、贸易、物流新闻，并给中文摘要。", "已上线"],
+  ["船期和船舶位置", "输入船名和目的港，查询船舶大致位置、下一港、ETA，并保存预警规则。", "已上线"],
   ["通关状态入口", "给同事提单、箱号、上海港放行、单一窗口等查询入口和字段提醒。", "测试版"],
   ["出货节点", "后续可做订舱、开船、到港、报关、放行节点看板。", "后续"],
   ["电池/危险品", "判断锂电池、MSDS、UN38.3、包装方式和运输方式的风险。", "已上线"],
   ["港口风险", "输入港口，查看公开新闻风险、官方入口和人工确认清单。", "已上线"],
   ["异常记录", "记录税号不确定、缺文件、政策待确认、船期异常等问题。", "已上线"],
-  ["成本和时效参考", "先用样例解释海运、空运、查验补资料对时间的影响。", "后续"],
-  ["国家/地区要求速查", "按中国、欧盟、美国、英国、中东等市场提示常见合规关注点。", "测试版"],
+  ["进口国要求查询", "输入产品大致信息和进口国，提示认证、标签、电池、无线和清关资料。", "测试版"],
   ["未来接口", "后续再接公司内部系统、报关行、船司、权限登录和数据库。", "后续"]
 ];
 
@@ -152,16 +150,73 @@ const countryRows = [
   ["GCC", "G-Mark、无线产品许可、标签和目的港清关要求", "待接规则库"]
 ];
 
-const benchmarks = [
-  ["海运整柜/拼箱", "适合普通音箱、Soundbar；关注截关、舱单和目的港拥堵。"],
-  ["空运/快递", "适合样品和急单；锂电池文件、PI965/966/967 边界是高风险点。"],
-  ["查验/补资料", "历史异常可沉淀原因、耗时和责任人，后续形成时效基准。"]
+const requirementProfiles = [
+  {
+    market: "中国",
+    aliases: ["china", "中国", "大陆", "cn", "进口中国"],
+    base: ["确认商品编码、监管条件、检验检疫、关税和增值税率。", "准备品牌、型号、用途、材质、功能原理、图片和规格书。", "正式申报前由关务或报关行复核归类依据。"],
+    rules: [
+      ["wireless", "带蓝牙/无线功能：核验无线电型号核准、频段、发射功率和说明书。"],
+      ["battery", "含锂电池：准备 MSDS、UN38.3、额定能量 Wh、包装方式和运输限制说明。"],
+      ["power", "带电源适配器/插头：核验 3C、低压电器和电源规格。"],
+      ["audio", "音频整机：核对是否涉及 3C 目录边界和整机/零件归类。"]
+    ]
+  },
+  {
+    market: "欧盟 EU",
+    aliases: ["eu", "europe", "欧盟", "欧洲", "德国", "法国", "荷兰", "意大利", "西班牙"],
+    base: ["关注 CE、RoHS、REACH、WEEE、电池法规、包装法规和当地语言标签。", "进口商信息、符合性声明 DoC、技术文件和说明书需要提前确认。"],
+    rules: [
+      ["wireless", "无线产品通常需关注 RED 指令、频段、测试报告和 CE DoC。"],
+      ["battery", "含电池产品关注欧盟电池法规、回收标识、容量信息和运输文件。"],
+      ["power", "电源适配器关注 LVD/EMC/RoHS/能效标签要求。"]
+    ]
+  },
+  {
+    market: "美国 US",
+    aliases: ["us", "usa", "united states", "美国"],
+    base: ["关注 FCC、原产地标识、TSCA、海关估价、反倾销/301 关税等。", "进口商通常需要产品说明、HTS、用途、材质、品牌型号和合规声明。"],
+    rules: [
+      ["wireless", "无线产品重点核验 FCC ID、测试报告和标签。"],
+      ["battery", "含锂电池关注 DOT/IATA/IMDG 文件、UN38.3 和包装限制。"],
+      ["power", "电源适配器关注 UL/ETL 客户要求和能效要求。"]
+    ]
+  },
+  {
+    market: "英国 UK",
+    aliases: ["uk", "united kingdom", "英国", "英國"],
+    base: ["关注 UKCA、进口商信息、包装/电池责任和英文标签。", "与欧盟类似但认证标志和责任主体需单独确认。"],
+    rules: [
+      ["wireless", "无线产品关注 UK Radio Equipment Regulations、测试报告和标签。"],
+      ["battery", "电池产品关注回收责任、运输文件和标签。"]
+    ]
+  },
+  {
+    market: "中东 GCC",
+    aliases: ["gcc", "中东", "沙特", "阿联酋", "uae", "saudi", "dubai"],
+    base: ["关注 G-Mark、无线产品许可、阿语/英语标签、目的港清关资料和客户特殊要求。", "不同国家差异较大，出货前建议让当地进口商确认准入文件。"],
+    rules: [
+      ["wireless", "无线产品需核验当地电信许可和频段限制。"],
+      ["battery", "含电池产品提前确认承运人和目的港 DG 接受规则。"]
+    ]
+  },
+  {
+    market: "日本 Japan",
+    aliases: ["japan", "日本", "jp"],
+    base: ["关注 PSE、TELEC、RoHS/J-Moss、日文标签和进口商责任。", "客户常会要求测试报告、说明书和标签样稿。"],
+    rules: [
+      ["wireless", "无线产品重点核验 TELEC/MIC 认证。"],
+      ["power", "电源类产品关注 PSE 标识和测试文件。"],
+      ["battery", "含锂电池仍需准备运输文件和标签。"]
+    ]
+  }
 ];
 
 const state = {
   cases: loadCases(),
   lastResult: null,
-  issues: loadIssues()
+  issues: loadIssues(),
+  vesselAlerts: loadVesselAlerts()
 };
 
 const $ = (id) => document.getElementById(id);
@@ -217,6 +272,20 @@ function loadIssues() {
 
 function saveIssues() {
   localStorage.setItem("issueLog", JSON.stringify(state.issues));
+}
+
+function loadVesselAlerts() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem("vesselAlertRules") || "[]");
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    return [];
+  }
+  return [];
+}
+
+function saveVesselAlerts() {
+  localStorage.setItem("vesselAlertRules", JSON.stringify(state.vesselAlerts));
 }
 
 function mergeCases(...lists) {
@@ -392,30 +461,53 @@ function renderTimeline() {
     .join("");
 }
 
+function getPolicyFilters() {
+  return {
+    exportCountry: $("policyExportCountry")?.value || "",
+    importCountry: $("policyImportCountry")?.value || "",
+    product: $("policyProduct")?.value || "",
+    direction: $("policyDirection")?.value || ""
+  };
+}
+
 async function loadPolicyUpdates() {
-  $("policyStatus").textContent = "正在查询公开政策相关新闻...";
+  const filters = getPolicyFilters();
+  const label = [filters.exportCountry && `出口:${filters.exportCountry}`, filters.importCountry && `进口:${filters.importCountry}`, filters.product && `产品:${filters.product}`, filters.direction]
+    .filter(Boolean)
+    .join(" / ");
+  $("policyStatus").textContent = label ? `正在查询公开政策相关新闻：${label}` : "正在查询公开政策相关新闻...";
   try {
-    const data = await fetchJsonOrFallback("/.netlify/functions/policy-monitor", fallbackPolicyUpdates());
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (String(value || "").trim()) params.set(key, value);
+    });
+    const url = `/.netlify/functions/policy-monitor${params.toString() ? `?${params.toString()}` : ""}`;
+    const data = await fetchJsonOrFallback(url, fallbackPolicyUpdates("", filters));
     renderPolicyUpdates(data);
   } catch (error) {
-    renderPolicyUpdates(fallbackPolicyUpdates(error.message));
+    renderPolicyUpdates(fallbackPolicyUpdates(error.message, filters));
   }
 }
 
-function fallbackPolicyUpdates(message = "") {
+function fallbackPolicyUpdates(message = "", filters = {}) {
   return {
     ok: false,
     fallback: true,
     source: "公开政策入口",
     updatedAt: new Date().toISOString(),
+    filters,
     message,
-    summary: "当前先提供权威入口和固定核验清单；如果公开新闻接口暂时不可用，仍可按下方入口人工核验。",
+    summary: filters.product || filters.importCountry || filters.exportCountry
+      ? "当前先按你填写的国家/产品给出权威入口和人工核验清单；如果公开新闻接口暂时不可用，仍可按这些入口核验。"
+      : "当前先提供权威入口和固定核验清单；如果公开新闻接口暂时不可用，仍可按下方入口人工核验。",
     items: [
       {
         title: "海关公告、归类决定和监管条件",
         category: "海关/税号",
         url: "http://www.customs.gov.cn/",
         domain: "customs.gov.cn",
+        sourceType: "官方入口",
+        credibility: { score: 96, label: "高：官方来源", reason: "海关官方门户，适合做最终政策核验。" },
         takeaway: "用于核对税号、监管条件、归类口径、海关公告和行政裁定。"
       },
       {
@@ -423,6 +515,8 @@ function fallbackPolicyUpdates(message = "") {
         category: "认证/3C",
         url: "https://www.cnca.gov.cn/",
         domain: "cnca.gov.cn",
+        sourceType: "官方入口",
+        credibility: { score: 95, label: "高：官方来源", reason: "认证认可监管官方入口，适合核验 3C 目录和公告。" },
         takeaway: "用于核对音频设备、电源适配器、低压电器等是否涉及强制认证。"
       },
       {
@@ -430,6 +524,8 @@ function fallbackPolicyUpdates(message = "") {
         category: "目的国要求",
         url: "https://www.wto.org/",
         domain: "wto.org",
+        sourceType: "国际组织/政策背景",
+        credibility: { score: 88, label: "中高：国际组织", reason: "适合作为贸易政策背景，具体产品要求仍需当地法规或进口商确认。" },
         takeaway: "出口前需要核对 CE、FCC、UKCA、RoHS、电池、标签语言等要求。"
       }
     ]
@@ -452,6 +548,10 @@ function renderPolicyUpdates(data = {}) {
             <span>${escapeHtml(item.category || item.domain || "政策")}</span>
             <h3>${escapeHtml(item.title)}</h3>
             <p>${escapeHtml(item.takeaway || "需要时点击原始来源核验。")}</p>
+            <div class="credibility-row">
+              <strong>${escapeHtml(item.credibility?.label || credibilityLabel(item.domain))}</strong>
+              <small>${escapeHtml(item.credibility?.reason || "公开来源，建议打开原文并与官方入口交叉核验。")}</small>
+            </div>
             <a href="${escapeHtml(item.url || "#")}" target="_blank" rel="noreferrer">${escapeHtml(item.domain || "查看来源")}</a>
           </article>
         `
@@ -460,16 +560,23 @@ function renderPolicyUpdates(data = {}) {
   `;
 }
 
+function credibilityLabel(domain = "") {
+  const official = /gov|customs|cnca|singlewindow|europa|wto/i.test(domain);
+  if (official) return "高：官方/国际组织";
+  const industry = /reuters|bloomberg|spglobal|joc|loadstar|maritime|ft|wsj/i.test(domain);
+  if (industry) return "中高：媒体/行业解读";
+  return "中：需复核来源";
+}
+
 function renderDeclarationElements(formText = "") {
   const keyword = formText || "battery wireless audio";
   const rows = declarationSets.map(([title, items]) => {
     const active =
-      keyword.includes("battery") && title.includes("电池") ||
-      keyword.includes("wireless") && title.includes("无线") ||
-      keyword.includes("bluetooth") && title.includes("无线") ||
-      keyword.includes("soundbar") && title.includes("音箱") ||
-      keyword.includes("speaker") && title.includes("音箱") ||
-      keyword.includes("head") && title.includes("耳机");
+      (/(battery|电池|锂|charging case|充电盒)/.test(keyword) && title.includes("电池")) ||
+      (/(wireless|bluetooth|蓝牙|无线)/.test(keyword) && title.includes("无线")) ||
+      (/(soundbar|speaker|音箱|喇叭)/.test(keyword) && title.includes("音箱")) ||
+      (/(headphone|headset|earbuds|耳机)/.test(keyword) && title.includes("耳机")) ||
+      (/(repair|spare|维修|配件|零件)/.test(keyword) && title.includes("维修件"));
     return `
       <article class="check-card">
         <h3>${active ? "优先 - " : ""}${escapeHtml(title)}</h3>
@@ -579,18 +686,31 @@ function describeSeaArea(lat, lon) {
   return "公开 AIS 坐标附近海域";
 }
 
+function clamp(number, min, max) {
+  return Math.min(max, Math.max(min, number));
+}
+
 function setVesselMap(position = {}, destination = "") {
-  const image = $("vesselMapImage");
+  const map = $("vesselCoordinateMap");
+  const marker = $("vesselMarker");
   const lat = toNumber(position.lat);
   const lon = toNumber(position.lon);
   if (lat === null || lon === null) {
-    image.classList.add("hidden");
+    map.classList.add("hidden");
+    marker.classList.remove("live-position");
+    marker.removeAttribute("style");
+    marker.textContent = "船舶位置";
     $("shipLocationNarrative").textContent = `暂时没有拿到船舶坐标；系统会继续显示文字结果，目的港：${destination || "未填写" }。`;
     return;
   }
 
-  image.src = `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=4&size=900x430&markers=${lat},${lon},red-pushpin`;
-  image.classList.remove("hidden");
+  const left = clamp(((lon + 180) / 360) * 100, 7, 93);
+  const top = clamp(((90 - lat) / 180) * 100, 8, 92);
+  map.classList.remove("hidden");
+  marker.classList.add("live-position");
+  marker.style.left = `${left}%`;
+  marker.style.top = `${top}%`;
+  marker.textContent = "船舶位置";
   $("shipLocationNarrative").textContent = `这艘船大致在${describeSeaArea(lat, lon)}，坐标约 ${formatCoordinate(position.lat, "lat")}、${formatCoordinate(position.lon, "lon")}，目前显示的下一港/目的港是 ${destination || "未返回" }。`;
 }
 
@@ -688,7 +808,7 @@ function renderShipmentResult(payload = {}, fallback = {}) {
     : "确认截关、舱单、提单和目的港清关资料";
   $("mapOrigin").textContent = origin;
   $("mapDestination").textContent = destination;
-  $("vesselMapImage").classList.add("hidden");
+  setVesselMap({}, destination);
   $("shipLocationNarrative").textContent = `当前显示模拟结果：${vessel} 计划从 ${origin} 前往 ${destination}。真实位置需要船舶 AIS 接口返回坐标。`;
   $("shipmentApiState").textContent = location.protocol.startsWith("http") ? "模拟 fallback" : "本地模拟";
   $("shipmentSourceLabel").textContent = "Simulated Result";
@@ -741,6 +861,7 @@ async function loadTrends(keyword = "") {
 }
 
 function fallbackTrends(message = "", keyword = "") {
+  const keywordText = keyword ? `“${keyword}”` : "全球宏观";
   return {
     ok: false,
     fallback: true,
@@ -749,16 +870,18 @@ function fallbackTrends(message = "", keyword = "") {
     message,
     keyword,
     summary: keyword
-      ? `暂时没有拿到“${keyword}”的实时搜索结果。建议先看固定来源，并用更宽泛的关键词再试。`
+      ? `暂时没有拿到${keywordText}的实时搜索结果。建议先看固定来源，并用更宽泛的关键词再试。`
       : "重点关注利率、汇率、能源、贸易政策、地缘风险和供应链变化；这些会影响成本、交期和清关不确定性。",
     items: [
       {
-        title: "全球趋势观察",
+        title: keyword ? `${keywordText}趋势观察` : "全球趋势观察",
         domain: "Manual checklist",
         sourceCountry: "Global",
         url: "https://www.reuters.com/markets/",
         seendate: "",
-        takeaway: "关注利率、汇率、能源、贸易政策、地缘风险和供应链新闻；具体业务仍以官方/货代/关务确认为准。"
+        takeaway: keyword
+          ? `先围绕${keywordText}检查是否会影响价格、船期、清关文件、目的国准入或客户交付承诺。`
+          : "关注利率、汇率、能源、贸易政策、地缘风险和供应链新闻；具体业务仍以官方/货代/关务确认为准。"
       }
     ]
   };
@@ -819,6 +942,7 @@ async function queryPortRisk(event) {
 }
 
 function fallbackPortRisk(port = "Shanghai Port", cargo = "Consumer Audio", message = "") {
+  const batteryCargo = /battery|电池|危险|dg|hazard/i.test(cargo);
   return {
     ok: false,
     fallback: true,
@@ -826,7 +950,7 @@ function fallbackPortRisk(port = "Shanghai Port", cargo = "Consumer Audio", mess
     updatedAt: new Date().toISOString(),
     port,
     cargo,
-    level: cargo.toLowerCase().includes("battery") ? "Medium" : "Watch",
+    level: batteryCargo ? "Medium" : "Watch",
     summary: message || `${port} 暂未获取到实时公开新闻结果，先按手工清单处理。`,
     checklist: [
       "查询上港集团箱货状态：海关放行、码头放行、理货、换单、授权、放箱、查验指令。",
@@ -1042,9 +1166,138 @@ function renderCountryMatrix() {
   $("countryTable").innerHTML = countryRows
     .map(([market, focus, status]) => `<tr><td>${escapeHtml(market)}</td><td>${escapeHtml(focus)}</td><td>${escapeHtml(status)}</td></tr>`)
     .join("");
-  $("benchmarkList").innerHTML = benchmarks
-    .map(([title, text]) => `<article class="benchmark-item"><strong>${escapeHtml(title)}</strong><p>${escapeHtml(text)}</p></article>`)
-    .join("");
+}
+
+function detectRequirementSignals(productText = "") {
+  const text = normalize(productText);
+  const signals = [];
+  if (/(蓝牙|无线|wifi|wi-fi|bluetooth|wireless|radio|tws)/.test(text)) signals.push("wireless");
+  if (/(电池|锂|battery|li-ion|charging case|充电盒|power bank)/.test(text)) signals.push("battery");
+  if (/(适配器|电源|插头|adapter|charger|power supply|usb-c|type-c)/.test(text)) signals.push("power");
+  if (/(耳机|音箱|soundbar|speaker|headphone|earbuds|audio|cd player|播放)/.test(text)) signals.push("audio");
+  if (/(维修|配件|零件|spare|repair|part)/.test(text)) signals.push("spare");
+  return Array.from(new Set(signals));
+}
+
+function findRequirementProfile(country = "") {
+  const needle = normalize(country);
+  if (!needle) return requirementProfiles[0];
+  return (
+    requirementProfiles.find((profile) =>
+      normalize([profile.market, ...profile.aliases].join(" ")).includes(needle) ||
+      profile.aliases.some((alias) => needle.includes(normalize(alias)))
+    ) || {
+      market: country || "未指定市场",
+      aliases: [],
+      base: ["当前测试版没有该市场的固定规则库。建议先确认当地进口商要求、认证、标签、电池运输、海关编码和清关资料。"],
+      rules: []
+    }
+  );
+}
+
+function queryRequirements(event) {
+  event.preventDefault();
+  const product = $("requirementProduct").value || "消费类音频产品";
+  const country = $("requirementCountry").value || "中国";
+  const profile = findRequirementProfile(country);
+  const signals = detectRequirementSignals(product);
+  const matchedRules = profile.rules
+    .filter(([signal]) => signals.includes(signal))
+    .map(([, text]) => text);
+  const genericSignals = [];
+  if (signals.includes("spare")) genericSignals.push("维修件/配件：确认是否专用于整机、是否单独销售、是否需要按零件归类。");
+  if (!matchedRules.length && !genericSignals.length) genericSignals.push("没有命中电池/无线/电源等明显高风险词，但仍建议准备规格书、图片、用途、材质和标签样稿。");
+  const level = signals.includes("battery") || signals.includes("wireless") ? "中高关注" : signals.includes("power") ? "中等关注" : "常规关注";
+
+  $("requirementResult").innerHTML = `
+    <article class="requirement-card">
+      <div>
+        <span>进口国/地区</span>
+        <strong>${escapeHtml(profile.market)}</strong>
+      </div>
+      <div>
+        <span>风险关注</span>
+        <strong>${escapeHtml(level)}</strong>
+      </div>
+      <p>产品描述：${escapeHtml(product)}</p>
+      <h3>建议先核对</h3>
+      <ul>
+        ${profile.base.concat(matchedRules, genericSignals).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+      </ul>
+      <small>说明：这是测试版规则提示，目的是告诉非专业同事“先查什么、问谁、准备什么”，最终结论仍需关务、认证机构、当地进口商或报关行确认。</small>
+    </article>
+  `;
+}
+
+function loadRequirementExample() {
+  $("requirementProduct").value = "蓝牙耳机，内置锂电池，带充电盒，USB-C 充电，零售包装";
+  $("requirementCountry").value = "欧盟";
+  queryRequirements(new Event("submit"));
+}
+
+function formatDateTimeForUser(value = "") {
+  if (!value) return "未填写 ETA";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+function saveVesselAlert(event) {
+  event.preventDefault();
+  const rule = {
+    id: Date.now().toString(36),
+    vessel: $("alertVesselName").value || $("vesselName").value || "未填写船名",
+    destination: $("alertDestination").value || $("destinationPort").value || "未填写目的港",
+    expectedEta: $("alertExpectedEta").value,
+    email: $("alertEmail").value || "未填写邮箱",
+    rule: $("alertRule").value,
+    createdAt: new Date().toISOString()
+  };
+  state.vesselAlerts.unshift(rule);
+  saveVesselAlerts();
+  renderVesselAlerts();
+  $("vesselAlertResult").innerHTML = `
+    <article class="alert-card success">
+      <strong>已保存预警规则</strong>
+      <p>${escapeHtml(rule.vessel)} 前往 ${escapeHtml(rule.destination)}，${escapeHtml(rule.rule === "late_eta" ? "实际 ETA 晚于预想 ETA 时提醒" : "ETA 前一个工作日提醒")}。当前测试版先保存在本机浏览器；自动邮件需要后端定时任务。</p>
+    </article>
+  `;
+  $("vesselAlertForm").reset();
+}
+
+function removeVesselAlert(id) {
+  state.vesselAlerts = state.vesselAlerts.filter((item) => item.id !== id);
+  saveVesselAlerts();
+  renderVesselAlerts();
+}
+
+function renderVesselAlerts() {
+  const list = $("vesselAlertList");
+  if (!list) return;
+  list.innerHTML = state.vesselAlerts.length
+    ? state.vesselAlerts
+        .map(
+          (item) => `
+            <article class="alert-card">
+              <div>
+                <span>${escapeHtml(item.rule === "late_eta" ? "ETA 延误预警" : "到港前提醒")}</span>
+                <strong>${escapeHtml(item.vessel)} -> ${escapeHtml(item.destination)}</strong>
+                <p>预想 ETA：${escapeHtml(formatDateTimeForUser(item.expectedEta))}；提醒邮箱：${escapeHtml(item.email)}</p>
+                <small>自动发邮件上线条件：后端定时查询船讯网/船司数据 + 邮件 API + 邮箱白名单。</small>
+              </div>
+              <button type="button" class="secondary-button" data-alert-delete="${escapeHtml(item.id)}">删除</button>
+            </article>
+          `
+        )
+        .join("")
+    : `<article class="alert-card muted"><strong>暂无关注船舶</strong><p>保存规则后，这里会显示需要跟踪的船和 ETA 风险。</p></article>`;
 }
 
 function toCsv(rows, headers) {
@@ -1084,8 +1337,17 @@ function bindEvents() {
   $("userSelect").addEventListener("change", updateRole);
   $("shipmentForm").addEventListener("submit", queryShipment);
   $("loadVesselExample").addEventListener("click", loadVesselExample);
+  $("vesselAlertForm").addEventListener("submit", saveVesselAlert);
+  $("vesselAlertList").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-alert-delete]");
+    if (button) removeVesselAlert(button.dataset.alertDelete);
+  });
   $("customsForm").addEventListener("submit", queryCustoms);
   $("refreshPolicy").addEventListener("click", loadPolicyUpdates);
+  $("policyFilterForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    loadPolicyUpdates();
+  });
   $("refreshTrends").addEventListener("click", () => loadTrends($("trendKeyword").value));
   $("trendSearchForm").addEventListener("submit", (event) => {
     event.preventDefault();
@@ -1112,6 +1374,8 @@ function bindEvents() {
   $("exportIssues").addEventListener("click", () =>
     download("consumer-audio-exception-log.csv", toCsv(state.issues, ["status", "type", "priority", "title", "owner", "date"]))
   );
+  $("requirementForm").addEventListener("submit", queryRequirements);
+  $("loadRequirementExample").addEventListener("click", loadRequirementExample);
 }
 
 renderUsers();
@@ -1123,11 +1387,13 @@ renderDeclarationElements();
 renderOps();
 renderCustomsLinks();
 renderShipmentResult();
+renderVesselAlerts();
 renderCustomsAdvice();
 loadTrends();
 renderPortSuggestions();
 queryPortRisk();
 renderIssues();
 renderCountryMatrix();
+queryRequirements({ preventDefault() {} });
 renderRisks(["填写产品信息后，这里会显示 HS、3C、Battery/DG、监管条件和人工复核提醒。"]);
 bindEvents();

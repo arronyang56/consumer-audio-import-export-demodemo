@@ -22,11 +22,25 @@ function clean(value) {
 }
 
 function cleanShipName(value) {
-  return clean(value).replace(/[^\w\s.'-]/g, "").replace(/\s+/g, " ").slice(0, 80);
+  return clean(value).replace(/[^\p{L}\p{N}\s.'-]/gu, "").replace(/\s+/g, " ").slice(0, 80);
 }
 
 function normalizePortText(value) {
-  return clean(value).toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const raw = clean(value);
+  const terms = new Set([raw.toUpperCase().replace(/[^A-Z0-9]/g, "")]);
+  if (/上海|shanghai|cnsgh|cnshg/i.test(raw)) ["SHANGHAI", "CNSHG", "CNSHA"].forEach((term) => terms.add(term));
+  if (/宁波|舟山|ningbo|zhoushan|cnngb/i.test(raw)) ["NINGBO", "ZHOUSHAN", "CNNGB"].forEach((term) => terms.add(term));
+  if (/盐田|深圳|蛇口|yantian|shenzhen|shekou|cnytn/i.test(raw)) ["YANTIAN", "SHENZHEN", "SHEKOU", "CNYTN"].forEach((term) => terms.add(term));
+  if (/鹿特丹|rotterdam|nlrtm/i.test(raw)) ["ROTTERDAM", "NLRTM"].forEach((term) => terms.add(term));
+  if (/洛杉矶|long beach|los angeles|uslax|uslgb/i.test(raw)) ["LOSANGELES", "LONGBEACH", "USLAX", "USLGB"].forEach((term) => terms.add(term));
+  return Array.from(terms).filter(Boolean).join(" ");
+}
+
+function hasAnyTerm(haystack = "", needleText = "") {
+  return needleText
+    .split(/\s+/)
+    .filter((term) => term.length > 1)
+    .some((term) => haystack.includes(term));
 }
 
 function asUnixDate(value) {
@@ -134,11 +148,12 @@ function scoreShipCandidate(ship, requestedName = "", destination = "", portcode
   const shipDest = normalizePortText(`${ship.dest_std || ""} ${ship.dest || ""} ${ship.destcode || ""}`);
   let score = 0;
 
-  if (shipName === nameNeedle) score += 40;
-  else if (shipName.includes(nameNeedle) || nameNeedle.includes(shipName)) score += 20;
-  if (portNeedle && shipDest.includes(portNeedle)) score += 30;
-  if (destNeedle && shipDest.includes(destNeedle)) score += 25;
-  score += Math.min(20, Math.max(0, Number(ship.lasttime) || 0) / 100000000);
+  if (shipName === nameNeedle) score += 85;
+  else if (shipName.startsWith(nameNeedle) || nameNeedle.startsWith(shipName)) score += 45;
+  else if (shipName.includes(nameNeedle) || nameNeedle.includes(shipName)) score += 30;
+  if (portNeedle && hasAnyTerm(shipDest, portNeedle)) score += 20;
+  if (destNeedle && hasAnyTerm(shipDest, destNeedle)) score += 18;
+  score += Math.min(10, Math.max(0, Number(ship.lasttime) || 0) / 200000000);
   return score;
 }
 

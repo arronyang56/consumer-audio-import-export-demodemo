@@ -33,8 +33,7 @@
 
         <nav aria-label="主导航">
           <a class="active" href="#dashboard">总览</a>
-          <a href="#hs">税号推荐</a>
-          <a href="#elements">申报要素</a>
+          <a href="#hs">税号/申报要素</a>
           <a href="#policy">政策变化</a>
           <a href="#trends">全球趋势</a>
           <a href="#shipment">船期和船舶位置</a>
@@ -42,7 +41,7 @@
           <a href="#port-risk">港口风险</a>
           <a href="#battery">电池/危险品</a>
           <a href="#exception">异常记录</a>
-          <a href="#matrix">国家要求速查</a>
+          <a href="#matrix">进口国要求查询</a>
           <a href="#integration">未来数据接口</a>
         </nav>
 
@@ -206,18 +205,18 @@
               <h3>合规提醒</h3>
               <ul id="riskList"></ul>
             </div>
-          </section>
-        </section>
 
-        <section id="elements" class="panel">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Declaration Elements</p>
-              <h2>申报要素助手</h2>
+            <div class="merged-elements">
+              <div class="panel-subheading">
+                <div>
+                  <p class="eyebrow">Declaration Elements</p>
+                  <h2>申报要素/需要准备什么</h2>
+                </div>
+                <span class="quiet-tag">由产品信息自动提示</span>
+              </div>
+              <div id="elementGrid" class="checklist-grid compact-elements"></div>
             </div>
-            <span class="quiet-tag">由产品类别 + 候选税号触发</span>
-          </div>
-          <div id="elementGrid" class="checklist-grid"></div>
+          </section>
         </section>
 
         <section id="policy" class="two-column">
@@ -229,7 +228,30 @@
               </div>
               <button type="button" class="secondary-button" id="refreshPolicy">刷新政策</button>
             </div>
-          <p class="section-note">这里不是自动替你判断政策，而是把“该去哪里看、最近有没有相关公开消息、需要注意什么”放在一起。正式申报仍以海关、单一窗口、认证机构、报关行和内部关务复核为准。</p>
+            <p class="section-note">这里不是自动替你判断政策，而是把“该去哪里看、最近有没有相关公开消息、需要注意什么”放在一起。正式申报仍以海关、单一窗口、认证机构、报关行和内部关务复核为准。</p>
+            <form id="policyFilterForm" class="query-card policy-filter-form">
+              <label>
+                出口国/地区
+                <input id="policyExportCountry" lang="zh-CN" placeholder="例如：中国、美国、欧盟，可不填" />
+              </label>
+              <label>
+                进口国/地区
+                <input id="policyImportCountry" lang="zh-CN" placeholder="例如：美国、欧盟、英国、中东" />
+              </label>
+              <label>
+                产品/关键词
+                <input id="policyProduct" lang="zh-CN" placeholder="例如：蓝牙耳机、音箱、电池、3C、关税" />
+              </label>
+              <label>
+                方向
+                <select id="policyDirection">
+                  <option value="">不限</option>
+                  <option value="进口">进口相关</option>
+                  <option value="出口">出口相关</option>
+                </select>
+              </label>
+              <button type="submit" class="primary-button">筛选政策</button>
+            </form>
             <div id="policyStatus" class="quiet-tag">等待加载</div>
             <div class="timeline" id="policyTimeline"></div>
             <div class="policy-live-grid" id="policyLiveGrid"></div>
@@ -255,10 +277,10 @@
             <button type="button" class="secondary-button" id="refreshTrends">刷新趋势</button>
           </div>
           <p class="section-note">这里把过去一周和经济、政治、金融、贸易、物流有关的公开新闻抓出来，并用中文说一句“可能和我们有什么关系”。需要细看时再点原文。</p>
-          <form class="inline-search" id="trendSearchForm">
+          <form class="query-card inline-search" id="trendSearchForm">
             <label>
-              关键词
-              <input id="trendKeyword" placeholder="如 tariff / battery / Red Sea / China economy / shipping" />
+              输入关键词（中文或英文都可以）
+              <input id="trendKeyword" type="search" inputmode="search" lang="zh-CN" placeholder="例如：船期、关税、电池、红海、汇率、美国大选、shipping、tariff" />
             </label>
             <button type="submit" class="primary-button">搜索趋势</button>
             <button type="button" class="secondary-button" id="clearTrendSearch">清空</button>
@@ -278,20 +300,20 @@
           <form class="panel tracking-form" id="shipmentForm">
             <div class="field-grid five-fields">
               <label>
-                Vessel Name
-                <input id="vesselName" placeholder="船名，如 EVER GIVEN / COSCO SHIPPING，可模糊搜索" />
+                船名 / Vessel Name
+                <input id="vesselName" lang="zh-CN" placeholder="船名，如 EVER GIVEN / 中远海运，可模糊搜索" />
               </label>
               <label>
-                Voyage No. (Optional)
-                <input id="voyageNo" placeholder="航次，如 001W / 045E，可不填" />
+                航次（可不填）
+                <input id="voyageNo" lang="zh-CN" placeholder="如 001W / 045E，可不填" />
               </label>
               <label>
-                Origin Port
-                <input id="originPort" placeholder="起运港，如 Port Klang / Ningbo" />
+                起运港
+                <input id="originPort" lang="zh-CN" placeholder="如 巴生港 / 宁波 / Port Klang" />
               </label>
               <label>
-                Destination Port
-                <input id="destinationPort" placeholder="目的港，如 Shanghai / CNSHG / Rotterdam" />
+                目的港
+                <input id="destinationPort" lang="zh-CN" placeholder="如 上海 / CNSHG / Rotterdam" />
               </label>
               <label>
                 IMO / MMSI (Optional)
@@ -307,11 +329,16 @@
           <div class="tracking-layout">
             <article class="panel route-map" aria-label="船舶路线示意">
               <div class="map-water">
-                <img id="vesselMapImage" class="vessel-map-image hidden" alt="船舶大致位置地图" />
+                <div id="vesselCoordinateMap" class="coordinate-map hidden" aria-label="船舶坐标示意图">
+                  <span class="coord-label north">北纬 90°</span>
+                  <span class="coord-label south">南纬 90°</span>
+                  <span class="coord-label west">西经 180°</span>
+                  <span class="coord-label east">东经 180°</span>
+                </div>
                 <div class="route-line"></div>
                 <span class="map-chip origin">Origin: <strong id="mapOrigin">Port Klang</strong></span>
                 <span class="map-chip destination">Dest: <strong id="mapDestination">Shanghai</strong></span>
-                <span class="vessel-marker" aria-hidden="true">VESSEL</span>
+                <span class="vessel-marker" id="vesselMarker" aria-hidden="true">船舶位置</span>
                 <div class="wave wave-one"></div>
                 <div class="wave wave-two"></div>
                 <div class="wave wave-three"></div>
@@ -348,6 +375,45 @@
               <p class="api-note" id="shipmentApiNote">真实查询需要 Netlify 环境变量 SHIPXY_API_KEY；船司船期仍以订舱和货代确认为准。</p>
             </aside>
           </div>
+
+          <section class="panel alert-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Risk Alert / 预警规则</p>
+                <h2>关注船舶和 ETA 风险</h2>
+              </div>
+              <span class="quiet-tag">测试版：本地保存规则</span>
+            </div>
+            <p class="section-note">你可以先把关注船舶、预想 ETA 和提醒邮箱记在这里。当前公开前端版会生成提醒建议并保存在本机浏览器；真正自动发邮件需要后端定时任务和邮件服务，后续可以接 Netlify Scheduled Functions + 邮件 API。</p>
+            <form id="vesselAlertForm" class="query-card alert-watch-form">
+              <label>
+                关注船名
+                <input id="alertVesselName" lang="zh-CN" placeholder="例如 EVER GIVEN / 中远某船" />
+              </label>
+              <label>
+                目的港
+                <input id="alertDestination" lang="zh-CN" placeholder="例如 上海 / Rotterdam" />
+              </label>
+              <label>
+                预想 ETA
+                <input id="alertExpectedEta" type="datetime-local" />
+              </label>
+              <label>
+                提醒邮箱
+                <input id="alertEmail" type="email" placeholder="name@company.com" />
+              </label>
+              <label>
+                预警规则
+                <select id="alertRule">
+                  <option value="before_eta">ETA 前一个工作日提醒</option>
+                  <option value="late_eta">实际 ETA 晚于预想 ETA 时提醒</option>
+                </select>
+              </label>
+              <button type="submit" class="primary-button">保存预警规则</button>
+            </form>
+            <div id="vesselAlertResult" class="alert-result"></div>
+            <div id="vesselAlertList" class="alert-list"></div>
+          </section>
 
           <div class="ops-grid" id="opsGrid"></div>
         </section>
@@ -417,19 +483,19 @@
             </div>
             <span class="quiet-tag">默认上海港</span>
           </div>
-          <form id="portRiskForm" class="customs-query">
+          <form id="portRiskForm" class="query-card customs-query">
             <div class="field-grid five-fields">
               <label>
-                Port
-                <input id="portName" value="Shanghai Port" list="portSuggestionsList" autocomplete="off" placeholder="Shanghai Port / Ningbo / Yantian / Los Angeles" />
+                港口（中文或英文都可以）
+                <input id="portName" value="上海港" list="portSuggestionsList" autocomplete="off" lang="zh-CN" placeholder="例如：上海港、宁波、盐田、洛杉矶、Rotterdam" />
                 <datalist id="portSuggestionsList"></datalist>
               </label>
               <label>
-                Country / Region
-                <input id="portRegion" value="China" placeholder="China / EU / US" />
+                国家/地区
+                <input id="portRegion" value="中国" lang="zh-CN" placeholder="例如：中国、美国、欧盟、英国" />
               </label>
               <label>
-                Cargo Watch
+                货物类型
                 <select id="portCargo">
                   <option>消费类音频产品</option>
                   <option>含电池/危险品</option>
@@ -572,15 +638,27 @@
           </div>
         </section>
 
-        <section id="matrix" class="two-column">
-          <article class="panel">
+        <section id="matrix" class="panel">
             <div class="panel-heading">
               <div>
                 <p class="eyebrow">Country Requirement / 国家地区要求</p>
-                <h2>国家/地区要求速查</h2>
+                <h2>进口国要求查询</h2>
               </div>
+              <button type="button" class="secondary-button" id="loadRequirementExample">载入样例</button>
             </div>
-            <p class="section-note">这个模块是“出口/进口目的地合规提醒表”：用来提醒同事不同市场常见认证、标签、电池和通关关注点。现在保留，但简化为速查，避免显得太复杂。</p>
+            <p class="section-note">输入产品大致信息和进口国/地区，系统会提醒常见认证、标签、电池、无线、清关资料要求。这里是“先提醒你要查什么”，不是最终法律意见。</p>
+            <form id="requirementForm" class="query-card requirement-form">
+              <label>
+                产品大致信息
+                <textarea id="requirementProduct" rows="3" lang="zh-CN" placeholder="例如：蓝牙耳机，内置锂电池，带充电盒，USB-C"></textarea>
+              </label>
+              <label>
+                进口国/地区
+                <input id="requirementCountry" lang="zh-CN" placeholder="例如：中国、欧盟、美国、英国、中东 GCC、日本" />
+              </label>
+              <button type="submit" class="primary-button">查询要求</button>
+            </form>
+            <div id="requirementResult" class="requirement-result"></div>
             <div class="table-wrap compact">
               <table>
                 <thead>
@@ -593,17 +671,6 @@
                 <tbody id="countryTable"></tbody>
               </table>
             </div>
-          </article>
-
-          <article class="panel">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow">Cost & Lead Time Benchmark</p>
-                <h2>成本与时效基准</h2>
-              </div>
-            </div>
-            <div id="benchmarkList" class="benchmark-list"></div>
-          </article>
         </section>
 
         <section id="integration" class="panel">
