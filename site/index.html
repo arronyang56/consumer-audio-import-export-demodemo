@@ -32,17 +32,17 @@
         </div>
 
         <nav aria-label="主导航">
-          <a class="active" href="#dashboard">总览 Dashboard</a>
-          <a href="#hs">HS Code 辅助</a>
+          <a class="active" href="#dashboard">总览</a>
+          <a href="#hs">税号推荐</a>
           <a href="#elements">申报要素</a>
           <a href="#policy">政策变化</a>
           <a href="#trends">全球趋势</a>
-          <a href="#shipment">船期/船舶追踪</a>
+          <a href="#shipment">船期和船舶位置</a>
           <a href="#customs">通关状态入口</a>
           <a href="#port-risk">港口风险</a>
-          <a href="#battery">Battery / DG</a>
+          <a href="#battery">电池/危险品</a>
           <a href="#exception">异常记录</a>
-          <a href="#matrix">国家要求矩阵</a>
+          <a href="#matrix">国家要求速查</a>
           <a href="#integration">未来数据接口</a>
         </nav>
 
@@ -59,9 +59,9 @@
           <div class="hero-main">
             <p class="eyebrow">No-IT MVP / Desensitized demo</p>
             <h1>Consumer Audio 进出口信息汇总平台</h1>
-            <p class="hero-subtitle">HS Code · 政策变化 · 船期追踪 · 通关状态 · 未来数据接口</p>
+            <p class="hero-subtitle">税号推荐 · 政策变化 · 船期和船舶位置 · 通关状态 · 港口风险</p>
             <p class="hero-copy">
-              面向耳机、音箱、Soundbar、CD Player、配件和维修件的 HS 初筛、申报要素、政策关注、锂电池/DG 风险、船期/港口风险与异常跟踪。
+              面向耳机、音箱、Soundbar、CD 播放器、配件和维修件，帮助同事快速了解可能的税号、需要准备哪些申报资料、最近政策有没有变化、船在哪里、港口是否有风险。
             </p>
             <div class="scope-card">
               <strong>当前版本范围</strong>
@@ -71,7 +71,7 @@
           <div class="release-panel">
             <span class="language-pill">中 / EN</span>
             <span>Demo build</span>
-            <strong>2026-05-17</strong>
+            <strong>2026-05-18</strong>
             <small>公开脱敏版，不含公司真实 SKU、供应商、价格或出货数据。</small>
           </div>
         </header>
@@ -80,12 +80,12 @@
           <article class="kpi-card high">
             <span>待关务复核</span>
             <strong id="reviewCount">4</strong>
-            <small>HS / 监管 / 目的国资料</small>
+            <small>税号、监管要求、目的国资料</small>
           </article>
           <article class="kpi-card danger">
-            <span>Battery / DG 高风险</span>
+            <span>电池/危险品高风险</span>
             <strong id="dgCount">3</strong>
-            <small>锂电池、UN38.3、MSDS</small>
+            <small>锂电池、测试报告、MSDS</small>
           </article>
           <article class="kpi-card">
             <span>官方入口</span>
@@ -114,8 +114,8 @@
           <form class="panel classify-form" id="productForm">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow">HS Code Assistant</p>
-                <h2>产品归类初筛</h2>
+              <p class="eyebrow">HS Code / 税号推荐</p>
+              <h2>产品归类初筛</h2>
               </div>
               <button type="button" class="ghost-button" id="loadExample">载入 Consumer Audio 样例</button>
             </div>
@@ -177,7 +177,7 @@
           <section class="panel result-panel" aria-live="polite">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow">Recommendation</p>
+                <p class="eyebrow">Recommendation / 初步建议</p>
                 <h2>推荐结果</h2>
               </div>
               <span class="pill" id="reviewState">待输入</span>
@@ -227,8 +227,12 @@
                 <p class="eyebrow">Policy Monitor</p>
                 <h2>政策更新关注</h2>
               </div>
+              <button type="button" class="secondary-button" id="refreshPolicy">刷新政策</button>
             </div>
+          <p class="section-note">这里不是自动替你判断政策，而是把“该去哪里看、最近有没有相关公开消息、需要注意什么”放在一起。正式申报仍以海关、单一窗口、认证机构、报关行和内部关务复核为准。</p>
+            <div id="policyStatus" class="quiet-tag">等待加载</div>
             <div class="timeline" id="policyTimeline"></div>
+            <div class="policy-live-grid" id="policyLiveGrid"></div>
           </article>
 
           <article class="panel">
@@ -245,44 +249,53 @@
         <section id="trends" class="panel">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">Global Trend Watch</p>
+              <p class="eyebrow">Global Trend Watch / 全球趋势</p>
               <h2>过去一周全球趋势观察</h2>
             </div>
             <button type="button" class="secondary-button" id="refreshTrends">刷新趋势</button>
           </div>
-          <p class="section-note">关注经济、政治、金融、贸易、供应链和地缘风险公开新闻，帮助同事理解宏观趋势。测试版仅供观察，不作投资或经营决策依据。</p>
+          <p class="section-note">这里把过去一周和经济、政治、金融、贸易、物流有关的公开新闻抓出来，并用中文说一句“可能和我们有什么关系”。需要细看时再点原文。</p>
+          <form class="inline-search" id="trendSearchForm">
+            <label>
+              关键词
+              <input id="trendKeyword" placeholder="如 tariff / battery / Red Sea / China economy / shipping" />
+            </label>
+            <button type="submit" class="primary-button">搜索趋势</button>
+            <button type="button" class="secondary-button" id="clearTrendSearch">清空</button>
+          </form>
           <div id="trendStatus" class="quiet-tag">等待加载</div>
+          <div id="trendSummary" class="summary-box"></div>
           <div class="trend-grid" id="trendGrid"></div>
         </section>
 
         <section id="shipment" class="tracking-section">
           <div class="panel tracking-title-card">
             <p class="eyebrow">Vessel & Schedule Tracking</p>
-            <h2>船期/船舶追踪</h2>
-            <span>输入船名和目的港即可先查；MMSI 可提升准确度，航次作为备注字段。接口不可用时自动显示模拟结果。</span>
+            <h2>船期和船舶位置</h2>
+            <span>输入船名和目的港就可以先查大概位置；如果有 MMSI/IMO 会更准。航次可以不填。</span>
           </div>
 
           <form class="panel tracking-form" id="shipmentForm">
             <div class="field-grid five-fields">
               <label>
                 Vessel Name
-                <input id="vesselName" placeholder="EVER GIVEN / COSCO SHIPPING 等，可模糊搜索" />
+                <input id="vesselName" placeholder="船名，如 EVER GIVEN / COSCO SHIPPING，可模糊搜索" />
               </label>
               <label>
                 Voyage No. (Optional)
-                <input id="voyageNo" placeholder="001W / 045E，可不填" />
+                <input id="voyageNo" placeholder="航次，如 001W / 045E，可不填" />
               </label>
               <label>
                 Origin Port
-                <input id="originPort" placeholder="Port Klang / Ningbo" />
+                <input id="originPort" placeholder="起运港，如 Port Klang / Ningbo" />
               </label>
               <label>
                 Destination Port
-                <input id="destinationPort" placeholder="Shanghai / CNSHG / Rotterdam" />
+                <input id="destinationPort" placeholder="目的港，如 Shanghai / CNSHG / Rotterdam" />
               </label>
               <label>
                 IMO / MMSI (Optional)
-                <input id="imoMmsi" placeholder="9 位 MMSI 最准确；可不填" />
+                <input id="imoMmsi" placeholder="可不填；有 9 位 MMSI 会更准" />
               </label>
             </div>
             <div class="action-row">
@@ -294,6 +307,7 @@
           <div class="tracking-layout">
             <article class="panel route-map" aria-label="船舶路线示意">
               <div class="map-water">
+                <img id="vesselMapImage" class="vessel-map-image hidden" alt="船舶大致位置地图" />
                 <div class="route-line"></div>
                 <span class="map-chip origin">Origin: <strong id="mapOrigin">Port Klang</strong></span>
                 <span class="map-chip destination">Dest: <strong id="mapDestination">Shanghai</strong></span>
@@ -302,13 +316,14 @@
                 <div class="wave wave-two"></div>
                 <div class="wave wave-three"></div>
               </div>
+              <p class="map-caption" id="shipLocationNarrative">等待查询后显示船舶大致位置和前往港口。</p>
             </article>
 
             <aside class="panel tracking-result">
               <div class="panel-heading">
                 <div>
                   <p class="eyebrow" id="shipmentSourceLabel">Simulated Result</p>
-                  <h2 id="shipmentTitle">EVER GIVEN / 001W</h2>
+                  <h2 id="shipmentTitle">等待查询</h2>
                 </div>
                 <span class="pill" id="shipmentApiState">API 预留</span>
               </div>
@@ -343,7 +358,7 @@
               <p class="eyebrow">Customs / Manifest Status Links</p>
               <h2>通关状态查询入口</h2>
             </div>
-            <span class="quiet-tag">官方入口 + 字段建议</span>
+            <span class="quiet-tag">入口导航 + 查询建议</span>
           </div>
 
           <form id="customsForm" class="customs-query">
@@ -406,7 +421,8 @@
             <div class="field-grid five-fields">
               <label>
                 Port
-                <input id="portName" value="Shanghai Port" placeholder="Shanghai Port / Ningbo / Yantian / Los Angeles" />
+                <input id="portName" value="Shanghai Port" list="portSuggestionsList" autocomplete="off" placeholder="Shanghai Port / Ningbo / Yantian / Los Angeles" />
+                <datalist id="portSuggestionsList"></datalist>
               </label>
               <label>
                 Country / Region
@@ -415,9 +431,9 @@
               <label>
                 Cargo Watch
                 <select id="portCargo">
-                  <option>Consumer Audio</option>
-                  <option>Battery / DG</option>
-                  <option>General Cargo</option>
+                  <option>消费类音频产品</option>
+                  <option>含电池/危险品</option>
+                  <option>普通货物</option>
                 </select>
               </label>
             </div>
@@ -425,6 +441,7 @@
               <button type="submit" class="primary-button">查询港口风险</button>
             </div>
           </form>
+          <div class="suggestion-strip" id="portSuggestionStrip"></div>
           <div id="portRiskStatus" class="quiet-tag">等待查询</div>
           <div class="port-risk-grid" id="portRiskGrid"></div>
         </section>
@@ -433,8 +450,8 @@
           <form class="panel" id="batteryForm">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow">Battery & Dangerous Goods</p>
-                <h2>电池 / 危险品风险判断</h2>
+                <p class="eyebrow">Battery & Dangerous Goods / 电池危险品</p>
+                <h2>电池/危险品风险判断</h2>
               </div>
               <button type="button" class="ghost-button" id="loadBatteryExample">载入耳机样例</button>
             </div>
@@ -499,7 +516,7 @@
           <section class="panel result-panel">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow">DG Decision Support</p>
+                <p class="eyebrow">Decision Support / 判断提示</p>
                 <h2>风险结论</h2>
               </div>
               <span class="pill danger-pill" id="batteryRiskLevel">待判断</span>
@@ -559,10 +576,11 @@
           <article class="panel">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow">Country Requirement Matrix</p>
-                <h2>国家/地区要求矩阵</h2>
+                <p class="eyebrow">Country Requirement / 国家地区要求</p>
+                <h2>国家/地区要求速查</h2>
               </div>
             </div>
+            <p class="section-note">这个模块是“出口/进口目的地合规提醒表”：用来提醒同事不同市场常见认证、标签、电池和通关关注点。现在保留，但简化为速查，避免显得太复杂。</p>
             <div class="table-wrap compact">
               <table>
                 <thead>
