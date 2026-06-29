@@ -3,20 +3,36 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Consumer Audio 进出口信息平台 - 脱敏测试版</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <title>LogisMaster 物流查询平台 - 脱敏测试版</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+      body.auth-pending .app-shell {
+        opacity: 0;
+      }
+
+      body.auth-pending .login-trigger,
+      body.auth-pending .logout-button {
+        display: none !important;
+      }
+    </style>
+    <link rel="stylesheet" href="./styles.css?v=20260622-mobile-layout-v51" />
   </head>
-  <body>
-    <div class="access-gate" id="accessGate">
+  <body class="auth-pending is-public-home">
+    <button type="button" class="login-trigger" id="openLoginDialog">登录</button>
+    <button type="button" class="logout-button top-logout-button" id="logoutAccess" hidden>退出登录</button>
+
+    <div class="access-gate hidden" id="accessGate" role="dialog" aria-modal="true" aria-labelledby="accessDialogTitle">
+      <div class="access-backdrop" data-close-login></div>
       <div class="access-card">
         <p class="eyebrow">Authorized access</p>
-        <h1>Consumer Audio 进出口信息平台</h1>
-        <p>当前是公开脱敏测试版，但仍建议只给指定同事使用。请输入内部测试访问码。</p>
+        <h1 id="accessDialogTitle">登录进出口信息平台</h1>
+        <p>当前是公开脱敏测试版，但完整功能仅限指定同事使用。请输入内部测试访问码。</p>
         <label>
           访问码
           <input id="accessCodeInput" type="password" placeholder="请输入访问码" autocomplete="off" />
         </label>
         <button type="button" class="primary-button" id="unlockAccess">进入平台</button>
+        <button type="button" class="secondary-button" data-close-login>稍后再说</button>
         <span id="accessError"></span>
       </div>
     </div>
@@ -24,62 +40,157 @@
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand">
-          <div class="brand-mark">CA</div>
+          <div class="brand-mark" aria-label="电子产品动画">
+            <span class="device-screen"></span>
+            <span class="device-dot"></span>
+            <span class="device-wave"></span>
+          </div>
           <div>
-            <strong>Consumer Audio</strong>
-            <span>Import / Export Desk</span>
+            <strong>进出口信息平台</strong>
+            <span>Trade Intelligence Desk</span>
           </div>
         </div>
+        <nav class="nav-groups" aria-label="主导航">
+          <a class="nav-home active" href="#dashboard"><span class="nav-icon nav-icon-dashboard" aria-hidden="true"></span><span>首页搜索</span></a>
 
-        <nav aria-label="主导航">
-          <a class="active" href="#dashboard">总览</a>
-          <a href="#hs">税号/申报要素</a>
-          <a href="#policy">政策变化</a>
-          <a href="#trends">全球趋势</a>
-          <a href="#shipment">船期和船舶位置</a>
-          <a href="#customs">通关状态入口</a>
-          <a href="#port-risk">港口风险</a>
-          <a href="#battery">电池/危险品</a>
-          <a href="#exception">异常记录</a>
-          <a href="#matrix">进口国要求查询</a>
-          <a href="#integration">未来数据接口</a>
+          <details class="nav-group">
+            <summary>产品与合规</summary>
+            <a href="#decision"><span class="nav-icon nav-icon-decision" aria-hidden="true"></span><span>综合决策助手</span></a>
+            <a href="#hs"><span class="nav-icon nav-icon-hs" aria-hidden="true"></span><span>税号/申报要素</span></a>
+            <a href="#matrix"><span class="nav-icon nav-icon-matrix" aria-hidden="true"></span><span>进口国要求</span></a>
+            <a href="#battery"><span class="nav-icon nav-icon-battery" aria-hidden="true"></span><span>电池/危险品</span></a>
+          </details>
+
+          <details class="nav-group">
+            <summary>政策与情报</summary>
+            <a href="#policy"><span class="nav-icon nav-icon-policy" aria-hidden="true"></span><span>政策变化</span></a>
+            <a href="#trends"><span class="nav-icon nav-icon-trends" aria-hidden="true"></span><span>全球趋势</span></a>
+            <a href="#hotspots"><span class="nav-icon nav-icon-hotspots" aria-hidden="true"></span><span>热点快报</span></a>
+          </details>
+
+          <details class="nav-group">
+            <summary>海运</summary>
+            <a href="#shipment"><span class="nav-icon nav-icon-shipment" aria-hidden="true"></span><span>船期和船舶位置</span></a>
+            <a href="#sea-load"><span class="nav-icon nav-icon-shipment" aria-hidden="true"></span><span>海运装载计算</span></a>
+            <a href="#sea-special"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>特种箱/BBK/OOG/Reefer</span></a>
+            <a href="#sea-fees"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>海运码头费用</span></a>
+            <a href="#port-risk"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>港口/物流风险</span></a>
+          </details>
+
+          <details class="nav-group">
+            <summary>空运</summary>
+            <a href="#air"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运/快件查询</span></a>
+            <a href="#air-calc"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>非快件空运计算</span></a>
+            <a href="#air-fees"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运机场费用</span></a>
+            <a href="#air-guide"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运出运/到达注意</span></a>
+          </details>
+
+          <details class="nav-group">
+            <summary>通关</summary>
+            <a href="#customs"><span class="nav-icon nav-icon-customs" aria-hidden="true"></span><span>通关/箱货放行</span></a>
+          </details>
+
+          <details class="nav-group">
+            <summary>单证模块</summary>
+            <a href="#docs-invoice"><span class="nav-icon nav-icon-docs" aria-hidden="true"></span><span>箱单发票生成</span></a>
+            <a href="#docs-declaration"><span class="nav-icon nav-icon-declaration" aria-hidden="true"></span><span>报关单生成</span></a>
+          </details>
+
+          <details class="nav-group">
+            <summary>代码查询</summary>
+            <a href="#codes"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>港口/机场代码</span></a>
+          </details>
+
+          <details class="nav-group">
+            <summary>人工核验</summary>
+            <a href="#exception"><span class="nav-icon nav-icon-exception" aria-hidden="true"></span><span>查询失败/待人工核验</span></a>
+            <a href="#feedback"><span class="nav-icon nav-icon-feedback" aria-hidden="true"></span><span>用户反馈</span></a>
+          </details>
+
+          <details class="nav-group">
+            <summary>知识与流程</summary>
+            <a href="#learn"><span class="nav-icon nav-icon-learn" aria-hidden="true"></span><span>流程与术语库</span></a>
+          </details>
         </nav>
 
-        <section class="access-panel" aria-labelledby="access-title">
-          <h2 id="access-title">访问身份</h2>
-          <label for="userSelect">授权人员</label>
-          <select id="userSelect"></select>
-          <p id="roleText"></p>
-        </section>
       </aside>
+
+      <nav class="mobile-quick-nav" aria-label="手机快捷入口">
+        <a href="#dashboard"><span class="nav-icon nav-icon-dashboard" aria-hidden="true"></span><span>首页</span></a>
+        <a href="#hs"><span class="nav-icon nav-icon-hs" aria-hidden="true"></span><span>HS</span></a>
+        <a href="#codes"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>代码</span></a>
+        <a href="#shipment"><span class="nav-icon nav-icon-shipment" aria-hidden="true"></span><span>海运</span></a>
+        <a href="#sea-load"><span class="nav-icon nav-icon-shipment" aria-hidden="true"></span><span>海算</span></a>
+        <a href="#sea-special"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>特箱</span></a>
+        <a href="#sea-fees"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>海费</span></a>
+        <a href="#port-risk"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>港口</span></a>
+        <a href="#air"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运</span></a>
+        <a href="#air-calc"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空算</span></a>
+        <a href="#air-fees"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空费</span></a>
+        <a href="#customs"><span class="nav-icon nav-icon-customs" aria-hidden="true"></span><span>通关</span></a>
+        <a href="#docs-invoice"><span class="nav-icon nav-icon-docs" aria-hidden="true"></span><span>单证</span></a>
+        <a href="#docs-declaration"><span class="nav-icon nav-icon-declaration" aria-hidden="true"></span><span>报关</span></a>
+        <a href="#policy"><span class="nav-icon nav-icon-policy" aria-hidden="true"></span><span>政策</span></a>
+        <a href="#learn"><span class="nav-icon nav-icon-learn" aria-hidden="true"></span><span>术语</span></a>
+        <a href="#exception"><span class="nav-icon nav-icon-exception" aria-hidden="true"></span><span>核验</span></a>
+      </nav>
 
       <main>
         <header class="topbar" id="dashboard">
           <div class="hero-main">
-            <p class="eyebrow">No-IT MVP / Desensitized demo</p>
-            <h1>Consumer Audio 进出口信息汇总平台</h1>
-            <p class="hero-subtitle">税号推荐 · 政策变化 · 船期和船舶位置 · 通关状态 · 港口风险</p>
-            <p class="hero-copy">
-              面向耳机、音箱、Soundbar、CD 播放器、配件和维修件，帮助同事快速了解可能的税号、需要准备哪些申报资料、最近政策有没有变化、船在哪里、港口是否有风险。
-            </p>
-            <div class="scope-card">
-              <strong>当前版本范围</strong>
-              <span>先不连接公司数据库，只做公开脱敏测试：官方入口、公开新闻、手工输入、异常本地记录，以及未来 API 对接预留。</span>
-            </div>
+            <p class="eyebrow">LogisMaster Intelligence Desk</p>
+            <h1>LogisMaster 物流查询平台</h1>
+            <p class="hero-subtitle">船名、箱号、港口、机场、费用、政策，一站式查询入口。</p>
+            <p class="hero-copy">聚焦物流信息、进出口信息、费用口径和市场动态查询。公开脱敏测试版，正式申报仍需官方、关务、货代或当地进口商复核。</p>
           </div>
-          <div class="release-panel">
-            <span class="language-pill">中 / EN</span>
-            <span>Demo build</span>
-            <strong>2026-05-18</strong>
+          <div class="release-panel home-command-panel" aria-label="查询指挥台">
+            <span class="language-pill">Command Center</span>
+            <strong>5 类高频入口</strong>
             <small>公开脱敏版，不含公司真实 SKU、供应商、价格或出货数据。</small>
+            <div class="command-signal-grid" aria-label="高频查询类型">
+              <span>船名</span>
+              <span>箱号</span>
+              <span>港口</span>
+              <span>空运</span>
+              <span>政策</span>
+            </div>
           </div>
         </header>
 
-        <section class="kpi-grid" aria-label="Dashboard 总览">
+        <section class="global-query-panel" id="globalQueryPanel" aria-label="全局查询入口">
+          <div class="global-query-copy">
+              <p class="eyebrow">Global Logistics Search</p>
+              <h2>输入一个线索，进入正确查询</h2>
+              <p>船名、箱号、港口、机场、费用、产品国家要求或政策关键词，都先从这里分流。</p>
+          </div>
+          <form id="globalSearchForm" class="global-search-form">
+            <label>
+              全局搜索
+              <input id="globalSearchInput" type="search" inputmode="search" lang="zh-CN" placeholder="问点什么，例如：CAIU9615034、XIN ZHANJIANG、巴西蓝牙耳机、上海港费用、PVG、85182100" />
+            </label>
+            <button type="submit" class="primary-button">搜索</button>
+          </form>
+          <div class="global-search-chips" id="globalSearchChips">
+            <button type="button" data-global-query="XIN ZHANJIANG">船名查询</button>
+            <button type="button" data-global-query="CAIU9615034">箱号查询</button>
+            <button type="button" data-global-query="上海港 港口风险">港口风险</button>
+            <button type="button" data-global-query="空运计费 重量 体积">空运计费</button>
+            <button type="button" data-global-query="PVG 机场费用">机场费用</button>
+            <button type="button" data-global-query="巴西 蓝牙耳机 政策影响">政策影响</button>
+          </div>
+          <div class="home-helper-grid" aria-label="首页查询提示">
+            <article><span>产品合规</span><strong>真实品名更重要</strong><p>品名越具体，HS、认证和单证提醒越准。</p></article>
+            <article><span>海运空运</span><strong>输入线索即可查询</strong><p>船名、箱号、机场代码、快件号都可分流。</p></article>
+            <article><span>政策风险</span><strong>国家 + 产品快速定位</strong><p>定位政策、清关、费用和物流影响。</p></article>
+          </div>
+          <div id="globalSearchResult" class="global-search-result"></div>
+        </section>
+
+        <section class="kpi-grid" id="dashboardKpis" aria-label="Dashboard 总览">
           <article class="kpi-card high">
-            <span>待关务复核</span>
+            <span>常用查询入口</span>
             <strong id="reviewCount">4</strong>
-            <small>税号、监管要求、目的国资料</small>
+            <small>HS、国家要求、费用、物流状态</small>
           </article>
           <article class="kpi-card danger">
             <span>电池/危险品高风险</span>
@@ -87,29 +198,271 @@
             <small>锂电池、测试报告、MSDS</small>
           </article>
           <article class="kpi-card">
-            <span>官方入口</span>
+            <span>数据源</span>
             <strong id="sourceCount">0</strong>
-            <small>海关、单一窗口、CNCA</small>
+            <small>公开来源 + 公司 HS 样例库</small>
           </article>
           <article class="kpi-card warn">
-            <span>异常未关闭</span>
+            <span>待人工核验</span>
             <strong id="openIssueCount">0</strong>
-            <small>Issue Log 本地记录</small>
+            <small>低可信、缺资料、官网查询失败</small>
+          </article>
+          <article class="kpi-card danger">
+            <span>待人工处理</span>
+            <strong id="failureCount">0</strong>
+            <small>船期、箱货、空运查询失败</small>
           </article>
         </section>
 
-        <section class="module-board" aria-label="平台模块状态">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Platform map</p>
-              <h2>模块总览</h2>
+        <section class="dashboard-command dashboard-only" id="dashboardCommand" aria-label="今日工作指挥台">
+          <article class="command-main">
+            <p class="eyebrow">Today Command</p>
+            <h2>常用查询从这里进</h2>
+            <p>首页不做管理看板，先帮同事把问题分流到正确模块。查完后再决定是否需要人工核验。</p>
+            <div class="command-steps">
+              <a href="#hs"><span>01</span><strong>HS 和税费</strong><small>成品/配件、基础关税、额外关税</small></a>
+              <a href="#shipment"><span>02</span><strong>船期 ETA</strong><small>船名、目的港、船位时间</small></a>
+              <a href="#customs"><span>03</span><strong>箱货/放行</strong><small>箱号、提单号、上海港优先</small></a>
+              <a href="#air"><span>04</span><strong>空运快件</strong><small>DHL、UPS、FedEx、SF 状态</small></a>
+              <a href="#sea-fees"><span>05</span><strong>海运费用</strong><small>码头、DG、冷箱、堆存</small></a>
+              <a href="#air-fees"><span>06</span><strong>空运费用</strong><small>机场货站、安检、仓储</small></a>
             </div>
-            <span class="quiet-tag">Phase 1: HTML Demo + Local MVP Ready</span>
-          </div>
-          <div id="moduleGrid" class="module-grid"></div>
+          </article>
+          <article class="command-radar" aria-label="风险雷达">
+            <div class="radar-visual" aria-hidden="true">
+              <span></span>
+              <i></i>
+            </div>
+            <div class="radar-list">
+              <div><span>HS</span><strong>归类可信度</strong></div>
+              <div><span>DG</span><strong>危险品边界</strong></div>
+              <div><span>ETA</span><strong>船期变化</strong></div>
+              <div><span>POLICY</span><strong>政策信号</strong></div>
+            </div>
+          </article>
         </section>
 
-        <section id="hs" class="two-column">
+        <section class="starter-grid" id="dashboardGuide" aria-label="新手使用指引">
+          <article class="starter-card tone-blue">
+            <span>HS</span>
+            <div>
+              <strong>归类可信度</strong>
+              <p>新结果会显示高/中/低可信、反证税号和缺资料原因。</p>
+            </div>
+          </article>
+          <article class="starter-card tone-green">
+            <span>源</span>
+            <div>
+              <strong>数据源状态</strong>
+              <p>官方税则、海关、认证、制裁、港口和行业来源持续扩充。</p>
+            </div>
+          </article>
+          <article class="starter-card tone-amber">
+            <span>港</span>
+            <div>
+              <strong>物流风险</strong>
+              <p>港口、船司公告、DG 接受规则和 ETA 预警继续作为风险入口。</p>
+            </div>
+          </article>
+          <article class="starter-card tone-rose">
+            <span>异</span>
+            <div>
+              <strong>人工核验</strong>
+              <p>低可信、官网查不到、验证码或资料缺口，统一放到待人工核验。</p>
+            </div>
+          </article>
+        </section>
+
+        <section class="dashboard-source-board dashboard-only" id="dashboardSourceBoard" aria-label="数据源状态">
+          <div>
+            <p class="eyebrow">Source Coverage</p>
+            <h2>数据源覆盖</h2>
+          </div>
+          <div class="source-summary-grid compact-source-summary" id="dashboardSourceSummary"></div>
+        </section>
+
+        <section class="module-launcher hidden" id="dashboardLauncher" aria-label="工作台入口">
+          <div class="panel-heading launcher-heading">
+            <div>
+              <p class="eyebrow">Workspace</p>
+              <h2>选择一个模块开始</h2>
+            </div>
+            <span class="quiet-tag">点击左侧导航或下方卡片切换</span>
+          </div>
+          <div class="module-launch-grid">
+            <a class="module-launch-card tone-blue" href="#decision">
+              <span>快速决策</span>
+              <strong>综合决策助手</strong>
+              <p>一次看贸易条款、单证、认证、制裁、税费和升级负责人。</p>
+            </a>
+            <a class="module-launch-card tone-green" href="#hs">
+              <span>产品与合规</span>
+              <strong>税号/申报要素</strong>
+              <p>输入产品信息，先拿候选税号和需要准备的资料。</p>
+            </a>
+            <a class="module-launch-card tone-indigo" href="#policy">
+              <span>政策与情报</span>
+              <strong>政策变化雷达</strong>
+              <p>按国家和产品筛选公开政策、公告、解读和可信来源。</p>
+            </a>
+            <a class="module-launch-card tone-amber" href="#shipment">
+              <span>船期与物流</span>
+              <strong>船期/港口风险</strong>
+              <p>查船舶大致位置、第三方入口、ETA 预警和港口风险。</p>
+            </a>
+            <a class="module-launch-card tone-green" href="#sea-load">
+              <span>海运工具</span>
+              <strong>装载/箱型计算</strong>
+              <p>按件重尺粗算 CBM、计费吨、箱型利用率和装柜提醒。</p>
+            </a>
+            <a class="module-launch-card tone-amber" href="#sea-special">
+              <span>特种箱</span>
+              <strong>BBK/OOG/Reefer 预备</strong>
+              <p>按码头和货型看资料、接收边界、费用入口和操作步骤。</p>
+            </a>
+            <a class="module-launch-card tone-indigo" href="#sea-fees">
+              <span>海运费用</span>
+              <strong>码头操作费用表</strong>
+              <p>按港口、普通箱、DG、冷箱、OOG/BBK 查看收费项目、有效期、金额和备注。</p>
+            </a>
+            <a class="module-launch-card tone-blue" href="#air-calc">
+              <span>空运工具</span>
+              <strong>非快件空运计算</strong>
+              <p>按件重尺粗算空运计费重，区分散货、包板和包机准备事项。</p>
+            </a>
+            <a class="module-launch-card tone-blue" href="#air-fees">
+              <span>空运费用</span>
+              <strong>机场/货站费用表</strong>
+              <p>按机场、普货、特货、电池/磁性和温控货查看收费项目和公开费用。</p>
+            </a>
+            <a class="module-launch-card tone-blue" href="#codes">
+              <span>基础工具</span>
+              <strong>港口/机场代码</strong>
+              <p>查询海运 UN/LOCODE、空运 IATA/ICAO 和常见操作提醒。</p>
+            </a>
+            <a class="module-launch-card tone-rose" href="#trends">
+              <span>全球趋势</span>
+              <strong>今日风险快报</strong>
+              <p>看过去一周经济、政治、金融、贸易、物流变化。</p>
+            </a>
+            <a class="module-launch-card tone-slate" href="#exception">
+              <span>人工核验</span>
+              <strong>查询失败/待人工核验</strong>
+              <p>保存官网查不到、低可信、缺资料和需要人工确认的事项。</p>
+            </a>
+            <a class="module-launch-card tone-green" href="#learn">
+              <span>知识补充</span>
+              <strong>流程与术语库</strong>
+              <p>用互动流程和术语卡片看懂出货、清关、船期、税费和危险品。</p>
+            </a>
+          </div>
+        </section>
+
+        <section class="category-divider category-decision dashboard-only" aria-label="快速决策分区">
+          <span>01</span>
+          <div>
+            <p class="eyebrow">Decision Desk</p>
+          <h2>快速决策</h2>
+            <p>把贸易条款、单证、认证、制裁、税费和待核验事项收在一个入口，先给能执行的结论。</p>
+          </div>
+        </section>
+
+        <section id="decision" class="panel decision-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Decision Desk</p>
+              <h2>综合决策助手</h2>
+            </div>
+            <span>责任边界 · 单证 · 认证 · 制裁 · 税费 · 升级</span>
+          </div>
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Incoterms / Documents / Compliance</p>
+              <h2>综合决策助手</h2>
+            </div>
+            <button type="button" class="ghost-button" id="loadDecisionExample">载入样例</button>
+          </div>
+          <p class="section-note">适合业务、物流、采购先自查：输入产品、国家、贸易条款和金额，系统直接提示责任边界、缺什么文件、可能涉及什么认证、是否需要做受限方复核。</p>
+          <form id="decisionForm" class="query-card decision-form">
+            <div class="field-grid">
+              <label>
+                产品/货物描述
+                <input id="decisionProduct" lang="zh-CN" placeholder="如 蓝牙耳机，内置锂电池，带充电盒" />
+              </label>
+              <label>
+                目的国/地区
+                <input id="decisionCountry" lang="zh-CN" placeholder="如 巴西、欧盟、美国、泰国、沙特" />
+              </label>
+              <label>
+                原产国/地区
+                <input id="decisionOrigin" lang="zh-CN" placeholder="如 中国、美国、越南；用于额外关税判断" />
+              </label>
+              <label>
+                运输方式
+                <select id="decisionMode">
+                  <option>Sea</option>
+                  <option>Air</option>
+                  <option>Courier</option>
+                  <option>Rail / Truck</option>
+                </select>
+              </label>
+              <label>
+                Incoterms
+                <select id="decisionIncoterm">
+                  <option>FOB</option>
+                  <option>CIF</option>
+                  <option>CFR</option>
+                  <option>DAP</option>
+                  <option>DDP</option>
+                  <option>EXW</option>
+                  <option>FCA</option>
+                </select>
+              </label>
+              <label>
+                HS Code（可不填）
+                <input id="decisionHs" inputmode="numeric" placeholder="如 8517629400" />
+              </label>
+              <label>
+                货值（USD，可不填）
+                <input id="decisionValue" inputmode="decimal" placeholder="如 12000" />
+              </label>
+              <label class="full-span">
+                客户/收货人/国家风险关键词（可不填）
+                <input id="decisionParty" lang="zh-CN" placeholder="如 客户名称、收货人、俄罗斯、伊朗、军用、government tender" />
+              </label>
+            </div>
+            <div class="action-row">
+              <button type="submit" class="primary-button">生成决策结论</button>
+              <button type="button" class="secondary-button" id="clearDecision">清空</button>
+            </div>
+          </form>
+          <div id="decisionResult" class="decision-result-grid"></div>
+        </section>
+
+        <section class="category-divider category-product dashboard-only" aria-label="产品与合规分区">
+          <span>02</span>
+          <div>
+            <p class="eyebrow">Product & Compliance</p>
+            <h2>产品与合规</h2>
+            <p>围绕产品本身判断：税号、申报要素、进口国要求、电池/危险品和认证边界。</p>
+          </div>
+        </section>
+
+        <section id="hs" class="two-column hs-workbench">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Product Classification</p>
+              <h2>税号/申报要素</h2>
+            </div>
+            <span>覆盖历史 HS、通用章级引导和中国 2026 税则入口</span>
+          </div>
+          <div class="module-tabs" role="tablist" aria-label="税号模块视图">
+            <button type="button" class="module-tab active" data-tab-target="hs-classify-panel">归类推荐</button>
+            <button type="button" class="module-tab" data-tab-target="hs-tariff-panel">税费核验</button>
+            <button type="button" class="module-tab" data-tab-target="hs-ccc-panel">3C 判断</button>
+          </div>
+
+          <div class="tab-panel active hs-classification-grid" id="hs-classify-panel">
           <form class="panel classify-form" id="productForm">
             <div class="panel-heading">
               <div>
@@ -117,6 +470,17 @@
               <h2>产品归类初筛</h2>
               </div>
               <button type="button" class="ghost-button" id="loadExample">载入 Consumer Audio 样例</button>
+            </div>
+            <div class="hs-case-strip" id="hsCaseStrip">
+              <label>
+                归类边界案例库
+                <select id="hsCaseSelect">
+                  <option value="">选择一个边界案例</option>
+                </select>
+              </label>
+              <button type="button" class="secondary-button" id="loadHsCase">载入案例</button>
+              <button type="button" class="ghost-button" id="runHsSelfTest">运行归类逻辑自检</button>
+              <span id="hsCaseNote">用于校验整机、零件、附件、包装、套装和功能边界，不替代正式归类决定。</span>
             </div>
 
             <div class="field-grid">
@@ -131,11 +495,19 @@
               <label>
                 产品类别
                 <select id="productCategory" name="productCategory">
-                  <option>Headphone / Earbuds</option>
-                  <option>Speaker / Soundbar</option>
-                  <option>CD Player / Audio Player</option>
-                  <option>Remote / Accessory</option>
-                  <option>Repair Parts</option>
+                  <option value="">按中文品名自动判断</option>
+                  <option value="Headphone / Earbuds">耳机 / 蓝牙耳机</option>
+                  <option value="Speaker / Soundbar">音箱 / Soundbar 成品</option>
+                  <option value="Loudspeaker Driver / Speaker Unit">扬声器单元 / 喇叭零件</option>
+                  <option value="Amplifier / Audio Equipment">功放 / 音频扩大器成品</option>
+                  <option value="Independent Audio Processor / Electrical Function">音频/音视频处理器</option>
+                  <option value="Audio PCBA / Dedicated Part">功放/音箱用功能板或专用零件</option>
+                  <option value="Display / Indicator Panel">显示板 / 指示面板组件</option>
+                  <option value="Remote / Accessory">遥控器 / 附件</option>
+                  <option value="Cable / Connector">线缆 / 接插件</option>
+                  <option value="Repair Parts / Spare Parts">维修件 / 备件</option>
+                  <option value="Battery / Power Supply">电池 / 电源</option>
+                  <option value="Packaging / Carton">纸箱 / 包装</option>
                 </select>
               </label>
               <label>
@@ -147,31 +519,43 @@
               </label>
               <label>
                 主要材质
-                <input id="material" name="material" placeholder="塑料、金属、锂电池、电路板、喇叭单元等" />
+                <input id="material" name="material" list="materialOptions" placeholder="塑料、金属、锂电池、电路板、喇叭单元等" />
+                <datalist id="materialOptions"></datalist>
               </label>
               <label>
                 功能用途
-                <input id="usage" name="usage" placeholder="播放声音、蓝牙接收、充电、控制音频设备等" />
+                <input id="usage" name="usage" list="usageOptions" placeholder="播放声音、蓝牙接收、充电、控制音频设备等" />
+                <datalist id="usageOptions"></datalist>
               </label>
-              <label>
-                关键参数
-                <input id="spec" name="spec" placeholder="是否无线、是否含电池、容量 Wh、额定功率、连接方式" />
-              </label>
+              <input id="spec" name="spec" type="hidden" />
               <label>
                 目的国/地区
                 <input id="destination" name="destination" placeholder="China / EU / US / UK / GCC" />
               </label>
+              <label>
+                原产国/地区
+                <input id="originCountry" name="originCountry" lang="zh-CN" placeholder="如：中国 / Vietnam / Mexico，用于额外关税判断" />
+              </label>
+              <label>
+                品牌（选填）
+                <input id="brandName" name="brandName" lang="zh-CN" placeholder="如无品牌，写 无品牌 / N/A" />
+              </label>
+              <label>
+                型号（选填）
+                <input id="modelNumber" name="modelNumber" lang="zh-CN" placeholder="如 BS-100 / 无型号" />
+              </label>
               <label class="full-span">
-                型号、品牌、随附部件
-                <textarea id="modelInfo" name="modelInfo" rows="3" placeholder="型号、套装内容、配件、包装状态、是否含电池/电源适配器/MSDS 等"></textarea>
+                随附部件、包装状态、关键说明
+                <textarea id="modelInfo" name="modelInfo" rows="3" placeholder="如：完整成品/零件/单独进口；是否随附电源适配器；是否含电池；当前页面不上传或识别图片"></textarea>
               </label>
             </div>
-
             <div class="action-row">
               <button type="submit" class="primary-button">生成推荐</button>
-              <button type="button" class="secondary-button" id="clearForm">清空</button>
+              <button type="button" class="secondary-button" id="clearForm">一键清空</button>
             </div>
           </form>
+
+          <aside class="panel hs-smart-panel smart-assist" id="hsSmartAssist"></aside>
 
           <section class="panel result-panel" aria-live="polite">
             <div class="panel-heading">
@@ -184,13 +568,13 @@
 
             <div id="emptyState" class="empty-state">
               <strong>尚未生成推荐</strong>
-              <p>请填写产品类别、用途、无线/电池信息和关键参数。测试版只做候选税号和风险提醒。</p>
+              <p>点击“生成推荐”后，会弹出结论窗口；这里保留简洁摘要和候选税号。</p>
             </div>
 
             <div id="resultState" class="result-state hidden">
-              <div class="score-ring" aria-label="推荐置信度">
-                <span id="confidenceValue">0%</span>
-                <small>置信度</small>
+              <div class="score-ring" aria-label="可用等级">
+                <span id="confidenceValue">待判</span>
+                <small>可用等级</small>
               </div>
               <div class="recommendation-copy">
                 <p class="eyebrow">首选候选税号</p>
@@ -199,320 +583,127 @@
                 <p id="reasonText"></p>
               </div>
             </div>
+            <div id="credibilityStrip" class="credibility-strip hidden"></div>
 
             <div id="candidateList" class="candidate-list"></div>
             <div class="risk-box">
               <h3>合规提醒</h3>
               <ul id="riskList"></ul>
             </div>
-
-            <div class="merged-elements">
-              <div class="panel-subheading">
-                <div>
-                  <p class="eyebrow">Declaration Elements</p>
-                  <h2>申报要素/需要准备什么</h2>
-                </div>
-                <span class="quiet-tag">由产品信息自动提示</span>
-              </div>
-              <div id="elementGrid" class="checklist-grid compact-elements"></div>
-            </div>
           </section>
-        </section>
+          </div>
 
-        <section id="policy" class="two-column">
-          <article class="panel">
+          <section class="tab-panel panel" id="hs-ccc-panel">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow">Policy Monitor</p>
-                <h2>政策更新关注</h2>
+                <p class="eyebrow">CCC / 3C Certification</p>
+                <h2>3C 认证材料判断</h2>
               </div>
-              <button type="button" class="secondary-button" id="refreshPolicy">刷新政策</button>
+              <span class="quiet-tag">按税号 + 品名初筛</span>
             </div>
-            <p class="section-note">这里不是自动替你判断政策，而是把“该去哪里看、最近有没有相关公开消息、需要注意什么”放在一起。正式申报仍以海关、单一窗口、认证机构、报关行和内部关务复核为准。</p>
-            <form id="policyFilterForm" class="query-card policy-filter-form">
+            <p class="section-note">输入税号和产品描述后，系统判断是否可能落入 3C 目录边界，并列出需要提前准备的材料。正式结论仍以 CNCA、认证机构和进口商意见为准。</p>
+            <form id="cccCheckForm" class="query-card tariff-check-form">
+              <div class="field-grid">
+                <label>
+                  HS Code / 税号
+                  <input id="cccHsInput" inputmode="numeric" placeholder="如 8518300000 / 8504401400" />
+                </label>
+                <label>
+                  产品描述
+                  <input id="cccProductInput" lang="zh-CN" placeholder="如 蓝牙耳机、电源适配器、音箱、功放用零件" />
+                </label>
+                <label>
+                  使用场景
+                  <select id="cccUseScenario">
+                    <option>进口中国销售/内销</option>
+                    <option>进口后维修/售后备件</option>
+                    <option>样品/测试</option>
+                    <option>出口到其他国家</option>
+                  </select>
+                </label>
+              </div>
+              <div class="action-row">
+                <button type="submit" class="primary-button">判断是否涉及 3C</button>
+                <button type="button" class="secondary-button" id="fillCccFromHs">带入当前推荐税号</button>
+              </div>
+            </form>
+            <div id="cccCheckResult" class="decision-result-grid"></div>
+          </section>
+
+          <section class="panel tariff-check-panel tab-panel" id="hs-tariff-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Tariff Check / 税费核验</p>
+                <h2>按税号查基础关税和额外关税</h2>
+              </div>
+              <span class="quiet-tag">适合已有 HS 后复核</span>
+            </div>
+            <form id="tariffCheckForm" class="query-card tariff-check-form">
               <label>
-                出口国/地区
-                <input id="policyExportCountry" lang="zh-CN" placeholder="例如：中国、美国、欧盟，可不填" />
+                HS Code
+                <input id="tariffCheckHs" inputmode="numeric" placeholder="如 8518900000 / 85269200" />
               </label>
               <label>
                 进口国/地区
-                <input id="policyImportCountry" lang="zh-CN" placeholder="例如：美国、欧盟、英国、中东" />
+                <input id="tariffCheckCountry" lang="zh-CN" placeholder="如 中国 / 美国 / 欧盟" />
               </label>
               <label>
-                产品/关键词
-                <input id="policyProduct" lang="zh-CN" placeholder="例如：蓝牙耳机、音箱、电池、3C、关税" />
+                原产国/地区
+                <input id="tariffCheckOrigin" lang="zh-CN" placeholder="如 美国 / 中国 / 越南" />
               </label>
               <label>
-                方向
-                <select id="policyDirection">
-                  <option value="">不限</option>
-                  <option value="进口">进口相关</option>
-                  <option value="出口">出口相关</option>
-                </select>
+                货值 USD（可不填）
+                <input id="tariffCheckValue" inputmode="decimal" placeholder="如 12000" />
               </label>
-              <button type="submit" class="primary-button">筛选政策</button>
+              <label class="full-span">
+                产品/用途补充
+                <input id="tariffCheckProduct" lang="zh-CN" placeholder="如 功放用遥控器、已装配 PCBA、蓝牙耳机" />
+              </label>
+              <button type="submit" class="primary-button">核验税费</button>
             </form>
-            <div id="policyStatus" class="quiet-tag">等待加载</div>
-            <div class="timeline" id="policyTimeline"></div>
-            <div class="policy-live-grid" id="policyLiveGrid"></div>
-          </article>
-
-          <article class="panel">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow">Official Sources</p>
-                <h2>权威核验入口</h2>
-              </div>
-            </div>
-            <div class="source-list" id="sourceList"></div>
-          </article>
-        </section>
-
-        <section id="trends" class="panel">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Global Trend Watch / 全球趋势</p>
-              <h2>过去一周全球趋势观察</h2>
-            </div>
-            <button type="button" class="secondary-button" id="refreshTrends">刷新趋势</button>
-          </div>
-          <p class="section-note">这里把过去一周和经济、政治、金融、贸易、物流有关的公开新闻抓出来，并用中文说一句“可能和我们有什么关系”。需要细看时再点原文。</p>
-          <form class="query-card inline-search" id="trendSearchForm">
-            <label>
-              输入关键词（中文或英文都可以）
-              <input id="trendKeyword" type="search" inputmode="search" lang="zh-CN" placeholder="例如：船期、关税、电池、红海、汇率、美国大选、shipping、tariff" />
-            </label>
-            <button type="submit" class="primary-button">搜索趋势</button>
-            <button type="button" class="secondary-button" id="clearTrendSearch">清空</button>
-          </form>
-          <div id="trendStatus" class="quiet-tag">等待加载</div>
-          <div id="trendSummary" class="summary-box"></div>
-          <div class="trend-grid" id="trendGrid"></div>
-        </section>
-
-        <section id="shipment" class="tracking-section">
-          <div class="panel tracking-title-card">
-            <p class="eyebrow">Vessel & Schedule Tracking</p>
-            <h2>船期和船舶位置</h2>
-            <span>输入船名和目的港就可以先查大概位置；如果有 MMSI/IMO 会更准。航次可以不填。</span>
-          </div>
-
-          <form class="panel tracking-form" id="shipmentForm">
-            <div class="field-grid five-fields">
-              <label>
-                船名 / Vessel Name
-                <input id="vesselName" lang="zh-CN" placeholder="船名，如 EVER GIVEN / 中远海运，可模糊搜索" />
-              </label>
-              <label>
-                航次（可不填）
-                <input id="voyageNo" lang="zh-CN" placeholder="如 001W / 045E，可不填" />
-              </label>
-              <label>
-                起运港
-                <input id="originPort" lang="zh-CN" placeholder="如 巴生港 / 宁波 / Port Klang" />
-              </label>
-              <label>
-                目的港
-                <input id="destinationPort" lang="zh-CN" placeholder="如 上海 / CNSHG / Rotterdam" />
-              </label>
-              <label>
-                IMO / MMSI (Optional)
-                <input id="imoMmsi" placeholder="可不填；有 9 位 MMSI 会更准" />
-              </label>
-            </div>
-            <div class="action-row">
-              <button type="submit" class="primary-button">查询船期</button>
-              <button type="button" class="secondary-button" id="loadVesselExample">载入样例</button>
-            </div>
-          </form>
-
-          <div class="tracking-layout">
-            <article class="panel route-map" aria-label="船舶路线示意">
-              <div class="map-water">
-                <div id="vesselCoordinateMap" class="coordinate-map hidden" aria-label="船舶坐标示意图">
-                  <span class="coord-label north">北纬 90°</span>
-                  <span class="coord-label south">南纬 90°</span>
-                  <span class="coord-label west">西经 180°</span>
-                  <span class="coord-label east">东经 180°</span>
-                </div>
-                <div class="route-line"></div>
-                <span class="map-chip origin">Origin: <strong id="mapOrigin">Port Klang</strong></span>
-                <span class="map-chip destination">Dest: <strong id="mapDestination">Shanghai</strong></span>
-                <span class="vessel-marker" id="vesselMarker" aria-hidden="true">船舶位置</span>
-                <div class="wave wave-one"></div>
-                <div class="wave wave-two"></div>
-                <div class="wave wave-three"></div>
-              </div>
-              <p class="map-caption" id="shipLocationNarrative">等待查询后显示船舶大致位置和前往港口。</p>
-            </article>
-
-            <aside class="panel tracking-result">
-              <div class="panel-heading">
-                <div>
-                  <p class="eyebrow" id="shipmentSourceLabel">Simulated Result</p>
-                  <h2 id="shipmentTitle">等待查询</h2>
-                </div>
-                <span class="pill" id="shipmentApiState">API 预留</span>
-              </div>
-              <div class="tracking-cards">
-                <div class="info-tile">
-                  <span>Position</span>
-                  <strong id="shipmentPosition">South China Sea</strong>
-                </div>
-                <div class="info-tile">
-                  <span>ETA</span>
-                  <strong id="shipmentEta">3 days</strong>
-                </div>
-                <div class="info-tile">
-                  <span>Status</span>
-                  <strong id="shipmentStatus">On schedule</strong>
-                </div>
-                <div class="info-tile warning">
-                  <span>Reminder</span>
-                  <strong id="shipmentReminder">确认截关、舱单和 DG 限制</strong>
-                </div>
-              </div>
-              <p class="api-note" id="shipmentApiNote">真实查询需要 Netlify 环境变量 SHIPXY_API_KEY；船司船期仍以订舱和货代确认为准。</p>
-            </aside>
-          </div>
-
-          <section class="panel alert-panel">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow">Risk Alert / 预警规则</p>
-                <h2>关注船舶和 ETA 风险</h2>
-              </div>
-              <span class="quiet-tag">测试版：本地保存规则</span>
-            </div>
-            <p class="section-note">你可以先把关注船舶、预想 ETA 和提醒邮箱记在这里。当前公开前端版会生成提醒建议并保存在本机浏览器；真正自动发邮件需要后端定时任务和邮件服务，后续可以接 Netlify Scheduled Functions + 邮件 API。</p>
-            <form id="vesselAlertForm" class="query-card alert-watch-form">
-              <label>
-                关注船名
-                <input id="alertVesselName" lang="zh-CN" placeholder="例如 EVER GIVEN / 中远某船" />
-              </label>
-              <label>
-                目的港
-                <input id="alertDestination" lang="zh-CN" placeholder="例如 上海 / Rotterdam" />
-              </label>
-              <label>
-                预想 ETA
-                <input id="alertExpectedEta" type="datetime-local" />
-              </label>
-              <label>
-                提醒邮箱
-                <input id="alertEmail" type="email" placeholder="name@company.com" />
-              </label>
-              <label>
-                预警规则
-                <select id="alertRule">
-                  <option value="before_eta">ETA 前一个工作日提醒</option>
-                  <option value="late_eta">实际 ETA 晚于预想 ETA 时提醒</option>
-                </select>
-              </label>
-              <button type="submit" class="primary-button">保存预警规则</button>
-            </form>
-            <div id="vesselAlertResult" class="alert-result"></div>
-            <div id="vesselAlertList" class="alert-list"></div>
+            <div id="tariffCheckResult" class="tariff-check-result"></div>
           </section>
 
-          <div class="ops-grid" id="opsGrid"></div>
         </section>
 
-        <section id="customs" class="panel customs-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Customs / Manifest Status Links</p>
-              <h2>通关状态查询入口</h2>
+        <section id="matrix" class="panel">
+            <div class="workspace-title">
+              <div>
+                <p class="eyebrow">Country Requirements</p>
+                <h2>进口国要求</h2>
+              </div>
+              <span>国家 + 产品 + 认证/标签/文件</span>
             </div>
-            <span class="quiet-tag">入口导航 + 查询建议</span>
-          </div>
-
-          <form id="customsForm" class="customs-query">
-            <div class="field-grid five-fields">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Country Requirement / 国家地区要求</p>
+                <h2>进口国要求查询</h2>
+              </div>
+              <button type="button" class="secondary-button" id="loadRequirementExample">载入样例</button>
+            </div>
+            <p class="section-note">不知道专业词也可以：写产品大概是什么、有没有电池/蓝牙、要进口到哪个国家。系统会先提醒常见认证、标签、电池、无线和清关资料要求。</p>
+            <form id="requirementForm" class="query-card requirement-form">
               <label>
-                B/L No.
-                <input id="blNo" placeholder="提单号" />
+                产品大致信息
+                <textarea id="requirementProduct" rows="3" lang="zh-CN" placeholder="例如：蓝牙耳机，内置锂电池，带充电盒，USB-C"></textarea>
               </label>
               <label>
-                Voyage No.
-                <input id="customsVoyage" placeholder="航次" />
+                进口国/地区
+                <input id="requirementCountry" lang="zh-CN" placeholder="例如：巴西、欧盟、美国、英国、泰国、南非、加拿大" />
               </label>
-              <label>
-                Container No.
-                <input id="containerNo" placeholder="箱号" />
-              </label>
-              <label>
-                Customs Code
-                <input id="customsCode" placeholder="关区代码/口岸" />
-              </label>
-              <label>
-                Import / Export
-                <select id="customsDirection">
-                  <option>进口 Import</option>
-                  <option>出口 Export</option>
-                </select>
-              </label>
-            </div>
-            <div class="action-row">
-              <button type="submit" class="primary-button">生成查询建议</button>
-            </div>
-          </form>
-
-          <div class="customs-advice" id="customsAdvice"></div>
-          <div class="port-query-helper">
-            <div>
-              <p class="eyebrow">Shanghai Port Release Check</p>
-              <h3>上海港放行查询助手</h3>
-              <p>
-                上港集团公开查询页可按箱号或提单号查询上海港箱货状态。页面可能出现滑动验证，需人工完成；当前测试版不绕过验证码。
-              </p>
-            </div>
-            <div class="port-query-actions">
-              <a class="primary-button" href="https://www.sipg.com.cn/conquery/index" target="_blank" rel="noreferrer">打开上港查询</a>
-              <span>重点核对：海关放行、码头放行、理货、换单、授权、放箱、查验指令、出场时间。</span>
-            </div>
-          </div>
-          <div class="customs-link-grid" id="customsLinkGrid"></div>
-        </section>
-
-        <section id="port-risk" class="panel">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Port & Logistics Risk</p>
-              <h2>港口与物流风险查询</h2>
-            </div>
-            <span class="quiet-tag">默认上海港</span>
-          </div>
-          <form id="portRiskForm" class="query-card customs-query">
-            <div class="field-grid five-fields">
-              <label>
-                港口（中文或英文都可以）
-                <input id="portName" value="上海港" list="portSuggestionsList" autocomplete="off" lang="zh-CN" placeholder="例如：上海港、宁波、盐田、洛杉矶、Rotterdam" />
-                <datalist id="portSuggestionsList"></datalist>
-              </label>
-              <label>
-                国家/地区
-                <input id="portRegion" value="中国" lang="zh-CN" placeholder="例如：中国、美国、欧盟、英国" />
-              </label>
-              <label>
-                货物类型
-                <select id="portCargo">
-                  <option>消费类音频产品</option>
-                  <option>含电池/危险品</option>
-                  <option>普通货物</option>
-                </select>
-              </label>
-            </div>
-            <div class="action-row">
-              <button type="submit" class="primary-button">查询港口风险</button>
-            </div>
-          </form>
-          <div class="suggestion-strip" id="portSuggestionStrip"></div>
-          <div id="portRiskStatus" class="quiet-tag">等待查询</div>
-          <div class="port-risk-grid" id="portRiskGrid"></div>
+              <button type="submit" class="primary-button">查询要求</button>
+            </form>
+            <div id="requirementResult" class="requirement-result"></div>
         </section>
 
         <section id="battery" class="two-column">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Battery & DG</p>
+              <h2>电池/危险品</h2>
+            </div>
+            <span>先判断是否危险品，再确认文件和承运限制</span>
+          </div>
           <form class="panel" id="batteryForm">
             <div class="panel-heading">
               <div>
@@ -565,11 +756,34 @@
               <label>
                 文件状态
                 <select id="batteryDocs">
+                  <option>MSDS + UN38.3 + 运输危险性鉴定报告 已有</option>
                   <option>MSDS + UN38.3 已有</option>
+                  <option>缺运输危险性鉴定报告</option>
                   <option>只有 MSDS</option>
                   <option>只有 UN38.3</option>
                   <option>未确认</option>
                 </select>
+              </label>
+              <label>
+                每箱/每票电池数量
+                <input id="batteryQuantity" inputmode="numeric" placeholder="例如 2 个设备 / 20 pcs / 不确定" />
+              </label>
+              <label>
+                电池状态
+                <select id="batteryCondition">
+                  <option>正常新电池/随产品出货</option>
+                  <option>不确定</option>
+                  <option>损坏、鼓包、漏液或召回</option>
+                  <option>维修/退运/废旧电池</option>
+                </select>
+              </label>
+              <label>
+                SOC / 荷电状态
+                <input id="batterySoc" inputmode="decimal" placeholder="如 30%，不知道可空着" />
+              </label>
+              <label>
+                承运人/目的港备注
+                <input id="batteryCarrier" lang="zh-CN" placeholder="如 空运、快递、上海港、某船司；可空着" />
               </label>
             </div>
 
@@ -594,16 +808,1389 @@
           </section>
         </section>
 
-        <section id="exception" class="panel">
+        <section class="category-divider category-intel dashboard-only" aria-label="政策与情报分区">
+          <span>03</span>
+          <div>
+            <p class="eyebrow">Policy & Intelligence</p>
+            <h2>政策与情报</h2>
+            <p>关注政策变化、趋势信号和数据来源，先看结论，需要时再打开原始网站。</p>
+          </div>
+        </section>
+
+        <section id="policy" class="two-column">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Policy Radar</p>
+              <h2>政策变化雷达</h2>
+            </div>
+            <span>官方公告 · 行业解读 · 贸易措施 · 行动建议</span>
+          </div>
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Policy Monitor</p>
+                <h2>政策更新关注</h2>
+              </div>
+              <button type="button" class="secondary-button" id="refreshPolicy">刷新政策</button>
+            </div>
+            <p class="section-note">这里直接回答三件事：有什么变化、影响哪些产品/国家、这票货要准备哪些材料。来源链接只放在结论后面追溯。</p>
+            <div class="impact-matrix-panel policy-impact-panel" aria-label="政策影响矩阵">
+              <article data-impact="cost"><span>成本</span><strong>关税 / 附加费 / 汇率</strong><p>先判断报价和 landed cost 是否需要重算。</p></article>
+              <article data-impact="time"><span>时效</span><strong>申报 / 查验 / 放行</strong><p>关注单证补料、查验概率和目的港缓冲。</p></article>
+              <article data-impact="space"><span>舱位</span><strong>禁限运 / 承运限制</strong><p>特殊货先确认船司、航司或快件渠道接收。</p></article>
+              <article data-impact="customs"><span>清关</span><strong>认证 / 标签 / 准入</strong><p>优先核对产品法规、进口商资质和证书。</p></article>
+              <article data-impact="port"><span>港口作业</span><strong>口岸 / 仓库 / 查验</strong><p>同步看口岸通知、查验预约和仓储成本。</p></article>
+            </div>
+            <form id="policyFilterForm" class="query-card policy-filter-form">
+              <label>
+                出口国/地区
+                <input id="policyExportCountry" lang="zh-CN" placeholder="例如：中国、美国、欧盟，可不填" />
+              </label>
+              <label>
+                进口国/地区
+                <input id="policyImportCountry" lang="zh-CN" placeholder="例如：美国、欧盟、英国、中东" />
+              </label>
+              <label>
+                产品/关键词
+                <input id="policyProduct" lang="zh-CN" placeholder="例如：蓝牙耳机、音箱、电池、3C、关税" />
+              </label>
+              <label>
+                方向
+                <select id="policyDirection">
+                  <option value="">不限</option>
+                  <option value="进口">进口相关</option>
+                  <option value="出口">出口相关</option>
+                </select>
+              </label>
+              <button type="submit" class="primary-button">筛选政策</button>
+            </form>
+            <div id="policyStatus" class="quiet-tag">等待加载</div>
+            <div class="module-tabs" role="tablist" aria-label="政策模块视图">
+              <button type="button" class="module-tab active" data-tab-target="policy-conclusion">结论</button>
+              <button type="button" class="module-tab" data-tab-target="policy-directory-panel">来源</button>
+              <button type="button" class="module-tab" data-tab-target="policy-watch">关注关键词</button>
+            </div>
+            <div class="tab-panel active" id="policy-conclusion">
+              <div class="timeline" id="policyTimeline"></div>
+              <div class="policy-live-grid" id="policyLiveGrid"></div>
+            </div>
+            <div class="tab-panel" id="policy-sources">
+              <div class="policy-live-grid" id="policySourceEvidence"></div>
+            </div>
+            <div class="tab-panel" id="policy-watch">
+              <div class="watch-keyword-panel">
+                <strong>建议关注组合</strong>
+                <p>国家 + 产品 + 风险词最有效，例如：巴西 蓝牙耳机 ANATEL；欧盟 电池 RoHS；美国 CBP tariff。</p>
+                <div class="watch-chip-grid" id="policyWatchChips"></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel tab-panel" id="policy-directory-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Source Directory</p>
+                <h2>数据来源入口</h2>
+              </div>
+            </div>
+            <p class="section-note compact-note">系统会优先用官方/国际组织来源做判断，媒体和行业网站只作为风险提醒。你可以直接搜国家、港口、认证或产品关键词。</p>
+            <div class="source-summary-grid" id="sourceSummary"></div>
+            <label class="source-search">
+              搜索数据源
+              <input id="sourceSearch" type="search" lang="zh-CN" placeholder="例如：巴西、ANATEL、港口、锂电池、海关、shipping" />
+            </label>
+            <div class="source-list" id="sourceList"></div>
+          </article>
+        </section>
+
+        <section id="trends" class="panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Global Briefing</p>
+              <h2>市场动态对物流的影响</h2>
+            </div>
+            <span>成本 · 时效 · 舱位 · 清关 · 港口作业</span>
+          </div>
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">Exception / Issue Log</p>
-              <h2>异常记录</h2>
+              <p class="eyebrow">Logistics Impact Watch / 物流影响</p>
+              <h2>过去一周对物流的影响</h2>
+            </div>
+            <button type="button" class="secondary-button" id="refreshTrends">刷新趋势</button>
+          </div>
+          <p class="section-note">这里不再按普通新闻列表展示，而是把公开消息翻译成对物流的影响：成本、时效、舱位、清关和港口作业。需要细看时再点原文。</p>
+          <div class="impact-matrix-panel" aria-label="物流影响矩阵">
+            <article data-impact="cost"><span>成本</span><strong>运价 / 燃油 / 汇率</strong><p>先判断费用口径是否需要重新报价。</p></article>
+            <article data-impact="time"><span>时效</span><strong>绕航 / 堵港 / 截仓</strong><p>关注 ETD、ETA 和清关缓冲。</p></article>
+            <article data-impact="space"><span>舱位</span><strong>爆仓 / 空班 / 包板</strong><p>提前确认船期、航班和放舱稳定性。</p></article>
+            <article data-impact="customs"><span>清关</span><strong>单证 / 认证 / 查验</strong><p>优先核对产品准入和申报资料。</p></article>
+            <article data-impact="port"><span>港口作业</span><strong>码头 / 仓库 / 拖车</strong><p>同步看港区窗口和本地操作限制。</p></article>
+          </div>
+          <form class="query-card inline-search" id="trendSearchForm">
+            <label>
+              输入关键词（中文或英文都可以）
+              <input id="trendKeyword" type="search" inputmode="search" lang="zh-CN" placeholder="例如：船期、关税、电池、红海、汇率、美国大选、shipping、tariff" />
+            </label>
+            <button type="submit" class="primary-button">搜索趋势</button>
+            <button type="button" class="secondary-button" id="clearTrendSearch">清空</button>
+          </form>
+          <div id="trendStatus" class="quiet-tag">等待加载</div>
+          <div id="trendSummary" class="summary-box"></div>
+          <div class="trend-grid logistics-impact-grid" id="trendGrid"></div>
+        </section>
+
+        <section id="hotspots" class="panel hotspots-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Hotspot Briefing</p>
+              <h2>热点快报</h2>
+            </div>
+            <div class="hotspot-actions">
+              <span id="hotspotStatus">今日未刷新</span>
+              <button type="button" class="secondary-button" id="refreshHotspots">刷新快报</button>
+            </div>
+          </div>
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Daily Hotlist</p>
+              <h2>像热搜一样，每天变化的全球信息榜</h2>
+            </div>
+            <span class="quiet-tag">政治 · 科技 · 金融</span>
+          </div>
+          <p class="section-note">后台自动刷新全球公开来源，只按政治、科技、金融三类生成热搜榜。这里先看“今天发生了什么”，再进入政策或趋势页看逐条来源提炼。</p>
+          <div class="hotspot-source-strip" id="hotspotSourceStrip"></div>
+          <div class="hotspot-dynamic-board" id="dailyHotspotBoard"></div>
+        </section>
+
+        <section class="category-divider category-logistics dashboard-only" aria-label="船期与物流分区">
+          <span>04</span>
+          <div>
+            <p class="eyebrow">Shipment & Logistics</p>
+            <h2>船期与物流风险</h2>
+            <p>围绕在途货物判断：船舶位置、ETA、港口拥堵、DG 接受规则和人工查询入口。</p>
+          </div>
+        </section>
+
+        <section id="codes" class="panel code-desk-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Code Lookup Desk</p>
+              <h2>港口/机场代码查询</h2>
+            </div>
+            <span>海运 UN/LOCODE · 空运 IATA/ICAO · 中文/英文模糊查询</span>
+          </div>
+          <div class="code-desk-grid">
+            <section class="freight-tool-panel" id="seaCodeLookupPanel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Port Code Lookup</p>
+                  <h2>海运港口代码查询</h2>
+                </div>
+                <span class="quiet-tag">UN/LOCODE 方向</span>
+              </div>
+              <form id="seaPortLookupForm" class="query-card compact-tool-form">
+                <label>
+                  港口/城市/代码
+                  <input id="seaPortLookupInput" lang="zh-CN" placeholder="如 上海 / CNSHA / 林查班 / Rotterdam" />
+                </label>
+                <button type="submit" class="primary-button">查询港口代码</button>
+              </form>
+              <div id="seaPortLookupResult" class="code-lookup-result"></div>
+            </section>
+
+            <section class="freight-tool-panel" id="airportCodeLookupPanel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Airport Code Lookup</p>
+                  <h2>空运机场代码查询</h2>
+                </div>
+                <span class="quiet-tag">IATA / ICAO</span>
+              </div>
+              <form id="airportLookupForm" class="query-card compact-tool-form">
+                <label>
+                  机场/城市/代码
+                  <input id="airportLookupInput" lang="zh-CN" placeholder="如 浦东 / PVG / 洛杉矶 / LAX" />
+                </label>
+                <button type="submit" class="primary-button">查询机场代码</button>
+              </form>
+              <div id="airportLookupResult" class="code-lookup-result"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="sea-fees" class="panel ops-fee-panel sea-fee-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Sea Terminal Cost Desk</p>
+              <h2>海运码头操作费用参考</h2>
+            </div>
+            <span>中国主要港口 · 收费项目 · 有效期/口径 · 金额 · 备注</span>
+          </div>
+
+          <div class="ops-fee-hero">
+            <div>
+              <p class="eyebrow">Sea Cost Reference</p>
+              <h2>码头费用先看“普通箱、冷箱、危险品、特种箱”四条线</h2>
+              <p>海运码头费用不只是一项 THC。普通箱、DG、冷箱、OOG/BBK、查验、移箱、堆存、改配都可能形成额外费用。这里先给费用表，正式报价再按码头、船司和货代账单核验。</p>
+            </div>
+            <div class="ops-fee-coverage" aria-label="覆盖范围">
+              <span>上海</span>
+              <span>宁波</span>
+              <span>深圳</span>
+              <span>广州</span>
+              <span>青岛</span>
+              <span>天津</span>
+              <span>厦门</span>
+              <span>太仓</span>
+              <span>珠海</span>
+              <span>北部湾</span>
+              <span>全国主要码头</span>
+            </div>
+          </div>
+
+          <section class="freight-tool-panel ops-fee-card">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Sea Terminal Fees</p>
+                <h2>海运码头费用表</h2>
+              </div>
+              <span class="quiet-tag">普通箱 / DG / 冷箱 / OOG / BBK</span>
+            </div>
+            <form id="seaOpsFeeForm" class="query-card ops-fee-form">
+              <label>
+                港口
+                <select id="seaOpsFeePort"></select>
+              </label>
+              <label>
+                码头/港区
+                <select id="seaOpsFeeNode"></select>
+              </label>
+              <label>
+                货型
+                <select id="seaOpsFeeType">
+                  <option value="general">普通集装箱</option>
+                  <option value="dg">危险品 DG</option>
+                  <option value="reefer">冷藏箱 Reefer</option>
+                  <option value="oog">OOG / 超限箱</option>
+                  <option value="bbk">BBK / 件杂货</option>
+                </select>
+              </label>
+              <button type="submit" class="primary-button">查看海运费用表</button>
+            </form>
+            <div id="seaOpsFeeResult" class="ops-fee-result-grid"></div>
+          </section>
+
+          <section class="ops-fee-note">
+            <strong>使用口径</strong>
+            <p>海运费用表把“公开目录能核验的项目”和“参考区间/逐票报价项目”分开。涉及危险品、冷箱、OOG、BBK、查验、超期堆存、夜间作业或改配，必须让货代按具体码头和船司账单核价。</p>
+          </section>
+        </section>
+
+        <section id="air-fees" class="panel ops-fee-panel air-fee-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Airport Cargo Cost Desk</p>
+              <h2>空运机场/货站费用参考</h2>
+            </div>
+            <span>中国主要机场 · 收费项目 · 有效期/口径 · 金额 · 备注</span>
+          </div>
+
+          <div class="ops-fee-hero air-fee-hero">
+            <div>
+              <p class="eyebrow">Air Cost Reference</p>
+              <h2>空运费用先分清“航空运费”和“机场货站操作费”</h2>
+              <p>这里重点看机场/货站的进出港、安检、仓储、查验协助、特殊货和温控费用。航空运费、燃油附加费、报关、提派送和目的国清关费用，需要另按航空公司、快递或货代报价核算。</p>
+            </div>
+            <div class="ops-fee-coverage" aria-label="覆盖范围">
+              <span>上海</span>
+              <span>广州</span>
+              <span>深圳</span>
+              <span>北京</span>
+              <span>郑州</span>
+              <span>成都</span>
+              <span>杭州</span>
+              <span>厦门</span>
+              <span>青岛</span>
+              <span>鄂州</span>
+            </div>
+          </div>
+
+          <section class="freight-tool-panel ops-fee-card">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Airport Cargo Fees</p>
+                <h2>空运机场/货站费用表</h2>
+              </div>
+              <span class="quiet-tag">普货 / 特货 / 电池磁性 / 冷藏</span>
+            </div>
+            <form id="airOpsFeeForm" class="query-card ops-fee-form">
+              <label>
+                机场/货站
+                <select id="airOpsFeeNode"></select>
+              </label>
+              <label>
+                货型
+                <select id="airOpsFeeType">
+                  <option value="general">普通空运货物</option>
+                  <option value="special">特殊货/超限/高价值</option>
+                  <option value="battery">含电池/磁性/疑似 DG</option>
+                  <option value="reefer">冷藏/温控货</option>
+                </select>
+              </label>
+              <button type="submit" class="primary-button">查看空运费用表</button>
+            </form>
+            <div id="airOpsFeeResult" class="ops-fee-result-grid"></div>
+          </section>
+
+          <section class="ops-fee-note">
+            <strong>使用口径</strong>
+            <p>空运费用表优先展示机场或货站公开收费。含电池、磁性、液体、粉末、温控、高价值、超限或疑似危险品时，费用和接收条件都要让承运人/货站逐票预审。</p>
+          </section>
+        </section>
+
+        <section id="shipment" class="tracking-section">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Shipment Desk</p>
+              <h2>船期和船舶位置</h2>
+            </div>
+            <span>实时结果 · 航线风险 · ETA 预警</span>
+          </div>
+          <div class="module-tabs" role="tablist" aria-label="船期模块视图">
+            <button type="button" class="module-tab active" data-tab-target="shipment-map-panel">船位 + ETA 风险</button>
+            <button type="button" class="module-tab" data-tab-target="shipment-alert-panel">ETA 预警</button>
+          </div>
+
+          <div class="tab-panel active" id="shipment-map-panel">
+            <div class="panel tracking-title-card">
+              <p class="eyebrow">Vessel & Schedule Tracking</p>
+              <h2>船期和船舶位置</h2>
+              <span>船期按船名查；箱号/提单号请到“通关/箱货放行”模块查，不和船名绑定。</span>
+            </div>
+
+            <form class="panel tracking-form" id="shipmentForm">
+              <div class="field-grid shipment-fields">
+                <label>
+                  船名 / Vessel Name
+                  <input id="vesselName" lang="zh-CN" placeholder="船名，如 EVER GIVEN / 中远海运，可模糊搜索" />
+                </label>
+                <label>
+                  航次（可不填）
+                  <input id="voyageNo" lang="zh-CN" placeholder="如 001W / 045E，可不填" />
+                </label>
+                <label>
+                  起运港
+                  <input id="originPort" lang="zh-CN" placeholder="如 巴生港 / 宁波 / Port Klang" />
+                </label>
+                <label>
+                  目的港
+                  <input id="destinationPort" lang="zh-CN" placeholder="如 上海 / CNSHG / Rotterdam" />
+                </label>
+                <label>
+                  IMO / MMSI (Optional)
+                  <input id="imoMmsi" placeholder="可不填；有 9 位 MMSI 会更准" />
+                </label>
+                <label>
+                  船司 / Carrier
+                  <input id="carrierName" lang="zh-CN" placeholder="如 COSCO / OOCL / Maersk，可不填" />
+                </label>
+              </div>
+              <div class="action-row">
+                <button type="submit" class="primary-button">查询船期</button>
+                <button type="button" class="secondary-button" id="loadVesselExample">载入样例</button>
+              </div>
+            </form>
+
+            <div class="tracking-layout">
+              <article class="panel route-map" aria-label="船舶路线示意">
+                <div class="map-water" id="vesselMapFrame">
+                  <div id="vesselLeafletMap" class="vessel-leaflet-map hidden" aria-label="船舶位置地图"></div>
+                  <iframe id="vesselRealMap" class="vessel-real-map hidden" title="船舶位置地图" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                  <div id="vesselMapPlaceholder" class="map-placeholder">
+                    <strong>等待船舶坐标</strong>
+                    <span>查询后会显示真实地图和大致位置</span>
+                  </div>
+                  <a id="vesselMapLink" class="map-open-link hidden" href="https://www.openstreetmap.org/" target="_blank" rel="noreferrer">打开地图</a>
+                  <span class="map-chip origin">Origin: <strong id="mapOrigin">Port Klang</strong></span>
+                  <span class="map-chip destination">Dest: <strong id="mapDestination">Shanghai</strong></span>
+                  <span class="vessel-marker" id="vesselMarker" aria-hidden="true">船舶位置</span>
+                </div>
+                <p class="map-caption" id="shipLocationNarrative">等待查询后显示船舶大致位置和前往港口。</p>
+              </article>
+
+              <aside class="panel tracking-result">
+                <div class="panel-heading">
+                  <div>
+                    <p class="eyebrow" id="shipmentSourceLabel">Live Result</p>
+                    <h2 id="shipmentTitle">等待查询</h2>
+                  </div>
+                  <span class="pill" id="shipmentApiState">等待输入</span>
+                </div>
+                <div class="tracking-cards">
+                  <div class="info-tile">
+                    <span>Position</span>
+                    <strong id="shipmentPosition">等待实时坐标</strong>
+                  </div>
+                  <div class="info-tile">
+                    <span>ETA</span>
+                    <strong id="shipmentEta">等待接口返回</strong>
+                  </div>
+                  <div class="info-tile">
+                    <span>Status</span>
+                    <strong id="shipmentStatus">等待查询</strong>
+                  </div>
+                  <div class="info-tile">
+                    <span>Data Time</span>
+                    <strong id="shipmentDataTime">未返回</strong>
+                  </div>
+                  <div class="info-tile warning">
+                    <span>Reminder</span>
+                    <strong id="shipmentReminder">不生成模拟船期</strong>
+                  </div>
+                </div>
+                <p class="api-note" id="shipmentApiNote">查询后显示自动抓取结果、数据时间和是否为近实时；接口没有返回 ETA 时不会生成假 ETA。</p>
+                <div id="vesselInlineFallback" class="vessel-inline-fallback hidden"></div>
+              </aside>
+            </div>
+          </div>
+
+          <section class="panel route-risk-panel shipment-inline-risk hidden" id="shipment-risk-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Route Risk / 航线风险</p>
+                <h2>天气、海况、军演和 ETA 影响</h2>
+              </div>
+              <span class="quiet-tag" id="shipmentRiskStatus">等待船期查询</span>
+            </div>
+            <div id="shipmentRiskSummary" class="summary-box compact-summary">
+              <strong>等待判断</strong>
+              <p>查询船位后，系统会按当前位置和目的港判断天气海况、季节性台风/暴雨风险、海域军事新闻是否可能影响 ETA。</p>
+            </div>
+            <div id="shipmentRiskGrid" class="route-risk-grid"></div>
+          </section>
+
+          <section class="panel external-source-panel hidden" id="shipment-sources-panel">
+            <span class="quiet-tag" id="shippingSourceStatus">等待查询</span>
+            <div id="shippingSourceGrid" class="shipping-source-grid"></div>
+            <div id="shippingScriptResult" class="script-result"></div>
+          </section>
+
+          <section class="panel vessel-public-panel hidden" id="vesselPublicPanel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Public Vessel Window</p>
+                <h2>公开船位网页兜底</h2>
+              </div>
+              <a id="vesselPublicLink" class="quiet-link" href="https://www.shipfinder.com/" target="_blank" rel="noreferrer">打开原网页</a>
+            </div>
+            <p class="section-note" id="vesselPublicNote">当免费接口没有新鲜坐标时，这里会显示第三方公开船位网页，方便直接核验。</p>
+            <iframe id="vesselPublicFrame" class="vessel-public-frame" title="公开船位查询窗口" loading="lazy" referrerpolicy="no-referrer"></iframe>
+          </section>
+
+          <section class="panel alert-panel tab-panel" id="shipment-alert-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Risk Alert / 预警规则</p>
+                <h2>关注船舶和 ETA 风险</h2>
+              </div>
+              <span class="quiet-tag">测试版：本地保存规则</span>
+            </div>
+            <p class="section-note">你可以先把关注船舶、预想 ETA 和提醒邮箱记在这里。服务器会定时检查 ETA；邮件通过后端 SMTP 发送，网页不会保存或显示邮箱授权码。</p>
+            <form id="vesselAlertForm" class="query-card alert-watch-form">
+              <label>
+                关注船名
+                <input id="alertVesselName" lang="zh-CN" placeholder="例如 EVER GIVEN / 中远某船" />
+              </label>
+              <label>
+                目的港
+                <input id="alertDestination" lang="zh-CN" placeholder="例如 上海 / Rotterdam" />
+              </label>
+              <label>
+                预想 ETA
+                <input id="alertExpectedEta" type="datetime-local" />
+              </label>
+              <label>
+                提醒邮箱
+                <input id="alertEmail" type="email" placeholder="例如 18064474479@163.com" />
+              </label>
+              <label>
+                预警规则
+                <select id="alertRule">
+                  <option value="before_eta">ETA 前一个工作日提醒</option>
+                  <option value="late_eta">实际 ETA 晚于预想 ETA 时提醒</option>
+                </select>
+              </label>
+              <button type="submit" class="primary-button">保存预警规则</button>
+            </form>
+            <div id="vesselAlertResult" class="alert-result"></div>
+            <div id="vesselAlertList" class="alert-list"></div>
+          </section>
+
+        </section>
+
+        <section id="sea-load" class="panel sea-load-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Sea Load Calculator</p>
+              <h2>海运装载计算实用工具</h2>
+            </div>
+            <span>CBM · W/M 计费吨 · LCL/FCL · 箱型利用率</span>
+          </div>
+          <section class="panel freight-tool-panel" id="seaLoadToolPanel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Sea Load Tool</p>
+                <h2>海运装载和箱型预判</h2>
+              </div>
+              <span class="quiet-tag">LCL/FCL 初算</span>
+            </div>
+            <div class="freight-calc-workbench">
+              <form id="seaLoadForm" class="query-card load-calc-form">
+                <div class="field-grid">
+                  <label>单箱长 cm<input id="seaLength" inputmode="decimal" placeholder="如 60" /></label>
+                  <label>单箱宽 cm<input id="seaWidth" inputmode="decimal" placeholder="如 40" /></label>
+                  <label>单箱高 cm<input id="seaHeight" inputmode="decimal" placeholder="如 35" /></label>
+                  <label>箱数<input id="seaCartons" inputmode="numeric" placeholder="如 120" /></label>
+                  <label>总毛重 kg<input id="seaGrossWeight" inputmode="decimal" placeholder="如 1800" /></label>
+                  <label>海运费率/柜价 USD<input id="seaRate" inputmode="decimal" placeholder="LCL 按 W/M，FCL 按柜价" /></label>
+                  <label>本地/目的港杂费 USD<input id="seaLocalFees" inputmode="decimal" placeholder="THC、文件、订舱、拖车等合计" /></label>
+                  <label>
+                    计划箱型
+                    <select id="seaContainerType">
+                      <option value="LCL">拼箱 LCL</option>
+                      <option value="20GP">20GP</option>
+                      <option value="40GP">40GP</option>
+                      <option value="40HQ">40HQ</option>
+                      <option value="45HQ">45HQ</option>
+                    </select>
+                  </label>
+                  <label>
+                    托盘/装柜口径
+                    <select id="seaPackingMode">
+                      <option value="carton">散箱装柜</option>
+                      <option value="pallet">托盘货</option>
+                      <option value="dg">含电池/DG 需预审</option>
+                      <option value="wood">木包装/需熏蒸关注</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="calc-form-actions">
+                  <button type="submit" class="primary-button">计算海运装载</button>
+                  <button type="button" class="secondary-button" id="loadSeaCalcExample">载入样例</button>
+                </div>
+              </form>
+              <aside class="calc-side-panel sea-calc-side" aria-label="海运计算参考">
+                <div class="calc-side-hero">
+                  <span>SEA</span>
+                  <strong>CBM / W-M / FCL</strong>
+                </div>
+                <div id="seaLoadResult" class="freight-result-grid calc-live-result" aria-live="polite">
+                  <article class="freight-result-card primary calc-placeholder-card">
+                    <span>自动预览</span>
+                    <strong>填写尺寸后显示结果</strong>
+                    <p>下方会显示 CBM、W/M、箱型利用率、费用和装柜提醒。</p>
+                  </article>
+                </div>
+                <div class="calc-side-grid">
+                  <article>
+                    <span>计费口径</span>
+                    <strong>W/M 取大</strong>
+                    <p>拼箱按体积吨和重量吨比较，整柜按柜价再叠加港杂。</p>
+                  </article>
+                  <article>
+                    <span>装柜判断</span>
+                    <strong>CBM + 限重</strong>
+                    <p>40HQ 只看体积不够，还要看 VGM、托盘和道路限重。</p>
+                  </article>
+                  <article>
+                    <span>核价补充</span>
+                    <strong>杂费单列</strong>
+                    <p>THC、文件、拖车、查验、堆存、免箱期要分项确认。</p>
+                  </article>
+                </div>
+                <div class="calc-mini-checklist">
+                  <span>下单前确认</span>
+                  <p>箱型、毛重、托盘、木包装、含电池/DG、起运港和目的港费用口径。</p>
+                </div>
+              </aside>
+            </div>
+          </section>
+        </section>
+
+        <section id="sea-special" class="panel sea-special-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Special Cargo Desk</p>
+              <h2>BBK / OOG / Reefer 预备工作</h2>
+            </div>
+            <span>按货型和码头看接收边界、资料、费用入口和操作流程</span>
+          </div>
+          <section class="panel freight-tool-panel" id="seaSpecialCargoPanel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Special Container</p>
+                <h2>BBK / OOG / Reefer 预备工作</h2>
+              </div>
+              <span class="quiet-tag">特种箱/非标货</span>
+            </div>
+            <form id="seaSpecialForm" class="query-card compact-tool-form">
+              <label>
+                货物/箱型
+                <select id="seaSpecialType">
+                  <option value="oog">OOG 超限货 / Flat Rack / Open Top</option>
+                  <option value="reefer">Reefer 冷藏箱</option>
+                  <option value="bbk">BBK / Break Bulk 件杂货</option>
+                  <option value="dg">危险品集装箱</option>
+                </select>
+              </label>
+              <label>
+                港口
+                <select id="seaSpecialPort"></select>
+              </label>
+              <label>
+                码头/港区
+                <select id="seaSpecialTerminal"></select>
+              </label>
+              <button type="submit" class="primary-button">生成预备清单</button>
+            </form>
+            <div id="seaSpecialResult" class="freight-result-grid"></div>
+          </section>
+        </section>
+
+        <section id="customs" class="panel customs-status-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Customs / Manifest</p>
+              <h2>通关/箱货放行查询</h2>
+            </div>
+            <span>上海港优先 · 提单/箱号 · 海关/码头/船司状态</span>
+          </div>
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Shanghai Port Release</p>
+              <h2>提单 / 集装箱放行状态</h2>
+            </div>
+            <span class="quiet-tag">脚本查询预留 · 验证码时人工完成</span>
+          </div>
+          <p class="section-note">箱货状态按箱号或提单号查，和船期查询分开。提交后系统自动先查上海港/港航入口；如遇验证码，会直接提示原因，不再要求重复输入。</p>
+          <form id="customsForm" class="query-card customs-query">
+            <div class="field-grid">
+              <label>
+                提单号 B/L
+                <input id="blNo" lang="zh-CN" placeholder="如 COSU123456789 / HBL..." />
+              </label>
+              <label>
+                箱号 Container No.
+                <input id="containerNo" lang="zh-CN" placeholder="如 MSKU1234567 / TEMU..." />
+              </label>
+              <label>
+                方向
+                <select id="customsDirection">
+                  <option>进口 Import</option>
+                  <option>出口 Export</option>
+                </select>
+              </label>
+              <label>
+                主要口岸
+                <select id="customsPortSelect"></select>
+              </label>
+              <label>
+                具体港区/码头
+                <input id="customsCode" lang="zh-CN" value="上海港" placeholder="如 洋山、外高桥、宁波北仑、盐田..." />
+              </label>
+            </div>
+            <div class="action-row">
+              <button type="submit" class="primary-button">查询箱货/放行状态</button>
+              <button type="button" class="secondary-button" id="loadCustomsExample">载入样例</button>
+            </div>
+          </form>
+            <div id="customsStatus" class="quiet-tag">等待输入</div>
+          <div id="customsPortMatrix" class="customs-port-grid"></div>
+          <div id="customsScriptResult" class="script-result"></div>
+          <div id="customsAdvice" class="customs-advice hidden"></div>
+          <textarea id="customsManualPaste" class="hidden" rows="1"></textarea>
+          <div id="customsManualSummary" class="manual-summary hidden"></div>
+        </section>
+
+        <section id="docs-invoice" class="panel document-panel invoice-document-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Documents / Invoice & Packing List</p>
+              <h2>箱单发票生成</h2>
+            </div>
+            <span>商业发票 · 装箱单 · 询价/清关参考件</span>
+          </div>
+          <div class="invoice-toolbar">
+            <span>参考单证草稿 · 正式文件需按客户/报关行模板复核</span>
+            <div>
+              <button type="button" class="secondary-button" id="loadInvoiceExample">载入样例</button>
+              <button type="button" class="secondary-button" id="validateInvoiceDoc">检查必填项</button>
+              <button type="button" class="secondary-button" id="showInvoiceMode">商业发票</button>
+              <button type="button" class="secondary-button" id="showPackingMode">装箱单</button>
+              <button type="button" class="secondary-button" id="copyInvoiceDoc">复制单证摘要</button>
+              <button type="button" class="primary-button" id="printInvoiceDoc">导出 PDF</button>
+            </div>
+          </div>
+          <form id="invoiceDocForm" class="invoice-packing-paper" data-document-mode="invoice" aria-label="商业发票和装箱单模拟填制">
+            <h2 id="invoicePaperTitle">COMMERCIAL INVOICE</h2>
+            <table class="invoice-paper-table">
+              <tbody>
+                <tr>
+                  <td colspan="6" rowspan="2" class="party-cell"><label><span class="required-mark">Seller / 卖方</span><textarea id="docSeller" rows="3" lang="zh-CN" placeholder="公司名称、地址、联系方式"></textarea></label></td>
+                  <td colspan="3"><label><span class="required-mark">Invoice No. / 发票号</span><input id="docInvoiceNo" lang="zh-CN" placeholder="CI-2026-001" /></label></td>
+                  <td colspan="3"><label><span class="required-mark">Date / 发票日期</span><input id="docInvoiceDate" type="date" /></label></td>
+                </tr>
+                <tr>
+                  <td colspan="3"><label><span class="required-mark">Incoterms / 贸易条款</span><select id="docIncoterm"><option>FOB</option><option>CIF</option><option>CFR</option><option>EXW</option><option>DAP</option><option>DDP</option></select></label></td>
+                  <td colspan="3"><label><span class="required-mark">Currency / 币种</span><select id="docCurrency"><option>USD</option><option>EUR</option><option>CNY</option><option>GBP</option></select></label></td>
+                </tr>
+                <tr>
+                  <td colspan="6" rowspan="2" class="party-cell"><label><span class="required-mark">Buyer / 买方</span><textarea id="docBuyer" rows="3" lang="zh-CN" placeholder="客户公司名称、地址、税号/联系人"></textarea></label></td>
+                  <td colspan="3"><label><span class="required-mark">Port of Loading / 起运港</span><input id="docPortLoading" lang="zh-CN" placeholder="Shanghai, China" /></label></td>
+                  <td colspan="3"><label><span class="required-mark">Port of Discharge / 目的港</span><input id="docPortDischarge" lang="zh-CN" placeholder="Hamburg, Germany" /></label></td>
+                </tr>
+                <tr>
+                  <td colspan="6"><label><span>Vessel / Flight / 船名航次或航班（选填）</span><input id="docVessel" lang="zh-CN" placeholder="XIN ZHANJIANG V.123E / CA..." /></label></td>
+                </tr>
+                <tr class="invoice-goods-line-row" data-doc-item-row="1">
+                  <td colspan="3"><label><span>Shipping Marks / 唛头</span><textarea id="docMarks" rows="3" lang="zh-CN" placeholder="N/M 或客户唛头"></textarea></label></td>
+                  <td colspan="4"><label><span class="required-mark">Description of Goods / 品名</span><textarea id="docProductName" rows="3" lang="zh-CN" placeholder="Bluetooth Speaker / 蓝牙音箱"></textarea></label></td>
+                  <td colspan="2"><label><span>HS Code（选填）</span><input id="docHsCode" inputmode="numeric" placeholder="85182100" /></label></td>
+                  <td colspan="1"><label><span class="required-mark">Quantity</span><input id="docQuantity" type="number" min="0" step="1" placeholder="500" /></label></td>
+                  <td colspan="1"><label><span class="required-mark">Unit</span><input id="docUnit" lang="zh-CN" placeholder="PCS" /></label></td>
+                  <td colspan="1" class="invoice-price-field"><label><span class="required-mark">Unit Price</span><input id="docUnitPrice" type="number" min="0" step="0.01" placeholder="12.50" /></label></td>
+                </tr>
+                <tr class="invoice-goods-line-row" data-doc-item-row="2">
+                  <td colspan="3"><label><span>Marks</span><textarea id="docMarks2" rows="2" lang="zh-CN" placeholder="可空"></textarea></label></td>
+                  <td colspan="4"><label><span>Description</span><textarea id="docProductName2" rows="2" lang="zh-CN" placeholder="第二项货物，可空"></textarea></label></td>
+                  <td colspan="2"><label><span>HS Code（选填）</span><input id="docHsCode2" inputmode="numeric" /></label></td>
+                  <td colspan="1"><label><span>Qty</span><input id="docQuantity2" type="number" min="0" step="1" /></label></td>
+                  <td colspan="1"><label><span>Unit</span><input id="docUnit2" lang="zh-CN" placeholder="PCS" /></label></td>
+                  <td colspan="1" class="invoice-price-field"><label><span>Unit Price</span><input id="docUnitPrice2" type="number" min="0" step="0.01" /></label></td>
+                </tr>
+                <tr class="invoice-goods-line-row" data-doc-item-row="3">
+                  <td colspan="3"><label><span>Marks</span><textarea id="docMarks3" rows="2" lang="zh-CN" placeholder="可空"></textarea></label></td>
+                  <td colspan="4"><label><span>Description</span><textarea id="docProductName3" rows="2" lang="zh-CN" placeholder="第三项货物，可空"></textarea></label></td>
+                  <td colspan="2"><label><span>HS Code（选填）</span><input id="docHsCode3" inputmode="numeric" /></label></td>
+                  <td colspan="1"><label><span>Qty</span><input id="docQuantity3" type="number" min="0" step="1" /></label></td>
+                  <td colspan="1"><label><span>Unit</span><input id="docUnit3" lang="zh-CN" placeholder="PCS" /></label></td>
+                  <td colspan="1" class="invoice-price-field"><label><span>Unit Price</span><input id="docUnitPrice3" type="number" min="0" step="0.01" /></label></td>
+                </tr>
+                <tr class="invoice-total-row">
+                  <td colspan="3"><label><span class="required-mark">Cartons / 箱数</span><input id="docCartons" type="number" min="0" step="1" placeholder="50" /></label></td>
+                  <td colspan="2"><label><span class="required-mark">Gross Weight kg / 毛重</span><input id="docGrossWeight" type="number" min="0" step="0.01" placeholder="680" /></label></td>
+                  <td colspan="2"><label><span class="required-mark">Net Weight kg / 净重</span><input id="docNetWeight" type="number" min="0" step="0.01" placeholder="610" /></label></td>
+                  <td colspan="2"><label><span class="required-mark">Measurement CBM / 体积</span><input id="docCbm" type="number" min="0" step="0.001" placeholder="4.82" /></label></td>
+                  <td colspan="3" class="invoice-amount-cell invoice-price-field"><span>Amount / 总金额</span><strong id="invoicePaperAmount">自动计算</strong></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="invoice-paper-note">
+              <span>必填项已用红色星号标记；HS Code、船名航次为选填。导出前可选择是否保留空白货物行。</span>
+              <button type="button" class="secondary-button" id="addInvoiceItemRow">增加货物行</button>
+              <button type="submit" class="primary-button">更新金额/摘要</button>
+            </div>
+          </form>
+          <div id="invoiceDocResult" class="document-preview"></div>
+        </section>
+
+        <section id="docs-declaration" class="panel document-panel declaration-document-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Customs Declaration Draft</p>
+              <h2>报关单生成</h2>
+            </div>
+            <span>模拟填制 · 字段提醒 · Excel 报关单</span>
+          </div>
+          <div class="declaration-toolbar">
+            <span>模拟填制草稿 · 不是正式申报</span>
+            <div>
+              <button type="button" class="secondary-button" id="loadDeclarationExample">载入样例</button>
+              <button type="button" class="secondary-button" id="validateDeclarationDoc">检查必填项</button>
+              <button type="button" class="secondary-button" id="downloadDeclarationExcel">生成 Excel 报关单</button>
+              <button type="button" class="primary-button" id="printDeclarationDoc">导出 PDF</button>
+            </div>
+          </div>
+          <section class="declaration-beginner-guide" aria-label="报关单新手填制辅助">
+            <div class="declaration-guide-head">
+              <div>
+                <p class="eyebrow">Declaration Guide</p>
+                <h3>先按资料来源填，不要一格一格猜</h3>
+              </div>
+              <span>适合第一次做报关单草稿的同事</span>
+            </div>
+            <div class="declaration-guide-steps">
+              <article><span>01</span><strong>先拿单证</strong><p>合同/PI、商业发票、装箱单、订舱或提单、HS 归类结果。</p></article>
+              <article><span>02</span><strong>先填主体和运输</strong><p>收发货人、申报单位、运输方式、船名航次/提单号。</p></article>
+              <article><span>03</span><strong>再填货物</strong><p>商品编号、中文品名、规格型号、数量单位、单价总价和币制。</p></article>
+              <article><span>04</span><strong>最后核对一致性</strong><p>件数、毛净重、成交方式、运保杂费、随附单证和三项价格确认。</p></article>
+            </div>
+            <div id="declarationBeginnerTips" class="declaration-beginner-tips"></div>
+          </section>
+          <form id="declarationDocForm" class="customs-declaration-paper" aria-label="中华人民共和国海关出口货物报关单模拟填制">
+            <h2>中华人民共和国海关出口货物报关单</h2>
+            <div class="customs-declaration-meta">
+              <label>预录入编号：<input id="declPreNo" placeholder="预录入编号" /></label>
+              <label>海关编号：<input id="declCustomsNo" placeholder="正式编号由系统生成" /></label>
+              <span>页码/页数：1 / 1</span>
+            </div>
+            <table class="customs-declaration-table">
+              <colgroup>
+                <col span="12" />
+              </colgroup>
+              <tbody>
+                <tr>
+                  <td colspan="3"><label><span>境内收发货人</span><input id="declDomesticConsignee" lang="zh-CN" placeholder="10位海关编码/统一社会信用代码 + 名称" /></label></td>
+                  <td colspan="3"><label><span>出境关别</span><input id="declExportCustoms" lang="zh-CN" placeholder="如 上海海关" /></label></td>
+                  <td colspan="2"><label><span>出口日期</span><input id="declExportDate" type="date" /></label></td>
+                  <td colspan="2"><label><span>申报日期</span><input id="declDeclareDate" type="date" /></label></td>
+                  <td colspan="2"><label><span>备案号</span><input id="declRecordNo" placeholder="无/备案号" /></label></td>
+                </tr>
+                <tr>
+                  <td colspan="3"><label><span>境外收发货人</span><input id="declOverseasConsignee" lang="zh-CN" placeholder="境外客户/供应商名称" /></label></td>
+                  <td colspan="3"><label><span>运输方式</span><input id="declTransportMode" lang="zh-CN" placeholder="水路运输/航空运输/公路运输" /></label></td>
+                  <td colspan="4"><label><span>运输工具名称及航次号</span><input id="declVesselVoyage" lang="zh-CN" placeholder="船名航次/航班号/车牌号" /></label></td>
+                  <td colspan="2"><label><span>提运单号</span><input id="declBlNo" placeholder="B/L、AWB 或运单号" /></label></td>
+                </tr>
+                <tr>
+                  <td colspan="3"><label><span>生产销售单位</span><input id="declProducer" lang="zh-CN" placeholder="生产或销售单位名称" /></label></td>
+                  <td colspan="3"><label><span>监管方式</span><input id="declTradeMode" lang="zh-CN" placeholder="一般贸易、进料加工等" /></label></td>
+                  <td colspan="3"><label><span>征免性质</span><input id="declLevyNature" lang="zh-CN" placeholder="一般征税、鼓励项目等" /></label></td>
+                  <td colspan="3"><label><span>许可证号</span><input id="declLicenseNo" placeholder="没有可填无或空白" /></label></td>
+                </tr>
+                <tr>
+                  <td colspan="3"><label><span>合同协议号</span><input id="declContractNo" placeholder="合同/PO/PI编号" /></label></td>
+                  <td colspan="3"><label><span>贸易国（地区）</span><input id="declTradeCountry" lang="zh-CN" placeholder="成交对象所在国家/地区" /></label></td>
+                  <td colspan="3"><label><span>运抵国（地区）</span><input id="declDestinationCountry" lang="zh-CN" placeholder="最终运抵国家/地区" /></label></td>
+                  <td colspan="2"><label><span>指运港</span><input id="declDestinationPort" lang="zh-CN" placeholder="目的港/机场" /></label></td>
+                  <td colspan="1"><label><span>离境口岸</span><input id="declExitPort" lang="zh-CN" placeholder="口岸" /></label></td>
+                </tr>
+                <tr>
+                  <td colspan="2"><label><span>包装种类</span><input id="declPackageType" lang="zh-CN" placeholder="纸箱/托盘" /></label></td>
+                  <td colspan="1"><label><span>件数</span><input id="declPackages" type="number" min="0" step="1" placeholder="件数" /></label></td>
+                  <td colspan="2"><label><span>毛重（千克）</span><input id="declGrossWeight" type="number" min="0" step="0.01" placeholder="毛重" /></label></td>
+                  <td colspan="2"><label><span>净重（千克）</span><input id="declNetWeight" type="number" min="0" step="0.01" placeholder="净重" /></label></td>
+                  <td colspan="2"><label><span>成交方式</span><input id="declIncoterm" placeholder="FOB/CIF/CFR" /></label></td>
+                  <td colspan="1"><label><span>运费</span><input id="declFreight" placeholder="无/金额" /></label></td>
+                  <td colspan="1"><label><span>保费</span><input id="declInsurance" placeholder="无/金额" /></label></td>
+                  <td colspan="1"><label><span>杂费</span><input id="declOtherFee" placeholder="无/金额" /></label></td>
+                </tr>
+                <tr>
+                  <td colspan="12"><label><span>随附单证及编号</span><input id="declAttachedDocs" lang="zh-CN" placeholder="如发票、箱单、合同、许可证、原产地证等编号" /></label></td>
+                </tr>
+                <tr>
+                  <td colspan="12" class="large-cell"><label><span>标记唛码及备注</span><textarea id="declMarksRemark" rows="3" lang="zh-CN" placeholder="唛头、特殊关系确认、价格影响确认、支付特许权使用费确认等"></textarea></label></td>
+                </tr>
+              </tbody>
+            </table>
+            <table class="customs-declaration-goods">
+              <thead>
+                <tr>
+                  <th>项号</th>
+                  <th>商品编号</th>
+                  <th>商品名称及规格型号</th>
+                  <th>数量及单位</th>
+                  <th>单价/总价/币制</th>
+                  <th>原产国（地区）</th>
+                  <th>最终目的国（地区）</th>
+                  <th>境内货源地</th>
+                  <th>征免</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="declaration-goods-line-row" data-decl-item-row="1">
+                  <td>1</td>
+                  <td><input id="declGoodsCode" inputmode="numeric" placeholder="商品编码" /></td>
+                  <td><textarea id="declGoodsName" rows="2" lang="zh-CN" placeholder="中文品名 + 规格型号 + 品牌/用途等"></textarea></td>
+                  <td><input id="declGoodsQuantity" lang="zh-CN" placeholder="如 500 台" /></td>
+                  <td><input id="declGoodsValue" lang="zh-CN" placeholder="如 USD 12.50 / USD 6250" /></td>
+                  <td><input id="declOriginCountry" lang="zh-CN" placeholder="中国" /></td>
+                  <td><input id="declFinalCountry" lang="zh-CN" placeholder="德国" /></td>
+                  <td><input id="declDomesticSource" lang="zh-CN" placeholder="广东深圳" /></td>
+                  <td><input id="declLevyMode" lang="zh-CN" placeholder="照章征税" /></td>
+                </tr>
+                <tr class="declaration-goods-line-row" data-decl-item-row="2">
+                  <td>2</td>
+                  <td><input id="declGoodsCode2" inputmode="numeric" placeholder="商品编码" /></td>
+                  <td><textarea id="declGoodsName2" rows="2" lang="zh-CN" placeholder="第二项货物，可空"></textarea></td>
+                  <td><input id="declGoodsQuantity2" lang="zh-CN" placeholder="数量及单位" /></td>
+                  <td><input id="declGoodsValue2" lang="zh-CN" placeholder="单价/总价/币制" /></td>
+                  <td><input id="declOriginCountry2" lang="zh-CN" placeholder="原产国" /></td>
+                  <td><input id="declFinalCountry2" lang="zh-CN" placeholder="最终目的国" /></td>
+                  <td><input id="declDomesticSource2" lang="zh-CN" placeholder="境内货源地" /></td>
+                  <td><input id="declLevyMode2" lang="zh-CN" placeholder="征免" /></td>
+                </tr>
+                <tr class="declaration-goods-line-row" data-decl-item-row="3">
+                  <td>3</td>
+                  <td><input id="declGoodsCode3" inputmode="numeric" placeholder="商品编码" /></td>
+                  <td><textarea id="declGoodsName3" rows="2" lang="zh-CN" placeholder="第三项货物，可空"></textarea></td>
+                  <td><input id="declGoodsQuantity3" lang="zh-CN" placeholder="数量及单位" /></td>
+                  <td><input id="declGoodsValue3" lang="zh-CN" placeholder="单价/总价/币制" /></td>
+                  <td><input id="declOriginCountry3" lang="zh-CN" placeholder="原产国" /></td>
+                  <td><input id="declFinalCountry3" lang="zh-CN" placeholder="最终目的国" /></td>
+                  <td><input id="declDomesticSource3" lang="zh-CN" placeholder="境内货源地" /></td>
+                  <td><input id="declLevyMode3" lang="zh-CN" placeholder="征免" /></td>
+                </tr>
+              </tbody>
+            </table>
+            <table class="customs-declaration-footer">
+              <tbody>
+                <tr>
+                  <td colspan="3"><label><span>特殊关系确认：</span><select id="declSpecialRelation"><option>否</option><option>是</option></select></label></td>
+                  <td colspan="3"><label><span>价格影响确认：</span><select id="declPriceImpact"><option>否</option><option>是</option></select></label></td>
+                  <td colspan="3"><label><span>支付特许权使用费确认：</span><select id="declRoyalty"><option>否</option><option>是</option></select></label></td>
+                  <td colspan="3"><label><span>自报自缴：</span><select id="declSelfPayment"><option>否</option><option>是</option></select></label></td>
+                </tr>
+                <tr>
+                  <td colspan="3"><label><span>报关人员</span><input id="declBrokerName" lang="zh-CN" placeholder="姓名" /></label></td>
+                  <td colspan="2"><label><span>报关人员证号</span><input id="declBrokerCert" placeholder="证号" /></label></td>
+                  <td colspan="2"><label><span>电话</span><input id="declBrokerPhone" placeholder="联系电话" /></label></td>
+                  <td colspan="3" rowspan="2" class="declaration-statement">兹申明对以上内容承担如实申报、依法纳税之法律责任</td>
+                  <td colspan="2" rowspan="2"><label><span>海关批注及签章</span><textarea id="declCustomsRemark" rows="3" placeholder="海关填写区域"></textarea></label></td>
+                </tr>
+                <tr>
+                  <td colspan="3"><label><span>申报单位</span><input id="declAgent" lang="zh-CN" placeholder="报关企业或自理报关单位" /></label></td>
+                  <td colspan="4"><label><span>申报单位（签章）</span><input id="declAgentSeal" lang="zh-CN" placeholder="签章/日期" /></label></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="declaration-paper-actions">
+              <small>填写规范提醒：商品名称及规格型号、件数、重量、成交方式、特殊关系等字段需与合同、箱单、发票、舱单和报关行复核口径一致。</small>
+              <button type="button" class="secondary-button" id="addDeclarationGoodsRow">增加商品行</button>
+              <button type="submit" class="primary-button">校验当前填写</button>
+            </div>
+          </form>
+          <div id="declarationDocResult" class="declaration-preview"></div>
+        </section>
+
+        <section id="air" class="panel air-desk-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Air & Courier Desk</p>
+              <h2>空运/快件查询</h2>
+            </div>
+            <span>UPS · DHL · FedEx · SF · 空运注意事项</span>
+          </div>
+          <div class="air-hero">
+            <div>
+              <p class="eyebrow">Air shipment</p>
+              <h2>快件先看状态，空运先看限制</h2>
+              <p>快件/空运单号目前先走官网核验入口，不生成模拟轨迹。含电池、磁性、液体、样品和维修件要提前确认承运限制、申报资料和到达清关节点。</p>
+            </div>
+            <div class="air-hero-visual" aria-hidden="true">
+              <span></span>
+              <i></i>
+            </div>
+          </div>
+          <form id="airTrackingForm" class="query-card air-query-form">
+            <div class="field-grid">
+              <label>
+                运单号 / Tracking No.
+                <input id="airTrackingNo" lang="zh-CN" placeholder="如 UPS 1Z... / DHL 10位 / SF 顺丰单号 / FedEx 12位" />
+              </label>
+              <label>
+                承运商
+                <select id="airCarrier">
+                  <option value="auto">自动判断</option>
+                  <option value="dhl">DHL Express</option>
+                  <option value="ups">UPS</option>
+                  <option value="fedex">FedEx</option>
+                  <option value="sf">顺丰 SF</option>
+                  <option value="other">其他/不确定</option>
+                </select>
+              </label>
+              <label>
+                货物/产品
+                <input id="airProduct" lang="zh-CN" placeholder="如 蓝牙耳机、样品、维修件、含锂电池设备" />
+              </label>
+              <label>
+                目的国/地区
+                <input id="airDestination" lang="zh-CN" placeholder="如 美国、巴西、欧盟、中国" />
+              </label>
+            </div>
+            <div class="action-row">
+              <button type="submit" class="primary-button">查询快件/空运状态</button>
+              <button type="button" class="secondary-button" id="loadAirExample">载入空运样例</button>
+            </div>
+          </form>
+          <div id="airTrackingResult" class="air-result-grid"></div>
+          <div class="air-knowledge-grid">
+            <article class="air-guide-card">
+              <span>空运 vs 海运</span>
+              <strong>快，但更挑货</strong>
+              <p>空运适合样品、小批量、急单；海运适合大批量和成本敏感。空运最容易卡在电池、磁性、品牌授权、低申报、目的国清关资料。</p>
+            </article>
+            <article class="air-guide-card danger">
+              <span>电池/DG</span>
+              <strong>先确认能不能飞</strong>
+              <p>含锂电池设备要看 UN38.3、MSDS、PI965/966/967、SOC、包装和承运人限制。电池单独运输比装在设备中更敏感。</p>
+            </article>
+            <article class="air-guide-card">
+              <span>到达清关</span>
+              <strong>收件人资料很关键</strong>
+              <p>快件到目的国后可能要求税号、进口商登记、授权书、付款凭证、产品用途说明或认证资料。Brazil/India/GCC 等目的地尤其要提前问进口商。</p>
+            </article>
+            <article class="air-guide-card">
+              <span>异常处理</span>
+              <strong>先看状态词</strong>
+              <p>Clearance delay、Exception、Held、Pending、Customs status updated 不是同一件事。先截图官网状态，再找快递客服/货代确认缺什么文件。</p>
+            </article>
+          </div>
+          <a class="air-guide-jump" href="#air-guide">查看空运出运/到达注意事项</a>
+        </section>
+
+        <section id="air-calc" class="panel air-calc-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Air Cargo Calculator</p>
+              <h2>非快件空运计算实用工具</h2>
+            </div>
+            <span>散货 · 包板/BSA · 包机 · 计费重 · 操作准备</span>
+          </div>
+          <section class="freight-tool-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Air Cargo Tool</p>
+                <h2>空运计费重和包板预判</h2>
+              </div>
+              <span class="quiet-tag">非快件空运</span>
+            </div>
+            <div class="freight-calc-workbench">
+              <form id="airFreightCalcForm" class="query-card load-calc-form">
+                <div class="field-grid">
+                  <label>单件长 cm<input id="airLength" inputmode="decimal" placeholder="如 60" /></label>
+                  <label>单件宽 cm<input id="airWidth" inputmode="decimal" placeholder="如 40" /></label>
+                  <label>单件高 cm<input id="airHeight" inputmode="decimal" placeholder="如 35" /></label>
+                  <label>件数<input id="airPieces" inputmode="numeric" placeholder="如 20" /></label>
+                  <label>总毛重 kg<input id="airGrossWeight" inputmode="decimal" placeholder="如 180" /></label>
+                  <label>空运单价 USD/kg<input id="airRate" inputmode="decimal" placeholder="如 4.5，可不填" /></label>
+                  <label>燃油/安检/杂费 USD<input id="airSurcharges" inputmode="decimal" placeholder="如 120，可不填" /></label>
+                  <label>
+                    运输类型
+                    <select id="airFreightMode">
+                      <option value="general">普通空运散货</option>
+                      <option value="bsa">包板 / BSA</option>
+                      <option value="charter">包机 / Charter</option>
+                      <option value="express">快件 Express 对照</option>
+                    </select>
+                  </label>
+                  <label>
+                    货物属性
+                    <select id="airCargoNature">
+                      <option value="general">普货</option>
+                      <option value="battery-contained">含电池设备</option>
+                      <option value="battery-alone">电池单独运输</option>
+                      <option value="magnetic">磁性/带喇叭磁钢</option>
+                      <option value="sample">样品/维修件</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="calc-form-actions">
+                  <button type="submit" class="primary-button">计算空运预备信息</button>
+                  <button type="button" class="secondary-button" id="loadAirCalcExample">载入样例</button>
+                </div>
+              </form>
+              <aside class="calc-side-panel air-calc-side" aria-label="空运计算参考">
+                <div class="calc-side-hero">
+                  <span>AIR</span>
+                  <strong>Chargeable Weight</strong>
+                </div>
+                <div id="airFreightCalcResult" class="freight-result-grid calc-live-result" aria-live="polite">
+                  <article class="freight-result-card primary calc-placeholder-card">
+                    <span>自动预览</span>
+                    <strong>填写尺寸后显示计费重</strong>
+                    <p>下方会显示实重、体积重、抛货判断、费用和空运资料提醒。</p>
+                  </article>
+                </div>
+                <div class="calc-side-grid">
+                  <article>
+                    <span>计费重</span>
+                    <strong>实重 / 体积重</strong>
+                    <p>普通空运常按 6000，快件常按 5000，渠道可能调整。</p>
+                  </article>
+                  <article>
+                    <span>包板预判</span>
+                    <strong>件重尺 + 货好时间</strong>
+                    <p>BSA 要提前给板型、截仓、能否堆叠和拉货规则。</p>
+                  </article>
+                  <article>
+                    <span>特殊货</span>
+                    <strong>先问接收限制</strong>
+                    <p>电池、磁性、样品、品牌货要先确认承运和鉴定资料。</p>
+                  </article>
+                </div>
+                <div class="calc-mini-checklist">
+                  <span>出运前确认</span>
+                  <p>AWB、货站费、燃油安检、仓储、派送、目的港清关和航司限制。</p>
+                </div>
+              </aside>
+            </div>
+          </section>
+        </section>
+
+        <section id="air-guide" class="panel air-guide-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Air Operation Guide</p>
+              <h2>空运出运/到达注意</h2>
+            </div>
+            <span>发出前 · 飞行中 · 到达清关 · 异常升级</span>
+          </div>
+          <div class="air-guide-hero">
+            <div>
+              <p class="eyebrow">Air shipment control</p>
+              <h2>空运不是“更快的海运”</h2>
+              <p>空运/快件的重点不是只看轨迹，而是提前判断能不能飞、资料够不够、到达后会不会清关延误。含电池、磁性、样品、维修件和高价值货物要先做风险判断。</p>
+            </div>
+            <div class="air-stage-strip">
+              <span>01 发出前</span>
+              <span>02 安检/起飞</span>
+              <span>03 到达清关</span>
+              <span>04 派送/异常</span>
+            </div>
+          </div>
+          <form id="airGuideForm" class="query-card air-guide-query">
+            <div class="field-grid">
+              <label>
+                启运地 / 起飞机场
+                <input id="airGuideOrigin" lang="zh-CN" placeholder="如 上海 / PVG / 深圳 / SZX" />
+              </label>
+              <label>
+                目的地 / 目的机场
+                <input id="airGuideDestination" lang="zh-CN" placeholder="如 美国 / 巴西 / 欧盟 / 泰国" />
+              </label>
+              <label>
+                产品/货物
+                <input id="airGuideProduct" lang="zh-CN" placeholder="如 蓝牙耳机、音箱样品、带电池维修件" />
+              </label>
+              <label>
+                运输类型
+                <select id="airGuideMode">
+                  <option>快件 Courier</option>
+                  <option>空运 Air cargo</option>
+                  <option>样品 Sample</option>
+                  <option>维修/退运 Repair</option>
+                </select>
+              </label>
+            </div>
+            <div class="action-row">
+              <button type="submit" class="primary-button">查询空运限制和材料</button>
+              <button type="button" class="secondary-button" id="loadAirGuideExample">载入空运样例</button>
+            </div>
+          </form>
+          <div id="airGuideResult" class="air-guide-result"></div>
+          <section class="air-checklist-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Air checklist</p>
+                <h2>发出前/到达后要看什么</h2>
+              </div>
+              <span class="quiet-tag">按消费电子默认口径</span>
+            </div>
+            <div id="airChecklistGrid" class="air-checklist-grid"></div>
+          </section>
+          <div class="air-operation-grid">
+            <article><span>谁负责</span><strong>业务/物流/货代/收件人要提前分工</strong><p>业务确认产品用途和客户资料；物流确认承运限制；货代确认订舱/安检；收件人确认进口资质、税号和清关文件。</p></article>
+            <article><span>常见卡点</span><strong>电池、磁性、低申报、品名模糊</strong><p>耳机、音箱、遥控器、样品和维修件常被要求补 MSDS、UN38.3、磁检、付款凭证、品牌授权或用途说明。</p></article>
+            <article><span>到达后</span><strong>先看清关词，不要只看“到达”</strong><p>Arrived 不等于可派送。Clearance delay、Held、Exception、Pending 都需要查原因并保存官网截图。</p></article>
+          </div>
+        </section>
+
+        <section id="learn" class="panel learning-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Trade Basics</p>
+              <h2>流程与术语库</h2>
+            </div>
+            <span>给小白看的流程图 · 给老手看的术语速查</span>
+          </div>
+          <div class="learning-hero">
+            <div>
+              <p class="eyebrow">从启运港到最终收货</p>
+              <h2>一票货通常这样走</h2>
+              <p>这个模块不是让同事背术语，而是把每个节点的“谁负责、看什么、容易卡在哪里”讲清楚。正式操作仍按公司流程、货代和关务意见执行。</p>
+            </div>
+            <div class="learning-score">
+              <span>适合对象</span>
+              <strong>新同事 / 业务 / 采购 / 物流协同</strong>
+              <small>先理解链路，再回到 HS、单证、船期和风险模块做判断。</small>
+            </div>
+          </div>
+          <div class="knowledge-switch" aria-label="知识模块切换">
+            <button type="button" class="knowledge-tab active" data-knowledge-view="process">流程时间线</button>
+            <button type="button" class="knowledge-tab" data-knowledge-view="glossary">专业名词库</button>
+          </div>
+
+          <div class="knowledge-panel active" id="knowledgeProcessPanel">
+            <div class="learning-controls" aria-label="流程视角筛选">
+              <div class="process-mode-group">
+                <span>流程</span>
+                <button type="button" class="learning-mode active" data-process-mode="sea">海运流程</button>
+                <button type="button" class="learning-mode" data-process-mode="air">空运流程</button>
+              </div>
+              <div>
+                <span>阶段</span>
+                <button type="button" class="learning-filter active" data-learn-filter="all">全部</button>
+                <button type="button" class="learning-filter" data-learn-filter="产品|报价">产品/报价</button>
+                <button type="button" class="learning-filter" data-learn-filter="装箱|包装">装箱</button>
+                <button type="button" class="learning-filter" data-learn-filter="出运|订舱|装船">出运</button>
+                <button type="button" class="learning-filter" data-learn-filter="报关|舱单">报关</button>
+                <button type="button" class="learning-filter" data-learn-filter="在途">在途</button>
+                <button type="button" class="learning-filter" data-learn-filter="到港|清关|交付">到港交付</button>
+              </div>
+              <div>
+                <span>角色</span>
+                <button type="button" class="learning-role active" data-learn-role="all">所有人</button>
+                <button type="button" class="learning-role" data-learn-role="业务">业务</button>
+                <button type="button" class="learning-role" data-learn-role="关务">关务</button>
+                <button type="button" class="learning-role" data-learn-role="物流">物流</button>
+                <button type="button" class="learning-role" data-learn-role="仓库">仓库</button>
+                <button type="button" class="learning-role" data-learn-role="进口商">进口商</button>
+              </div>
+            </div>
+            <div class="learning-map">
+              <div class="learning-lane" aria-hidden="true">
+                <span class="lane-dot"></span>
+                <span class="lane-dot"></span>
+                <span class="lane-dot"></span>
+                <span class="lane-dot"></span>
+                <span class="lane-dot"></span>
+              </div>
+              <div class="process-flow" id="learningFlow"></div>
+            </div>
+            <div class="term-grid">
+              <article><span>HS Code</span><strong>商品编码</strong><p>决定税率、监管条件和申报要素。只靠商品俗称不够，必须看用途、结构和材料。</p></article>
+              <article><span>ETA / ETD</span><strong>预计到港 / 开船</strong><p>ETA 会受船速、天气、拥堵、转运和船司更新影响，必须看数据时间。</p></article>
+              <article><span>DG</span><strong>危险品</strong><p>锂电池、磁性、液体等可能影响承运、包装、MSDS、UN38.3 和船司接受。</p></article>
+              <article><span>Manifest</span><strong>舱单</strong><p>舱单数据影响报关和放行，错漏可能导致补料、改单或延误。</p></article>
+            </div>
+          </div>
+
+          <div class="knowledge-panel" id="knowledgeGlossaryPanel">
+            <div class="glossary-toolbar">
+              <div class="glossary-intro">
+                <p class="eyebrow">Glossary</p>
+                <h3>专业名词库</h3>
+                <p>把常见英文缩写和行业黑话翻成能执行的话：它是什么、什么时候看、错了会怎样。</p>
+              </div>
+              <label class="glossary-search">
+                搜索术语
+                <input id="glossarySearch" type="search" lang="zh-CN" placeholder="例如 FOB、ETA、舱单、UN38.3、SABER" />
+              </label>
+            </div>
+            <div class="glossary-categories" aria-label="术语分类">
+              <button type="button" class="glossary-category active" data-glossary-category="all">全部</button>
+              <button type="button" class="glossary-category" data-glossary-category="条款">条款</button>
+              <button type="button" class="glossary-category" data-glossary-category="申报">申报</button>
+              <button type="button" class="glossary-category" data-glossary-category="船司物流">船司/物流</button>
+              <button type="button" class="glossary-category" data-glossary-category="集装箱">集装箱/特种箱</button>
+              <button type="button" class="glossary-category" data-glossary-category="空运快件">空运/快件</button>
+              <button type="button" class="glossary-category" data-glossary-category="清关监管">清关/监管</button>
+              <button type="button" class="glossary-category" data-glossary-category="付款财务">付款/财务</button>
+              <button type="button" class="glossary-category" data-glossary-category="税费成本">税费/成本</button>
+              <button type="button" class="glossary-category" data-glossary-category="危险品认证">危险品/认证</button>
+            </div>
+            <div class="glossary-grid" id="glossaryGrid"></div>
+          </div>
+        </section>
+
+        <section id="port-risk" class="panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Port Risk</p>
+              <h2>港口/物流风险</h2>
+            </div>
+            <span>塞港 · 天气海况 · DG 限制 · 核验入口</span>
+          </div>
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Port & Logistics Risk</p>
+              <h2>港口与物流风险查询</h2>
+            </div>
+            <span class="quiet-tag">默认上海港</span>
+          </div>
+          <form id="portRiskForm" class="query-card customs-query">
+            <div class="field-grid">
+              <label>
+                港口（中文或英文都可以）
+                <input id="portName" value="上海港" list="portSuggestionsList" autocomplete="off" lang="zh-CN" placeholder="例如：上海港、宁波、盐田、洛杉矶、Rotterdam" />
+                <datalist id="portSuggestionsList"></datalist>
+              </label>
+              <label>
+                国家/地区
+                <input id="portRegion" value="中国" lang="zh-CN" placeholder="例如：中国、美国、欧盟、英国" />
+              </label>
+              <label>
+                货物类型
+                <select id="portCargo">
+                  <option>消费类音频产品</option>
+                  <option>含锂电池设备 / UN3481</option>
+                  <option>锂电池单独运输 / UN3480</option>
+                  <option>危险品，不确定类别</option>
+                  <option>普通货物</option>
+                </select>
+              </label>
+              <label>
+                危险品类别
+                <select id="portDgClass">
+                  <option value="">不确定 / 普通货物</option>
+                  <option value="1">Class 1 爆炸品</option>
+                  <option value="2.1">Class 2.1 易燃气体</option>
+                  <option value="2.2">Class 2.2 非易燃无毒气体</option>
+                  <option value="2.3">Class 2.3 有毒气体</option>
+                  <option value="3">Class 3 易燃液体</option>
+                  <option value="4.1">Class 4.1 易燃固体</option>
+                  <option value="4.2">Class 4.2 易自燃物质</option>
+                  <option value="4.3">Class 4.3 遇水放出易燃气体</option>
+                  <option value="5.1">Class 5.1 氧化性物质</option>
+                  <option value="5.2">Class 5.2 有机过氧化物</option>
+                  <option value="6.1">Class 6.1 毒性物质</option>
+                  <option value="6.2">Class 6.2 感染性物质</option>
+                  <option value="7">Class 7 放射性物质</option>
+                  <option value="8">Class 8 腐蚀性物质</option>
+                  <option value="9">Class 9 杂项危险品 / 锂电池</option>
+                </select>
+              </label>
+              <label>
+                危险品信息
+                <input id="portDgInfo" lang="zh-CN" placeholder="如 UN3481、Class 9、锂电池装在设备中；不确定可空着" />
+              </label>
+            </div>
+            <div class="action-row">
+              <button type="submit" class="primary-button">查询港口风险</button>
+            </div>
+          </form>
+          <div class="suggestion-strip" id="portSuggestionStrip"></div>
+          <div id="portRiskStatus" class="quiet-tag">等待查询</div>
+          <div class="port-risk-grid" id="portRiskGrid"></div>
+        </section>
+
+        <section class="category-divider category-ops dashboard-only" aria-label="人工核验分区">
+          <span>05</span>
+          <div>
+            <p class="eyebrow">Manual Verification</p>
+            <h2>查询失败 / 待人工核验</h2>
+            <p>把系统查不到、结果低可信、验证码、缺资料和需要人工判断的事项集中起来。</p>
+          </div>
+        </section>
+
+        <section id="exception" class="panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Manual Verification Queue</p>
+              <h2>查询失败 / 待人工核验</h2>
+            </div>
+            <span>不是管理流程，只是把需要人工确认的线索放在一起</span>
+          </div>
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Manual Check</p>
+              <h2>人工核验记录</h2>
             </div>
             <button type="button" class="secondary-button" id="exportIssues">导出 CSV</button>
           </div>
           <form id="issueForm" class="issue-form">
-            <input id="issueTitle" placeholder="异常标题：如 HS 不确定 / 缺 UN38.3 / 舱单状态待确认" required />
+            <input id="issueTitle" placeholder="待核验事项：如 HS 不确定 / 缺 UN38.3 / 舱单状态待确认" required />
             <select id="issueType">
               <option>HS Code</option>
               <option>Battery / DG</option>
@@ -618,8 +2205,19 @@
               <option>Low</option>
             </select>
             <input id="issueOwner" placeholder="Owner" />
-            <button type="submit" class="primary-button">新增异常</button>
+            <button type="submit" class="primary-button">新增待核验</button>
           </form>
+          <section class="failure-board" aria-label="自动失败记录">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Auto Failure Queue</p>
+                <h2>自动查询失败 / 待人工核验</h2>
+              </div>
+              <button type="button" class="secondary-button" id="clearFailureLog">清空已记录失败</button>
+            </div>
+            <div class="failure-summary-grid" id="failureSummaryGrid"></div>
+            <div class="failure-event-list" id="failureEventList"></div>
+          </section>
           <div class="table-wrap compact">
             <table>
               <thead>
@@ -627,7 +2225,7 @@
                   <th>状态</th>
                   <th>类型</th>
                   <th>优先级</th>
-                  <th>异常</th>
+                  <th>待核验事项</th>
                   <th>Owner</th>
                   <th>日期</th>
                   <th></th>
@@ -638,67 +2236,89 @@
           </div>
         </section>
 
-        <section id="matrix" class="panel">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow">Country Requirement / 国家地区要求</p>
-                <h2>进口国要求查询</h2>
-              </div>
-              <button type="button" class="secondary-button" id="loadRequirementExample">载入样例</button>
+        <section id="feedback" class="panel feedback-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Feedback Loop</p>
+              <h2>用户反馈</h2>
             </div>
-            <p class="section-note">输入产品大致信息和进口国/地区，系统会提醒常见认证、标签、电池、无线、清关资料要求。这里是“先提醒你要查什么”，不是最终法律意见。</p>
-            <form id="requirementForm" class="query-card requirement-form">
-              <label>
-                产品大致信息
-                <textarea id="requirementProduct" rows="3" lang="zh-CN" placeholder="例如：蓝牙耳机，内置锂电池，带充电盒，USB-C"></textarea>
-              </label>
-              <label>
-                进口国/地区
-                <input id="requirementCountry" lang="zh-CN" placeholder="例如：中国、欧盟、美国、英国、中东 GCC、日本" />
-              </label>
-              <button type="submit" class="primary-button">查询要求</button>
-            </form>
-            <div id="requirementResult" class="requirement-result"></div>
-            <div class="table-wrap compact">
-              <table>
-                <thead>
-                  <tr>
-                    <th>市场</th>
-                    <th>关注点</th>
-                    <th>状态</th>
-                  </tr>
-                </thead>
-                <tbody id="countryTable"></tbody>
-              </table>
-            </div>
-        </section>
-
-        <section id="integration" class="panel">
+            <span>记录同事看不懂、查不到、判断不准的地方</span>
+          </div>
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">Future Integration</p>
-              <h2>未来接口与权限路线</h2>
+              <p class="eyebrow">Improve The Desk</p>
+              <h2>提交页面/数据/流程问题</h2>
             </div>
+            <span class="quiet-tag">测试版：本机保存</span>
           </div>
-          <div class="integration-grid">
-            <div>
-              <h3>当前可做</h3>
-              <p>公开权威入口、船讯网基础船舶查询、上海港公开放行入口、全球趋势公开新闻、港口风险公开新闻。</p>
-            </div>
-            <div>
-              <h3>下一步可做</h3>
-              <p>指定人员登录、真实权限控制、更多官方/船司/码头 API、政策订阅、查询历史和异常协同。</p>
-            </div>
-            <div>
-              <h3>正式系统</h3>
-              <p>如未来需要内部数据，再接 SharePoint、ERP/WMS/TMS、报关行接口、SSO、权限、审计日志和集中数据库。</p>
-            </div>
-          </div>
+          <p class="section-note">正式上线前建议让几个业务、物流、关务同事试用，把“不知道填什么”“结果不准”“缺哪个网站/数据”的问题集中收集。</p>
+          <form id="feedbackForm" class="query-card feedback-form">
+            <label>
+              反馈模块
+              <select id="feedbackModule">
+                <option>税号/申报要素</option>
+                <option>进口国要求</option>
+                <option>政策与趋势</option>
+                <option>船期/通关/港口</option>
+                <option>流程与术语库</option>
+                <option>页面设计/使用体验</option>
+              </select>
+            </label>
+            <label>
+              严重程度
+              <select id="feedbackPriority">
+                <option>High - 影响判断</option>
+                <option>Medium - 需要优化</option>
+                <option>Low - 建议补充</option>
+              </select>
+            </label>
+            <label>
+              联系人（可选）
+              <input id="feedbackContact" lang="zh-CN" placeholder="姓名/邮箱/部门" />
+            </label>
+            <label class="full-span">
+              反馈内容
+              <textarea id="feedbackText" rows="4" lang="zh-CN" placeholder="例如：我输入巴西+蓝牙耳机，结果不够具体；或某个术语看不懂；或缺某个船司/港口查询。"></textarea>
+            </label>
+            <button type="submit" class="primary-button">保存反馈</button>
+          </form>
+          <div id="feedbackResult" class="feedback-result"></div>
+          <div id="feedbackList" class="feedback-list"></div>
         </section>
       </main>
     </div>
 
-    <script src="./company-hs-data.js"></script>
-    <script src="./app.js"></script>
+    <div id="queryOverlay" class="query-overlay" hidden>
+      <div class="query-loader-card">
+        <div class="query-loader-visual" aria-hidden="true">
+          <span></span>
+          <i></i>
+        </div>
+        <p class="eyebrow" id="queryOverlayLabel">Live Query</p>
+        <h2 id="queryOverlayTitle">正在查询</h2>
+        <p id="queryOverlayText">正在读取公开来源并整理成中文结论。</p>
+      </div>
+    </div>
+
+    <div id="resultDialog" class="result-dialog" role="dialog" aria-modal="true" aria-labelledby="resultDialogTitle" hidden>
+      <div class="result-dialog-backdrop" data-close-result-dialog></div>
+      <section class="result-dialog-card">
+        <header>
+          <div>
+            <p class="eyebrow" id="resultDialogSubtitle">Result</p>
+            <h2 id="resultDialogTitle">生成结果</h2>
+          </div>
+          <button type="button" class="icon-close" id="closeResultDialog" aria-label="关闭结果">×</button>
+        </header>
+        <div id="resultDialogBody" class="result-dialog-body"></div>
+      </section>
+    </div>
+
+    <script src="./company-hs-data.js?v=20260610-logistics-intel-v12"></script>
+    <script src="./source-catalog.js?v=20260610-logistics-intel-v12"></script>
+    <script src="./china-tariff-2026.js?v=20260610-logistics-intel-v12"></script>
+    <script src="./trade-measures-data.js?v=20260610-logistics-intel-v12"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="./app.js?v=20260622-hs-validation-v58"></script>
   </body>
 </html>

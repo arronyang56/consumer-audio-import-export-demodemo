@@ -1,0 +1,767 @@
+{
+  "specificCodeCount": 5140,
+  "companyCodeCount": 25,
+  "companySpecificHitCount": 24,
+  "companySpecificHits": [
+    {
+      "code": "4819100000",
+      "hs8": "48191000",
+      "name": "瓦楞纸或纸板制的箱、盒、匣",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2019_20",
+          "rate": "20%",
+          "sourceTitle": "对美实施加征20%关税商品清单（税委会公告〔2019〕3号附件2）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719204287788.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件2；官方页面说明附件2所列税目实施加征20%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "4819200000",
+      "hs8": "48192000",
+      "name": "非瓦楞纸或纸板制的可折叠箱、盒、匣",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2019_20",
+          "rate": "20%",
+          "sourceTitle": "对美实施加征20%关税商品清单（税委会公告〔2019〕3号附件2）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719204287788.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件2；官方页面说明附件2所列税目实施加征20%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8507600090",
+      "hs8": "85076000",
+      "name": "锂离子蓄电池飞机用锂离子蓄电池-其他蓄电池：",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2018_25_aug",
+          "rate": "25%",
+          "sourceTitle": "对美加征25%关税商品清单（2018年8月公布，160亿美元清单）",
+          "sourceUrl": "https://www.gov.cn/xinwen/2018-08/03/5311619/files/ffa5fdab36564a0392b03c160894b3f9.pdf",
+          "effectiveFrom": "2018-08-23",
+          "note": "官方 PDF 清单命中；需继续核验排除延期、暂停或后续调整。"
+        },
+        {
+          "measureId": "china_us_2019_25",
+          "rate": "25%",
+          "sourceTitle": "对美实施加征25%关税商品清单（税委会公告〔2019〕3号附件1）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719203602248.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件1；官方页面说明附件1所列税目实施加征25%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8517629400",
+      "hs8": "85176294",
+      "name": "无线耳机",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2018_25_aug",
+          "rate": "25%",
+          "sourceTitle": "对美加征25%关税商品清单（2018年8月公布，160亿美元清单）",
+          "sourceUrl": "https://www.gov.cn/xinwen/2018-08/03/5311619/files/ffa5fdab36564a0392b03c160894b3f9.pdf",
+          "effectiveFrom": "2018-08-23",
+          "note": "官方 PDF 清单命中；需继续核验排除延期、暂停或后续调整。"
+        },
+        {
+          "measureId": "china_us_2019_25",
+          "rate": "25%",
+          "sourceTitle": "对美实施加征25%关税商品清单（税委会公告〔2019〕3号附件1）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719203602248.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件1；官方页面说明附件1所列税目实施加征25%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8517691090",
+      "hs8": "85176910",
+      "name": "其他无线设备",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2019_10",
+          "rate": "10%",
+          "sourceTitle": "对美实施加征10%关税商品清单（税委会公告〔2019〕3号附件3）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719204715521.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件3；官方页面说明附件3所列税目实施加征10%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8518100000",
+      "hs8": "85181000",
+      "name": "传声器（麦克风）及其座架-扬声器，不论是否装成音箱：",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2018_25_aug",
+          "rate": "25%",
+          "sourceTitle": "对美加征25%关税商品清单（2018年8月公布，160亿美元清单）",
+          "sourceUrl": "https://www.gov.cn/xinwen/2018-08/03/5311619/files/ffa5fdab36564a0392b03c160894b3f9.pdf",
+          "effectiveFrom": "2018-08-23",
+          "note": "官方 PDF 清单命中；需继续核验排除延期、暂停或后续调整。"
+        },
+        {
+          "measureId": "china_us_2019_25",
+          "rate": "25%",
+          "sourceTitle": "对美实施加征25%关税商品清单（税委会公告〔2019〕3号附件1）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719203602248.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件1；官方页面说明附件1所列税目实施加征25%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8518210000",
+      "hs8": "85182100",
+      "name": "单喇叭音箱",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2018_25_aug",
+          "rate": "25%",
+          "sourceTitle": "对美加征25%关税商品清单（2018年8月公布，160亿美元清单）",
+          "sourceUrl": "https://www.gov.cn/xinwen/2018-08/03/5311619/files/ffa5fdab36564a0392b03c160894b3f9.pdf",
+          "effectiveFrom": "2018-08-23",
+          "note": "官方 PDF 清单命中；需继续核验排除延期、暂停或后续调整。"
+        },
+        {
+          "measureId": "china_us_2019_25",
+          "rate": "25%",
+          "sourceTitle": "对美实施加征25%关税商品清单（税委会公告〔2019〕3号附件1）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719203602248.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件1；官方页面说明附件1所列税目实施加征25%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8518220000",
+      "hs8": "85182200",
+      "name": "多喇叭音箱",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2019_20",
+          "rate": "20%",
+          "sourceTitle": "对美实施加征20%关税商品清单（税委会公告〔2019〕3号附件2）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719204287788.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件2；官方页面说明附件2所列税目实施加征20%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8518290000",
+      "hs8": "85182900",
+      "name": "其他",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2018_25_aug",
+          "rate": "25%",
+          "sourceTitle": "对美加征25%关税商品清单（2018年8月公布，160亿美元清单）",
+          "sourceUrl": "https://www.gov.cn/xinwen/2018-08/03/5311619/files/ffa5fdab36564a0392b03c160894b3f9.pdf",
+          "effectiveFrom": "2018-08-23",
+          "note": "官方 PDF 清单命中；需继续核验排除延期、暂停或后续调整。"
+        },
+        {
+          "measureId": "china_us_2019_25",
+          "rate": "25%",
+          "sourceTitle": "对美实施加征25%关税商品清单（税委会公告〔2019〕3号附件1）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719203602248.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件1；官方页面说明附件1所列税目实施加征25%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8518300000",
+      "hs8": "85183000",
+      "name": "耳机、耳塞机，不论是否装有传声器，由传声器及一个或多个扬声器组成的组合机",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2018_25_aug",
+          "rate": "25%",
+          "sourceTitle": "对美加征25%关税商品清单（2018年8月公布，160亿美元清单）",
+          "sourceUrl": "https://www.gov.cn/xinwen/2018-08/03/5311619/files/ffa5fdab36564a0392b03c160894b3f9.pdf",
+          "effectiveFrom": "2018-08-23",
+          "note": "官方 PDF 清单命中；需继续核验排除延期、暂停或后续调整。"
+        },
+        {
+          "measureId": "china_us_2019_25",
+          "rate": "25%",
+          "sourceTitle": "对美实施加征25%关税商品清单（税委会公告〔2019〕3号附件1）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719203602248.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件1；官方页面说明附件1所列税目实施加征25%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8518400000",
+      "hs8": "85184000",
+      "name": "音频扩大器",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2019_20",
+          "rate": "20%",
+          "sourceTitle": "对美实施加征20%关税商品清单（税委会公告〔2019〕3号附件2）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719204287788.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件2；官方页面说明附件2所列税目实施加征20%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8518900000",
+      "hs8": "85189000",
+      "name": "零件声音录制或重放设备：",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2018_25_aug",
+          "rate": "25%",
+          "sourceTitle": "对美加征25%关税商品清单（2018年8月公布，160亿美元清单）",
+          "sourceUrl": "https://www.gov.cn/xinwen/2018-08/03/5311619/files/ffa5fdab36564a0392b03c160894b3f9.pdf",
+          "effectiveFrom": "2018-08-23",
+          "note": "官方 PDF 清单命中；需继续核验排除延期、暂停或后续调整。"
+        },
+        {
+          "measureId": "china_us_2019_25",
+          "rate": "25%",
+          "sourceTitle": "对美实施加征25%关税商品清单（税委会公告〔2019〕3号附件1）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719203602248.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件1；官方页面说明附件1所列税目实施加征25%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8519300000",
+      "hs8": "85193000",
+      "name": "转盘（唱机唱盘）-其他设备：--使用磁性、光学或半导体媒体的：---使用磁性媒体的：",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2018_25_aug",
+          "rate": "25%",
+          "sourceTitle": "对美加征25%关税商品清单（2018年8月公布，160亿美元清单）",
+          "sourceUrl": "https://www.gov.cn/xinwen/2018-08/03/5311619/files/ffa5fdab36564a0392b03c160894b3f9.pdf",
+          "effectiveFrom": "2018-08-23",
+          "note": "官方 PDF 清单命中；需继续核验排除延期、暂停或后续调整。"
+        },
+        {
+          "measureId": "china_us_2019_25",
+          "rate": "25%",
+          "sourceTitle": "对美实施加征25%关税商品清单（税委会公告〔2019〕3号附件1）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719203602248.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件1；官方页面说明附件1所列税目实施加征25%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8519812100",
+      "hs8": "85198121",
+      "name": "激光唱机，未装有声音录制装置",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2018_25_aug",
+          "rate": "25%",
+          "sourceTitle": "对美加征25%关税商品清单（2018年8月公布，160亿美元清单）",
+          "sourceUrl": "https://www.gov.cn/xinwen/2018-08/03/5311619/files/ffa5fdab36564a0392b03c160894b3f9.pdf",
+          "effectiveFrom": "2018-08-23",
+          "note": "官方 PDF 清单命中；需继续核验排除延期、暂停或后续调整。"
+        },
+        {
+          "measureId": "china_us_2019_25",
+          "rate": "25%",
+          "sourceTitle": "对美实施加征25%关税商品清单（税委会公告〔2019〕3号附件1）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719203602248.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件1；官方页面说明附件1所列税目实施加征25%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8519812990",
+      "hs8": "85198129",
+      "name": "其他---使用半导体媒体的：",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2019_10",
+          "rate": "10%",
+          "sourceTitle": "对美实施加征10%关税商品清单（税委会公告〔2019〕3号附件3）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719204715521.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件3；官方页面说明附件3所列税目实施加征10%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8519899000",
+      "hs8": "85198990",
+      "name": "其他声音录制或重放设备视频信号录制或重放设备，不论是否装有高频调谐器：-磁带型：---录像机：",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2019_20",
+          "rate": "20%",
+          "sourceTitle": "对美实施加征20%关税商品清单（税委会公告〔2019〕3号附件2）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719204287788.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件2；官方页面说明附件2所列税目实施加征20%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8521901290",
+      "hs8": "85219012",
+      "name": "数字化视频光盘（DVD）播放机",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2018_25_aug",
+          "rate": "25%",
+          "sourceTitle": "对美加征25%关税商品清单（2018年8月公布，160亿美元清单）",
+          "sourceUrl": "https://www.gov.cn/xinwen/2018-08/03/5311619/files/ffa5fdab36564a0392b03c160894b3f9.pdf",
+          "effectiveFrom": "2018-08-23",
+          "note": "官方 PDF 清单命中；需继续核验排除延期、暂停或后续调整。"
+        },
+        {
+          "measureId": "china_us_2019_25",
+          "rate": "25%",
+          "sourceTitle": "对美实施加征25%关税商品清单（税委会公告〔2019〕3号附件1）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719203602248.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件1；官方页面说明附件1所列税目实施加征25%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8522901000",
+      "hs8": "85229010",
+      "name": "转盘或唱机用---盒式磁带录音机或放声机用：",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2018_25_aug",
+          "rate": "25%",
+          "sourceTitle": "对美加征25%关税商品清单（2018年8月公布，160亿美元清单）",
+          "sourceUrl": "https://www.gov.cn/xinwen/2018-08/03/5311619/files/ffa5fdab36564a0392b03c160894b3f9.pdf",
+          "effectiveFrom": "2018-08-23",
+          "note": "官方 PDF 清单命中；需继续核验排除延期、暂停或后续调整。"
+        },
+        {
+          "measureId": "china_us_2019_25",
+          "rate": "25%",
+          "sourceTitle": "对美实施加征25%关税商品清单（税委会公告〔2019〕3号附件1）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719203602248.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件1；官方页面说明附件1所列税目实施加征25%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8527190000",
+      "hs8": "85271900",
+      "name": "其他-需外接电源的汽车用无线电收音机：",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2019_20",
+          "rate": "20%",
+          "sourceTitle": "对美实施加征20%关税商品清单（税委会公告〔2019〕3号附件2）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719204287788.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件2；官方页面说明附件2所列税目实施加征20%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8527910000",
+      "hs8": "85279100",
+      "name": "收录（放）音组合机",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2018_25_aug",
+          "rate": "25%",
+          "sourceTitle": "对美加征25%关税商品清单（2018年8月公布，160亿美元清单）",
+          "sourceUrl": "https://www.gov.cn/xinwen/2018-08/03/5311619/files/ffa5fdab36564a0392b03c160894b3f9.pdf",
+          "effectiveFrom": "2018-08-23",
+          "note": "官方 PDF 清单命中；需继续核验排除延期、暂停或后续调整。"
+        },
+        {
+          "measureId": "china_us_2019_25",
+          "rate": "25%",
+          "sourceTitle": "对美实施加征25%关税商品清单（税委会公告〔2019〕3号附件1）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719203602248.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件1；官方页面说明附件1所列税目实施加征25%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8529906000",
+      "hs8": "85299060",
+      "name": "无线电收音机及其组合机用---电视接收机用（高频调谐器除外）：",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2018_25_aug",
+          "rate": "25%",
+          "sourceTitle": "对美加征25%关税商品清单（2018年8月公布，160亿美元清单）",
+          "sourceUrl": "https://www.gov.cn/xinwen/2018-08/03/5311619/files/ffa5fdab36564a0392b03c160894b3f9.pdf",
+          "effectiveFrom": "2018-08-23",
+          "note": "官方 PDF 清单命中；需继续核验排除延期、暂停或后续调整。"
+        },
+        {
+          "measureId": "china_us_2019_25",
+          "rate": "25%",
+          "sourceTitle": "对美实施加征25%关税商品清单（税委会公告〔2019〕3号附件1）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719203602248.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件1；官方页面说明附件1所列税目实施加征25%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8543709990",
+      "hs8": "85437099",
+      "name": "其他-零件：",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2019_10",
+          "rate": "10%",
+          "sourceTitle": "对美实施加征10%关税商品清单（税委会公告〔2019〕3号附件3）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719204715521.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件3；官方页面说明附件3所列税目实施加征10%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "8544421100",
+      "hs8": "85444211",
+      "name": "电缆",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2018_25_aug",
+          "rate": "25%",
+          "sourceTitle": "对美加征25%关税商品清单（2018年8月公布，160亿美元清单）",
+          "sourceUrl": "https://www.gov.cn/xinwen/2018-08/03/5311619/files/ffa5fdab36564a0392b03c160894b3f9.pdf",
+          "effectiveFrom": "2018-08-23",
+          "note": "官方 PDF 清单命中；需继续核验排除延期、暂停或后续调整。"
+        },
+        {
+          "measureId": "china_us_2019_25",
+          "rate": "25%",
+          "sourceTitle": "对美实施加征25%关税商品清单（税委会公告〔2019〕3号附件1）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719203602248.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件1；官方页面说明附件1所列税目实施加征25%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    },
+    {
+      "code": "9030849000",
+      "hs8": "90308490",
+      "name": "其他--其他：",
+      "specificMeasures": [
+        {
+          "measureId": "china_us_2019_10",
+          "rate": "10%",
+          "sourceTitle": "对美实施加征10%关税商品清单（税委会公告〔2019〕3号附件3）",
+          "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/201905/P020190513719204715521.pdf",
+          "effectiveFrom": "2019-06-01",
+          "note": "2019年5月13日公告附件3；官方页面说明附件3所列税目实施加征10%。"
+        }
+      ],
+      "generalMeasure": {
+        "measureId": "china_us_2025_general_10_current",
+        "title": "对原产于美国的进口商品保留10%对美加征关税税率",
+        "rate": "10%",
+        "scope": "原产于美国的进口商品",
+        "effectiveFrom": "2025-11-10T13:01:00+08:00",
+        "suspendedRate": "24%",
+        "suspendedUntil": "2026-11-10T13:01:00+08:00",
+        "sourceTitle": "国务院关税税则委员会公告2025年第10号",
+        "sourceUrl": "https://gss.mof.gov.cn/gzdt/zhengcefabu/202511/t20251105_3975756.htm",
+        "note": "官方公告：在一年内继续暂停实施24%的对美加征关税税率，保留10%的对美加征关税税率。"
+      }
+    }
+  ]
+}

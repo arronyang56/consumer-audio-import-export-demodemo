@@ -4,3 +4,9 @@
 
 [functions]
   node_bundler = "esbuild"
+
+[functions."scheduled-policy-refresh"]
+schedule = "0 */6 * * *"
+
+[functions."scheduled-alert-runner"]
+schedule = "*/30 * * * *"
