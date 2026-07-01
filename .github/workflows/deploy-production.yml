@@ -1,0 +1,110 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PROD_APP_DIR: ${{ vars.PROD_APP_DIR || '/opt/hs-platform' }}
+      PROD_SERVICE_NAME: ${{ vars.PROD_SERVICE_NAME || 'hs-platform' }}
+      PROD_SSH_PORT: ${{ vars.PROD_SSH_PORT || '22' }}
+      PROD_HEALTH_URLS: ${{ vars.PROD_HEALTH_URLS || 'https://logismaster.cn/health https://156-238-241-168.sslip.io/health' }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate deployment secrets
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+          PLATFORM_ACCESS_CODE_HASH: ${{ secrets.PLATFORM_ACCESS_CODE_HASH }}
+        run: |
+          test -n "$PROD_SSH_HOST" || { echo "Missing secret PROD_SSH_HOST"; exit 1; }
+          test -n "$PROD_SSH_USER" || { echo "Missing secret PROD_SSH_USER"; exit 1; }
+          test -n "$PROD_SSH_KEY" || { echo "Missing secret PROD_SSH_KEY"; exit 1; }
+          test -n "$PLATFORM_ACCESS_CODE_HASH" || { echo "Missing secret PLATFORM_ACCESS_CODE_HASH"; exit 1; }
+
+      - name: Configure SSH
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$PROD_SSH_KEY" > ~/.ssh/logismaster_deploy_key
+          chmod 600 ~/.ssh/logismaster_deploy_key
+          ssh-keyscan -p "$PROD_SSH_PORT" "$PROD_SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Build release archive
+        run: |
+          mkdir -p /tmp/logismaster-release
+          tar \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.data' \
+            --exclude='node_modules' \
+            -czf /tmp/logismaster-release/hs-platform-${GITHUB_SHA}.tar.gz .
+
+      - name: Build production environment file
+        env:
+          PLATFORM_ACCESS_CODE_HASH: ${{ secrets.PLATFORM_ACCESS_CODE_HASH }}
+          PLATFORM_AUTH_SECRET: ${{ secrets.PLATFORM_AUTH_SECRET }}
+        run: |
+          umask 077
+          {
+            printf 'PLATFORM_ACCESS_CODE_HASH=%s\n' "$PLATFORM_ACCESS_CODE_HASH"
+            if [ -n "$PLATFORM_AUTH_SECRET" ]; then
+              printf 'PLATFORM_AUTH_SECRET=%s\n' "$PLATFORM_AUTH_SECRET"
+            fi
+          } > /tmp/logismaster-release/hs-platform-${GITHUB_SHA}.env
+
+      - name: Upload release archive
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
+        run: |
+          scp -i ~/.ssh/logismaster_deploy_key -P "$PROD_SSH_PORT" \
+            /tmp/logismaster-release/hs-platform-${GITHUB_SHA}.tar.gz \
+            "$PROD_SSH_USER@$PROD_SSH_HOST:/tmp/hs-platform-${GITHUB_SHA}.tar.gz"
+          scp -i ~/.ssh/logismaster_deploy_key -P "$PROD_SSH_PORT" \
+            /tmp/logismaster-release/hs-platform-${GITHUB_SHA}.env \
+            "$PROD_SSH_USER@$PROD_SSH_HOST:/tmp/hs-platform-${GITHUB_SHA}.env"
+
+      - name: Install release and restart service
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
+        run: |
+          ssh -i ~/.ssh/logismaster_deploy_key -p "$PROD_SSH_PORT" "$PROD_SSH_USER@$PROD_SSH_HOST" \
+            "set -euo pipefail
+             release=/tmp/hs-platform-${GITHUB_SHA}.tar.gz
+             envfile=/tmp/hs-platform-${GITHUB_SHA}.env
+             backup=/root/hs-platform-backup-\$(date +%Y%m%d-%H%M%S).tar.gz
+             mkdir -p '$PROD_APP_DIR'
+             if [ -d '$PROD_APP_DIR/site' ]; then tar -czf \"\$backup\" -C '$PROD_APP_DIR' .; fi
+             tar -xzf \"\$release\" -C '$PROD_APP_DIR'
+             install -m 600 \"\$envfile\" /etc/hs-platform-auth.env
+             mkdir -p /etc/systemd/system/'$PROD_SERVICE_NAME'.service.d
+             printf '%s\n' '[Service]' 'EnvironmentFile=-/etc/hs-platform-auth.env' > /etc/systemd/system/'$PROD_SERVICE_NAME'.service.d/20-auth-env.conf
+             systemctl daemon-reload
+             rm -f \"\$release\"
+             rm -f \"\$envfile\"
+             systemctl restart '$PROD_SERVICE_NAME'
+             sleep 3
+             systemctl is-active --quiet '$PROD_SERVICE_NAME'"
+
+      - name: Verify production health
+        env:
+          HEALTH_TARGETS: ${{ env.PROD_HEALTH_URLS }}
+        run: node scripts/health-check.js

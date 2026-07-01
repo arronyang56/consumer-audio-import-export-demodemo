@@ -3524,6 +3524,96 @@ td {
   text-align: right;
 }
 
+.requirement-direct-result,
+.requirement-gap-card {
+  border-color: #dbe7ef;
+}
+
+.tariff-candidate-grid,
+.evidence-card-grid,
+.requirement-action-grid,
+.requirement-api-status {
+  display: grid;
+  gap: 10px;
+}
+
+.tariff-candidate-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-top: 10px;
+}
+
+.tariff-candidate-card,
+.evidence-card {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #d8e7f4;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.tariff-candidate-card span,
+.evidence-card span {
+  display: inline-flex;
+  margin-bottom: 6px;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.tariff-candidate-card strong,
+.evidence-card strong {
+  display: block;
+  color: #111827;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.tariff-candidate-card p,
+.evidence-card p {
+  margin: 7px 0;
+  color: #475569;
+}
+
+.tariff-candidate-card small,
+.evidence-card small {
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.evidence-card a {
+  display: inline-flex;
+  margin-top: 8px;
+  color: var(--accent-strong);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.requirement-action-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.requirement-api-status {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  margin: 10px 0;
+}
+
+.requirement-api-status span {
+  padding: 10px 12px;
+  border: 1px solid #d8e7f4;
+  border-radius: 8px;
+  background: #f8fbff;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.requirement-api-status b {
+  display: block;
+  color: #1d4ed8;
+  font-size: 12px;
+}
+
 .requirement-card > small {
   display: block;
   margin-top: 12px;
@@ -12482,6 +12572,133 @@ body[data-active-module="air-calc"] .calc-live-result {
   font-size: 12px;
   font-weight: 900;
   text-decoration: none;
+}
+
+.opinion-line {
+  margin-top: 8px !important;
+  padding: 9px 10px;
+  border-left: 3px solid var(--module-accent, #0F6CBD);
+  border-radius: 6px;
+  background: rgba(247, 250, 252, 0.92);
+  color: #1D2935;
+}
+
+.shipment-judgement {
+  margin-top: 12px;
+}
+
+.shipment-judgement-card,
+.air-guide-opinion,
+.document-judgement-card {
+  padding: 12px;
+  border: 1px solid rgba(196, 211, 217, 0.9);
+  border-radius: 8px;
+  background: #FFFFFF;
+  box-shadow: 0 8px 18px rgba(57, 79, 102, 0.06);
+}
+
+.shipment-judgement-card.ok,
+.document-judgement-card.ok {
+  border-left: 4px solid #159A6B;
+}
+
+.shipment-judgement-card.warn,
+.document-judgement-card.warn {
+  border-left: 4px solid #C47A17;
+}
+
+.shipment-judgement-card.danger,
+.document-judgement-card.danger {
+  border-left: 4px solid #C0392B;
+}
+
+.shipment-judgement-card.neutral,
+.document-judgement-card.neutral {
+  border-left: 4px solid #667782;
+}
+
+.shipment-judgement-head,
+.air-guide-opinion > div,
+.document-judgement-card > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.shipment-judgement-head span,
+.air-guide-opinion span,
+.document-judgement-card span {
+  color: #667782;
+  font-size: 11.5px;
+  font-weight: 950;
+}
+
+.shipment-judgement-head strong,
+.air-guide-opinion strong,
+.document-judgement-card > div:first-child strong {
+  color: #1D2935;
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.shipment-judgement-card p,
+.air-guide-opinion p,
+.document-judgement-card p {
+  margin: 0;
+  color: #344350;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.shipment-evidence-grid,
+.document-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.shipment-evidence-grid div,
+.document-evidence-grid small {
+  display: grid;
+  gap: 3px;
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(244, 247, 248, 0.86);
+  color: #344350;
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+.shipment-evidence-grid b,
+.document-evidence-grid b {
+  color: #1D2935;
+  font-size: 11px;
+}
+
+.shipment-evidence-grid small {
+  color: #344350;
+}
+
+.shipment-judgement-card ul,
+.document-judgement-card ul {
+  margin: 8px 0 0;
+  padding-left: 17px;
+  color: #344350;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.air-guide-opinion {
+  margin-bottom: 12px;
+  border-left: 4px solid #0284C7;
+}
+
+.invoice-inline-status .document-judgement-card,
+.declaration-inline-status .document-judgement-card {
+  margin-top: 10px;
 }
 
 .customs-advice .result-brief-card {

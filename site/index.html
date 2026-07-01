@@ -15,7 +15,7 @@
         display: none !important;
       }
     </style>
-    <link rel="stylesheet" href="./styles.css?v=20260622-mobile-layout-v51" />
+    <link rel="stylesheet" href="./styles.css?v=20260701-intelligence-v62" />
   </head>
   <body class="auth-pending is-public-home">
     <button type="button" class="login-trigger" id="openLoginDialog">登录</button>
@@ -691,6 +691,10 @@
                 进口国/地区
                 <input id="requirementCountry" lang="zh-CN" placeholder="例如：巴西、欧盟、美国、英国、泰国、南非、加拿大" />
               </label>
+              <label>
+                原产国/地区（可选）
+                <input id="requirementOrigin" lang="zh-CN" placeholder="例如：中国、越南、美国；不确定可留空" />
+              </label>
               <button type="submit" class="primary-button">查询要求</button>
             </form>
             <div id="requirementResult" class="requirement-result"></div>
@@ -803,7 +807,7 @@
             </div>
             <div id="batteryResult" class="decision-box">
               <strong>填写电池信息后生成提醒</strong>
-              <p>测试版不替代货代、航司、船司或 DG 专员判断。</p>
+              <p>本工具不替代货代、航司、船司或 DG 专员判断。</p>
             </div>
           </section>
         </section>
@@ -1245,10 +1249,11 @@
                   </div>
                   <div class="info-tile warning">
                     <span>Reminder</span>
-                    <strong id="shipmentReminder">不生成模拟船期</strong>
+                    <strong id="shipmentReminder">仅显示可核验船期</strong>
                   </div>
                 </div>
                 <p class="api-note" id="shipmentApiNote">查询后显示自动抓取结果、数据时间和是否为近实时；接口没有返回 ETA 时不会生成假 ETA。</p>
+                <div id="shipmentJudgement" class="shipment-judgement" aria-live="polite"></div>
                 <div id="vesselInlineFallback" class="vessel-inline-fallback hidden"></div>
               </aside>
             </div>
@@ -1293,7 +1298,7 @@
                 <p class="eyebrow">Risk Alert / 预警规则</p>
                 <h2>关注船舶和 ETA 风险</h2>
               </div>
-              <span class="quiet-tag">测试版：本地保存规则</span>
+              <span class="quiet-tag">本地保存规则</span>
             </div>
             <p class="section-note">你可以先把关注船舶、预想 ETA 和提醒邮箱记在这里。服务器会定时检查 ETA；邮件通过后端 SMTP 发送，网页不会保存或显示邮箱授权码。</p>
             <form id="vesselAlertForm" class="query-card alert-watch-form">
@@ -1470,7 +1475,7 @@
               <p class="eyebrow">Shanghai Port Release</p>
               <h2>提单 / 集装箱放行状态</h2>
             </div>
-            <span class="quiet-tag">脚本查询预留 · 验证码时人工完成</span>
+            <span class="quiet-tag">官网查询入口 · 验证码时人工完成</span>
           </div>
           <p class="section-note">箱货状态按箱号或提单号查，和船期查询分开。提交后系统自动先查上海港/港航入口；如遇验证码，会直接提示原因，不再要求重复输入。</p>
           <form id="customsForm" class="query-card customs-query">
@@ -1531,7 +1536,7 @@
               <button type="button" class="primary-button" id="printInvoiceDoc">导出 PDF</button>
             </div>
           </div>
-          <form id="invoiceDocForm" class="invoice-packing-paper" data-document-mode="invoice" aria-label="商业发票和装箱单模拟填制">
+          <form id="invoiceDocForm" class="invoice-packing-paper" data-document-mode="invoice" aria-label="商业发票和装箱单草稿填制">
             <h2 id="invoicePaperTitle">COMMERCIAL INVOICE</h2>
             <table class="invoice-paper-table">
               <tbody>
@@ -1600,10 +1605,10 @@
               <p class="eyebrow">Customs Declaration Draft</p>
               <h2>报关单生成</h2>
             </div>
-            <span>模拟填制 · 字段提醒 · Excel 报关单</span>
+            <span>草稿填制 · 字段提醒 · Excel 报关单</span>
           </div>
           <div class="declaration-toolbar">
-            <span>模拟填制草稿 · 不是正式申报</span>
+            <span>报关草稿 · 不是正式申报</span>
             <div>
               <button type="button" class="secondary-button" id="loadDeclarationExample">载入样例</button>
               <button type="button" class="secondary-button" id="validateDeclarationDoc">检查必填项</button>
@@ -1627,7 +1632,7 @@
             </div>
             <div id="declarationBeginnerTips" class="declaration-beginner-tips"></div>
           </section>
-          <form id="declarationDocForm" class="customs-declaration-paper" aria-label="中华人民共和国海关出口货物报关单模拟填制">
+          <form id="declarationDocForm" class="customs-declaration-paper" aria-label="中华人民共和国海关出口货物报关单草稿填制">
             <h2>中华人民共和国海关出口货物报关单</h2>
             <div class="customs-declaration-meta">
               <label>预录入编号：<input id="declPreNo" placeholder="预录入编号" /></label>
@@ -1775,7 +1780,7 @@
             <div>
               <p class="eyebrow">Air shipment</p>
               <h2>快件先看状态，空运先看限制</h2>
-              <p>快件/空运单号目前先走官网核验入口，不生成模拟轨迹。含电池、磁性、液体、样品和维修件要提前确认承运限制、申报资料和到达清关节点。</p>
+              <p>快件/空运单号目前先走官网核验入口，不编造轨迹状态。含电池、磁性、液体、样品和维修件要提前确认承运限制、申报资料和到达清关节点。</p>
             </div>
             <div class="air-hero-visual" aria-hidden="true">
               <span></span>
@@ -2249,7 +2254,7 @@
               <p class="eyebrow">Improve The Desk</p>
               <h2>提交页面/数据/流程问题</h2>
             </div>
-            <span class="quiet-tag">测试版：本机保存</span>
+            <span class="quiet-tag">本机保存</span>
           </div>
           <p class="section-note">正式上线前建议让几个业务、物流、关务同事试用，把“不知道填什么”“结果不准”“缺哪个网站/数据”的问题集中收集。</p>
           <form id="feedbackForm" class="query-card feedback-form">
@@ -2319,6 +2324,6 @@
     <script src="./china-tariff-2026.js?v=20260610-logistics-intel-v12"></script>
     <script src="./trade-measures-data.js?v=20260610-logistics-intel-v12"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="./app.js?v=20260622-hs-validation-v58"></script>
+    <script src="./app.js?v=20260701-intelligence-v67"></script>
   </body>
 </html>

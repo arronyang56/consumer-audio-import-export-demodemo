@@ -684,7 +684,7 @@ exports.handler = async (event) => {
         keyword,
         summary: keyword
           ? `暂时没有拿到“${keyword}”相关公开新闻，但已尝试补充官方公告、宏观指标和汇率数据。`
-          : "公开新闻接口暂时没有返回结果，先按固定趋势清单和公开指标观察。",
+          : "公开新闻接口暂时没有返回结果，先按基础观察清单和公开指标观察。",
         indicators,
         insights: buildTrendInsights(fallbackTrendItems, indicators, keyword),
         items: fallbackTrendItems,
@@ -727,8 +727,8 @@ exports.handler = async (event) => {
       updatedAt: new Date().toISOString(),
       keyword,
       summary: keyword
-        ? `搜索“${keyword}”时公开新闻接口暂时失败，先显示固定趋势清单。`
-        : "公开新闻接口暂时失败，先显示固定趋势清单。",
+        ? `搜索“${keyword}”时公开新闻接口暂时不可用，先显示基础观察清单。`
+        : "公开新闻接口暂时不可用，先显示基础观察清单。",
       indicators: [],
       insights: buildTrendInsights(fallbackTrendItems, [], keyword),
       items: fallbackTrendItems,

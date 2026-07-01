@@ -338,14 +338,14 @@ const moduleItems = [
   ["政策变化", "集中放海关、认证、归类、目的国政策入口，并抓取公开新闻和政策解读。", "已上线"],
   ["全球趋势", "搜索过去一周经济、政治、金融、贸易、物流新闻，并给中文摘要。", "已上线"],
   ["船期和船舶位置", "输入船名和目的港，查询船舶大致位置、下一港、ETA，并保存预警规则。", "已上线"],
-  ["通关状态入口", "给同事提单、箱号、上海港放行、单一窗口等查询入口和字段提醒。", "测试版"],
-  ["空运/快件查询", "输入 UPS、DHL、FedEx、SF 等运单号，识别承运商、打开官网核验，并提示空运 DG/清关注意事项。", "测试版"],
+  ["通关状态入口", "给同事提单、箱号、上海港放行、单一窗口等查询入口和字段提醒。", "已接入"],
+  ["空运/快件查询", "输入 UPS、DHL、FedEx、SF 等运单号，识别承运商、打开官网核验，并提示空运 DG/清关注意事项。", "已接入"],
   ["空运出运/到达注意", "单独说明空运发出前、安检、到达清关、待核验节点和不同产品风险。", "已上线"],
   ["出货节点", "后续可做订舱、开船、到港、报关、放行节点看板。", "后续"],
   ["电池/危险品", "判断锂电池、MSDS、UN38.3、包装方式和运输方式的风险。", "已上线"],
   ["港口风险", "输入港口，查看公开新闻风险、官方入口和人工确认清单。", "已上线"],
   ["查询失败/待人工核验", "记录税号不确定、缺文件、政策待确认、官网查询失败和低可信结果。", "已上线"],
-  ["进口国要求查询", "输入产品大致信息和进口国，提示认证、标签、电池、无线和清关资料。", "测试版"],
+  ["进口国要求查询", "输入产品大致信息和进口国，提示认证、标签、电池、无线和清关资料。", "已接入"],
   ["未来接口", "后续再接公司内部系统、报关行、船司、权限登录和数据库。", "后续"]
 ];
 
@@ -1723,7 +1723,7 @@ const docItems = [
 ];
 
 const opsItems = [
-  ["Vessel & Schedule", "船名、目的港、POL/POD、ETD/ETA、Carrier，可先手工输入；船讯网 API 已走后端代理。", ["船名查询", "API 预留"]],
+  ["Vessel & Schedule", "船名、目的港、POL/POD、ETD/ETA、Carrier，可先手工输入；船讯网 API 已走后端代理。", ["船名查询", "后端接入中"]],
   ["Customs / Manifest", "提运单号、箱号、关区代码、舱单状态，当前先给官方入口和字段提醒。", ["入口导航", "权限待定"]],
   ["Shipment Milestone", "订舱、截关、开船、到港、申报、放行、送仓，后续可做每票看板。", ["样例看板", "可导出"]],
   ["Port & Logistics Risk", "港口拥堵、查验、天气、DG 限制、目的港规则，先手工维护重点提醒。", ["手工维护", "未来订阅"]]
@@ -1740,10 +1740,10 @@ const freeApiOptions = [
   ["Open-Meteo Marine", "港口天气/海况", "免费、无需 key", "可直接接入", "按港口坐标查浪高、海温、洋流等，适合补充港口风险。非商业免费有调用限制。", "https://open-meteo.com/en/docs/marine-weather-api"],
   ["IATA / ICAO 官方入口", "空运规则/危险品", "公开网页", "已加入来源", "用于空运锂电池、危险品、航空货运市场和操作规则的人工核验；真正自动状态查询仍需承运商 API。", "https://www.iata.org/en/programs/cargo/"],
   ["DHL/UPS/FedEx/SF 官方追踪", "快件状态", "免费网页/可能验证码", "已加入入口", "适合快件单号核验。若需要在平台内直接返回状态，需要承运商账号 API 或授权接口。", "#air"],
-  ["AISstream", "AIS 船舶位置流", "免费注册 key", "可测试", "WebSocket 实时 AIS，适合关注某个 MMSI 或港口区域；必须放后端，且 beta 无 SLA。", "https://aisstream.io/documentation.html"],
+  ["AISstream", "AIS 船舶位置流", "免费注册 key", "可接入", "WebSocket 实时 AIS，适合关注某个 MMSI 或港口区域；必须放后端，且 beta 无 SLA。", "https://aisstream.io/documentation.html"],
   ["USITC HTS REST", "美国 HTS 税号/税率", "免费、无需 key", "可直接接入", "官方 HTS 数据可 JSON/CSV/XLSX 查询，美国进口税号核验优先级高。", "https://hts.usitc.gov/reststop"],
   ["UK Trade Tariff API", "英国税号/措施", "官方 API", "可直接接入", "英国商品编码、税率、VAT、配额和措施，适合目的国要求查询。", "https://api.trade-tariff.service.gov.uk"],
-	  ["Trade.gov CSL API", "受限方/出口管制筛查", "开放 API/下载", "可测试", "美国 Consolidated Screening List，用于客户/供应商/收货人名称初筛；命中后仍需人工尽调。", "https://www.trade.gov/consolidated-screening-list"],
+	  ["Trade.gov CSL API", "受限方/出口管制筛查", "开放 API/下载", "可接入", "美国 Consolidated Screening List，用于客户/供应商/收货人名称初筛；命中后仍需人工尽调。", "https://www.trade.gov/consolidated-screening-list"],
 	  ["UN/LOCODE", "港口代码/港口库", "官方下载", "可离线接入", "全球港口/地点编码基础库，适合补全港口联想、港口坐标和标准名称。", "https://unlocode.unece.org/publications"],
 	  ["微信公众号文章", "社媒/政策解读", "无稳定公开搜索 API", "人工关注/链接导入优先", "可接入自己公众号或人工保存的文章链接；公开爬取容易遇到登录、反爬和版权问题，不作为稳定自动源。", "https://mp.weixin.qq.com/"],
 	  ["X / Twitter API", "社媒/官方动态", "通常需要开发者账号/付费档", "后续评估", "适合跟踪海关、港口、承运商和媒体账号的突发消息；低成本阶段先用官方 RSS/API 和人工核验链接。", "https://developer.x.com/"],
@@ -2628,7 +2628,7 @@ const vesselMapState = {
 };
 
 const $ = (id) => document.getElementById(id);
-const ACCESS_CODE = "CA2026";
+const ACCESS_AUTH_ENDPOINT = "/.netlify/functions/access-auth";
 let accessGateInitialized = false;
 
 function markAccessReady() {
@@ -2670,11 +2670,14 @@ function initAccessGate() {
   const error = $("accessError");
   const loginButton = $("openLoginDialog");
   const logoutButton = $("logoutAccess");
+  const unlockButton = $("unlockAccess");
   const setAuthState = (granted = false) => {
     document.body.classList.toggle("is-authenticated", granted);
     document.body.classList.toggle("is-public-home", !granted);
     if (loginButton) loginButton.textContent = "登录";
     if (logoutButton) logoutButton.hidden = !granted;
+    if (granted) sessionStorage.setItem("caAccessGranted", "1");
+    else sessionStorage.removeItem("caAccessGranted");
   };
   const openLogin = (message = "") => {
     if (error) error.textContent = message || "";
@@ -2687,14 +2690,48 @@ function initAccessGate() {
     if (input) input.value = "";
     if (error) error.textContent = "";
   };
-  const unlock = () => {
-    if (input.value.trim() === ACCESS_CODE) {
-      sessionStorage.setItem("caAccessGranted", "1");
-      setAuthState(true);
-      closeLogin();
+  const syncServerSession = async () => {
+    try {
+      const response = await fetch(ACCESS_AUTH_ENDPOINT, { credentials: "same-origin" });
+      const data = await response.json();
+      if (data.authenticated) {
+        setAuthState(true);
+        return true;
+      }
+      setAuthState(false);
+      return false;
+    } catch {
+      if (!sessionStorage.getItem("caAccessGranted")) setAuthState(false);
+      return false;
+    }
+  };
+  const unlock = async () => {
+    const code = input?.value.trim() || "";
+    if (!code) {
+      if (error) error.textContent = "请输入访问码。";
       return;
     }
-    error.textContent = "访问码不正确，请确认后重试。";
+    if (unlockButton) unlockButton.disabled = true;
+    if (error) error.textContent = "正在校验访问码...";
+    try {
+      const response = await fetch(ACCESS_AUTH_ENDPOINT, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code })
+      });
+      const data = await response.json();
+      if (response.ok && data.authenticated) {
+        setAuthState(true);
+        closeLogin();
+        return;
+      }
+      if (error) error.textContent = data.message || "访问码不正确，请确认后重试。";
+    } catch {
+      if (error) error.textContent = "暂时无法连接访问校验服务，请稍后重试。";
+    } finally {
+      if (unlockButton) unlockButton.disabled = false;
+    }
   };
 
   if (sessionStorage.getItem("caAccessGranted") === "1") {
@@ -2706,9 +2743,19 @@ function initAccessGate() {
       history.replaceState(null, "", "#dashboard");
     }
   }
+  syncServerSession();
   loginButton?.addEventListener("click", () => openLogin());
-  logoutButton?.addEventListener("click", () => {
-    sessionStorage.removeItem("caAccessGranted");
+  logoutButton?.addEventListener("click", async () => {
+    try {
+      await fetch(ACCESS_AUTH_ENDPOINT, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "logout" })
+      });
+    } catch {
+      // Local browser state is still cleared even if the server logout request fails.
+    }
     setAuthState(false);
     closeLogin();
     history.replaceState(null, "", "#dashboard");
@@ -2717,7 +2764,7 @@ function initAccessGate() {
   document.querySelectorAll("[data-close-login]").forEach((button) => {
     button.addEventListener("click", closeLogin);
   });
-  $("unlockAccess")?.addEventListener("click", unlock);
+  unlockButton?.addEventListener("click", unlock);
   input?.addEventListener("keydown", (event) => {
     if (event.key === "Enter") unlock();
   });
@@ -5006,7 +5053,7 @@ function recommend(event) {
   $("confidenceValue").textContent = assessment.usableLabel || assessment.label || "待判";
   $("confidenceValue").closest(".score-ring")?.setAttribute("data-level", assessment.level || "medium");
   $("bestCode").textContent = best?.code || "暂无候选";
-  $("bestName").textContent = best?.name || "请导入更多脱敏测试案例。";
+  $("bestName").textContent = best?.name || "请补充更多内部样例。";
   const cargoShape = getCargoShape(formText);
   const proof = best ? buildClassificationProof(best, formText) : null;
   $("reasonText").textContent = best?.matches?.length
@@ -5135,7 +5182,7 @@ function renderModules() {
   if (!$("moduleGrid")) return;
   $("moduleGrid").innerHTML = moduleItems
     .map(([title, text, status]) => {
-      const statusClass = status === "已上线" ? "" : status === "测试版" ? "pending" : "future";
+      const statusClass = status === "已上线" ? "" : status === "内测" ? "pending" : "future";
       return `
         <article class="module-card">
           <header>
@@ -6161,6 +6208,40 @@ function sourceBusinessMeaning(item = {}, statement = "") {
   return points.length ? `影响：${Array.from(new Set(points)).join("、")}。` : "影响：当前来源只形成背景信息，未指向具体订单动作。";
 }
 
+function sourceOpinionForItem(item = {}, statement = "", context = "") {
+  const title = removePublisherSuffix(item.title || item.localRule?.title || "");
+  const subject = subjectFromTitle(title || statement || "这条信息");
+  const text = normalize([title, statement, item.category, item.domain, context].join(" "));
+  const titleContext = normalize([title, item.category].join(" "));
+  const numbers = sourceNumbers(`${title} ${statement}`);
+  const reason = numbers.length ? `因为它出现了 ${numbers.join("、")} 这样的时间/数字信号` : `因为来源主题是“${subject || sourceDomainLabel(item)}”`;
+  if (/strike|congestion|port|terminal|shipping|vessel|container|freight|suez|panama|港口|码头|船期|航运|空运|快件|拥堵|罢工|绕航|运费|劳资/.test(titleContext) && !/关税|tariff|duty|301|232|反倾销|反补贴|trade remedy/.test(titleContext)) {
+    return `我的判断：它的业务含义在交期和费用，不在单证本身。${reason}，要重查 ETA、截关、提柜预约、附加费和客户交付承诺。`;
+  }
+  if (/关税|tariff|duty|301|232|反倾销|反补贴|trade remedy|海关|customs|清关/.test(text)) {
+    return `我的判断：这不是普通新闻，先按关务事件处理。${reason}，要确认税号、原产国、实施日期和是否影响在途订单。`;
+  }
+  if (/sanction|export control|restricted|denied|entity list|trade compliance|受限方|实体清单|制裁|出口管制|受限|战争|冲突|军演|地缘|选举/.test(text)) {
+    return `我的判断：它可能改变能不能交易，而不只是影响交期。${reason}，要筛查客户、国家、收货人、最终用途和路线。`;
+  }
+  if (/认证|standard|certification|fcc|\bce\b|\bred\b|anatel|nbtc|saber|ccc|cnca|rohs|reach|label|标签|型号核准/.test(text)) {
+    return `我的判断：它更像产品准入/认证信号，不应只转发给业务。${reason}，要让认证同事看证书覆盖型号、标签、说明书和过渡期。`;
+  }
+  if (/battery|lithium|dangerous goods|un38|msds|iata|imdg|电池|锂|危险品|磁性|移动电源/.test(text)) {
+    return `我的判断：这条会先影响能不能出运，而不是只影响清关。${reason}，要先做电池/DG 文件和承运人预审。`;
+  }
+  if (/port|terminal|shipping|vessel|container|freight|strike|congestion|suez|panama|air cargo|express|courier|港口|码头|船期|航运|空运|快件|拥堵|罢工|绕航|运费/.test(text)) {
+    return `我的判断：它的业务含义在交期和费用，不在单证本身。${reason}，要重查 ETA、截关、提柜预约、附加费和客户交付承诺。`;
+  }
+  if (/rate|inflation|currency|oil|fuel|central bank|market|stock|bond|汇率|利率|通胀|油价|金融|债券|股票|融资/.test(text)) {
+    return `我的判断：它是报价和付款风险信号。${reason}，要缩短报价有效期或重算汇率、燃油、资金和客户信用风险。`;
+  }
+  if (/ai|chip|semiconductor|bluetooth|usb-c|software|cyber|人工智能|芯片|半导体|蓝牙|网络安全|科技/.test(text)) {
+    return `我的判断：它是产品和供应链方向信号。${reason}，短期看客户需求和BOM变化，中期看认证资料、说明书和替代料风险。`;
+  }
+  return `我的判断：这条目前只能作为背景线索。${reason}，除非它关联当前国家、客户、产品或路线，否则不应直接改变订单动作。`;
+}
+
 function buildSourceDigests(items = [], options = {}) {
   const seen = new Set();
   return (Array.isArray(items) ? items : [])
@@ -6182,6 +6263,7 @@ function buildSourceDigests(items = [], options = {}) {
         date: item.seendate || item.date || item.publishedAt || item.updatedAt || "",
         statement,
         meaning: sourceBusinessMeaning(item, statement),
+        opinion: sourceOpinionForItem(item, statement, options.context || options.keyword || ""),
         url: item.url || item.localRule?.url || ""
       };
     });
@@ -6215,6 +6297,7 @@ function renderSourceDigestBoard(digests = [], heading = "来源逐条解读") {
             <span>${String(item.index).padStart(2, "0")} · ${escapeHtml(item.domain)}</span>
             <h3>${escapeHtml(item.title)}</h3>
             <p><b>提炼要点：</b>${escapeHtml(item.statement)}</p>
+            <p><b>独立判断：</b>${escapeHtml(item.opinion || item.meaning)}</p>
             <small>${escapeHtml(item.meaning)}${item.date ? ` · ${escapeHtml(formatEta(item.date))}` : ""}</small>
             ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">打开来源</a>` : ""}
           </article>
@@ -6229,7 +6312,7 @@ function renderPolicyUpdates(data = {}) {
   const analysis = buildPolicyAnalysis(data);
   const display = compactPolicyConclusion(data, analysis);
   const sourceGroups = Array.isArray(analysis.sourceGroups) ? analysis.sourceGroups.slice(0, 3) : [];
-  const sourceDigests = buildSourceDigests(items, { limit: 8 });
+  const sourceDigests = buildSourceDigests(items, { limit: 8, context: [data.filters?.exportCountry, data.filters?.importCountry, data.filters?.product].filter(Boolean).join(" ") });
   const sourceConclusion = sourceDigests.length ? summarizeSourceDigests(sourceDigests, data.filters?.product || "") : display.conclusion;
   $("policyStatus").textContent = `已更新 · ${formatEta(data.updatedAt)}`;
   $("policyLiveGrid").innerHTML = `
@@ -6301,17 +6384,20 @@ function renderPolicyUpdates(data = {}) {
       .join("")}
     ${items
       .slice(0, 6)
-      .map(
-        (item) => `
+      .map((item) => {
+        const statement = sourceStatementForItem(item);
+        const opinion = sourceOpinionForItem(item, statement, [data.filters?.exportCountry, data.filters?.importCountry, data.filters?.product].filter(Boolean).join(" "));
+        return `
           <article class="policy-news-card">
             <span>${escapeHtml(item.category || item.domain || "政策")}</span>
             <h3>${escapeHtml(item.title)}</h3>
-            <p>${escapeHtml(sourceStatementForItem(item))}</p>
+            <p><b>提炼要点：</b>${escapeHtml(statement)}</p>
+            <p class="opinion-line"><b>判断：</b>${escapeHtml(opinion)}</p>
             ${item.action ? `<p class="action-line">${escapeHtml(item.action)}</p>` : ""}
             <a href="${escapeHtml(item.url || "#")}" target="_blank" rel="noreferrer">查看原文</a>
           </article>
-        `
-      )
+        `;
+      })
       .join("")}
   `;
 }
@@ -6410,14 +6496,15 @@ function loadVesselExample() {
   $("destinationPort").value = "Shanghai";
   $("imoMmsi").value = "353136000";
   $("carrierName").value = "COSCO / OOCL 等按实际船司填写";
-  $("shipmentContainerNo").value = "";
-  $("shipmentBlNo").value = "";
   renderShipmentResult({
     vessel: "EVER GIVEN",
     voyage: "001W",
     origin: "Port Klang",
     destination: "Shanghai",
-    imo: "353136000"
+    imo: "353136000",
+    carrier: "COSCO / OOCL 等按实际船司填写",
+    container: $("containerNo")?.value || "",
+    bl: $("blNo")?.value || ""
   });
 }
 
@@ -6493,7 +6580,7 @@ function renderInlineVesselFallback(payload = {}, result = {}, reason = "", link
   target.innerHTML = `
     <div class="vessel-public-mini">
       <div class="vessel-mini-head">
-        <span>ShipFinder fallback</span>
+        <span>ShipFinder 备用查询</span>
         <strong>${escapeHtml(vessel)}</strong>
         <small>${escapeHtml(reason || "自动接口未取得新鲜船位。")}</small>
       </div>
@@ -6526,7 +6613,7 @@ function buildFailureDialogHtml({ reason = "", intro = "", links = [], fields = 
       </div>
       <div class="failure-copy">
         <h3>很遗憾，这次没有拿到实时结果</h3>
-        <p>${escapeHtml(intro || "自动查询没有返回可用实时内容，页面不会生成模拟状态。")}</p>
+        <p>${escapeHtml(intro || "自动查询没有返回可用实时内容，平台仅显示可核验来源与人工处理建议。")}</p>
         <strong>${escapeHtml(reason || "原因可能是官网验证码、登录限制、接口未返回或字段不足。")}</strong>
       </div>
       ${
@@ -6557,7 +6644,7 @@ function showShipfinderFallbackDialog(payload = {}, result = {}, reason = "") {
     "船期/船位暂未查到",
     "Shipfinder",
     buildFailureDialogHtml({
-      intro: "自动接口没有取得可确认的新鲜船位，系统不会生成模拟船期或假 ETA。",
+      intro: "自动接口没有取得可确认的新鲜船位，系统不会编造船期或 ETA。",
       reason,
       fields: [["船名", vessel], ["MMSI", links.mmsi || "未识别，建议补充 9 位 MMSI"]],
       links: [["打开 Shipfinder 查询", links.shipfinder], ["备用：MyShipTracking", links.myshiptracking]],
@@ -6941,7 +7028,7 @@ function renderBrowserScriptResult(targetId = "", data = {}, payload = {}) {
       <div class="script-result-head">
         <div>
           <span>${ok ? "脚本查询完成" : "脚本暂未完成"}</span>
-          <strong>${escapeHtml(ok ? "已生成网页查询摘要" : data.message || "网页脚本没有返回可用结果")}</strong>
+          <strong>${escapeHtml(ok ? "已整理网页查询摘要" : data.message || "网页脚本没有返回可用结果")}</strong>
         </div>
         <b>${escapeHtml(ok ? "Result" : data.code || "Need Action")}</b>
       </div>
@@ -6970,8 +7057,15 @@ function applyBrowserResultToShipment(data = {}, payload = {}) {
   $("shipmentEta").textContent = result.eta || "网页未抽取到 ETA";
   $("shipmentStatus").textContent = result.status || "已返回网页文字，需看原网站状态";
   $("shipmentDataTime").textContent = formatDataAge(positionTime || data.queriedAt || new Date().toISOString());
-  $("shipmentReminder").textContent = "网页脚本不生成模拟结果；如第三方网站有验证码，以人工验证后的原网站结果为准。";
+  $("shipmentReminder").textContent = "网页脚本只整理原网站结果；如第三方网站有验证码，以人工验证后的原网站结果为准。";
   $("shipmentApiNote").textContent = `网页脚本来源：${data.source || payload.source || "第三方网站"}；船位数据时间 ${formatDataAge(positionTime || data.queriedAt || new Date().toISOString())}${stalePosition ? "；注意：该船位不是 24 小时内新鲜数据。" : ""}。`;
+  renderShipmentJudgement(buildShipmentJudgement({
+    payload,
+    result,
+    updatedAt: positionTime || data.queriedAt || "",
+    source: data.source || payload.source || "网页脚本",
+    freshness: { level: stalePosition ? "stale" : "fresh" }
+  }));
   if (result.position?.lat && result.position?.lon) {
     $("shipmentPosition").textContent = `${formatPosition(result.position)}${result.position.speed ? ` · ${result.position.speed}` : ""}`;
     setVesselMap(result.position, payload.destination || result.destination || "");
@@ -7039,7 +7133,9 @@ async function queryShipment(event) {
     origin: $("originPort").value || "Origin Port",
     destination: $("destinationPort").value || "Destination Port",
     imo: $("imoMmsi").value || "",
-    carrier: $("carrierName")?.value || ""
+    carrier: $("carrierName")?.value || "",
+    container: $("containerNo")?.value || "",
+    bl: $("blNo")?.value || ""
   };
 
   $("shipmentApiState").textContent = "查询中";
@@ -7256,6 +7352,123 @@ function summarizeManualShipmentResult() {
   `;
 }
 
+function hasShipmentPosition(result = {}) {
+  return result.position?.lat !== "" && result.position?.lon !== "" && result.position?.lat != null && result.position?.lon != null;
+}
+
+function shipmentIdentityQuality(payload = {}, result = {}) {
+  const identity = normalize([payload.imo, result.imo, result.mmsi, payload.vessel, result.shipName || result.vessel].join(" "));
+  if (/\b\d{9}\b/.test(identity)) return "MMSI 已给出";
+  if (/\b\d{7}\b/.test(identity)) return "IMO 已给出";
+  if ((payload.vessel || result.shipName || result.vessel) && (payload.carrier || payload.voyage)) return "船名 + 船司/航次";
+  if (payload.vessel || result.shipName || result.vessel) return "只有船名";
+  return "身份不足";
+}
+
+function buildShipmentJudgement({ payload = {}, result = {}, updatedAt = "", source = "", freshness = {}, message = "", waiting = false } = {}) {
+  if (waiting) {
+    return {
+      score: 0,
+      label: "等待输入",
+      tone: "neutral",
+      viewpoint: "输入船名后可以先查船位；如果要形成可承诺的 ETA，最好同时准备 MMSI/IMO、船司、箱号或提单号。",
+      evidence: [["证据状态", "等待查询"], ["判断口径", "只用可核验证据，不补写 ETA"]],
+      actions: ["先填船名；有 MMSI/IMO 时一起填。", "如客户要交期承诺，同步准备箱号或提单号给船司/码头核验。"]
+    };
+  }
+
+  const sourceName = /web|browser|myshiptracking|public/i.test(source) ? "网页抓取" : source ? source : "自动接口";
+  const dataTime = getVesselDataTime(result, updatedAt || result.updatedAt || "");
+  const dataAge = formatDataAge(dataTime);
+  const hasPosition = hasShipmentPosition(result);
+  const stale = hasPosition && (freshness?.level === "stale" || isStaleDataTime(dataTime));
+  const unknownFreshness = hasPosition && (freshness?.level === "unknown" || !dataTime || dataAge === "时间未知");
+  const hasEta = Boolean(result.eta);
+  const identity = shipmentIdentityQuality(payload, result);
+  const hasStrongIdentity = /MMSI|IMO/.test(identity);
+  const hasCarrier = Boolean(payload.carrier);
+  const hasVoyage = Boolean(payload.voyage && !/^tbd$/i.test(payload.voyage));
+  const hasContainerOrBl = Boolean(payload.container || payload.bl);
+  const hasDestination = Boolean(payload.destination || result.nextPort?.name || result.destination);
+
+  let score = 26;
+  if (hasPosition) score += 24;
+  if (hasEta) score += 16;
+  if (hasStrongIdentity) score += 12;
+  else if (identity === "船名 + 船司/航次") score += 6;
+  if (hasCarrier) score += 5;
+  if (hasVoyage) score += 4;
+  if (hasContainerOrBl) score += 8;
+  if (hasDestination) score += 4;
+  if (hasPosition && !stale && !unknownFreshness) score += 12;
+  if (stale) score -= 24;
+  if (unknownFreshness) score -= 12;
+  if (!hasPosition && !hasEta) score -= 18;
+  if (message) score -= 8;
+  score = Math.max(8, Math.min(96, Math.round(score)));
+
+  const label = !hasPosition && !hasEta
+    ? "不能判断 ETA"
+    : stale || unknownFreshness
+      ? "只能弱参考"
+      : hasEta
+        ? "可作为参考"
+        : "只能判断船位";
+  const tone = !hasPosition && !hasEta ? "danger" : stale || unknownFreshness ? "warn" : "ok";
+  const missing = [];
+  if (!hasStrongIdentity) missing.push("MMSI/IMO");
+  if (!hasCarrier) missing.push("船司");
+  if (!hasContainerOrBl) missing.push("箱号/提单号");
+  if (!hasEta) missing.push("船司 ETA");
+
+  let viewpoint;
+  if (!hasPosition && !hasEta) {
+    viewpoint = `我的判断：这次不能形成可靠船期结论。${sourceName}没有给出可核验坐标或 ETA，继续刷新同一个 API 的价值不高；应先补 ${missing.slice(0, 3).join("、") || "可核验字段"}，再用船司、码头或箱号事件确认。`;
+  } else if (stale || unknownFreshness) {
+    viewpoint = `我的判断：有船位线索，但不能直接承诺到港。关键问题不是“有没有坐标”，而是数据时间${stale ? "已经过期" : "无法确认"}；应把它当作定位线索，再用船司 ETA 和码头事件复核。`;
+  } else if (hasPosition && !hasEta) {
+    viewpoint = "我的判断：当前只能说明船大概在哪里，不能说明何时到港。没有船司 ETA 时，页面不应替业务生成 ETA；下一步应查船司 schedule、箱号事件和目的港靠泊计划。";
+  } else {
+    viewpoint = "我的判断：这条结果可以作为船位/ETA 参考，但还不是客户承诺。若订单在途或要改交期，应再用船司官网、箱号/提单号和目的港码头事件做一次交叉验证。";
+  }
+
+  const evidence = [
+    ["实时坐标", hasPosition ? "已取得" : "未取得"],
+    ["数据时间", hasPosition ? dataAge : "无实时数据"],
+    ["ETA", hasEta ? formatEta(result.eta) : "未返回"],
+    ["船舶身份", identity],
+    ["箱号/提单", hasContainerOrBl ? "已提供，可用于事件核验" : "未提供"]
+  ];
+  const actions = [];
+  if (!hasStrongIdentity) actions.push("补 9 位 MMSI 或 7 位 IMO，避免同名船误匹配。");
+  if (!hasContainerOrBl) actions.push("要判断客户交期时，补箱号/提单号，用船司或码头事件核验装船、卸船、放行节点。");
+  if (!hasEta) actions.push("接口不返回 ETA 时，不手工猜 ETA；改查船司 schedule、目的港 ETA 和靠泊计划。");
+  if (stale || unknownFreshness) actions.push("坐标过期或时间未知时，把结果标成弱参考，不能用于对客户承诺到港日。");
+  if (!actions.length) actions.push("保留查询截图/时间，并在截关、靠泊前再查一次船司和码头。");
+
+  return { score, label, tone, viewpoint, evidence, actions, sourceName, dataAge };
+}
+
+function renderShipmentJudgement(brief = {}) {
+  const target = $("shipmentJudgement");
+  if (!target) return;
+  const evidence = Array.isArray(brief.evidence) ? brief.evidence : [];
+  const actions = Array.isArray(brief.actions) ? brief.actions : [];
+  target.innerHTML = `
+    <article class="shipment-judgement-card ${escapeHtml(brief.tone || "neutral")}">
+      <div class="shipment-judgement-head">
+        <span>${escapeHtml(brief.label || "待判断")}</span>
+        <strong>${escapeHtml(String(brief.score || 0))}</strong>
+      </div>
+      <p>${escapeHtml(brief.viewpoint || "等待船期证据。")}</p>
+      <div class="shipment-evidence-grid">
+        ${evidence.map(([label, value]) => `<div><b>${escapeHtml(label)}</b><small>${escapeHtml(value)}</small></div>`).join("")}
+      </div>
+      <ul>${actions.slice(0, 4).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+    </article>
+  `;
+}
+
 function renderShipxyResult(payload = {}, result = {}, updatedAt = "", source = "ShipXY", freshness = {}) {
   const vessel = result.shipName || payload.vessel || "UNKNOWN VESSEL";
   const voyage = payload.voyage || "TBD";
@@ -7295,7 +7508,8 @@ function renderShipxyResult(payload = {}, result = {}, updatedAt = "", source = 
   $("mapDestination").textContent = destination;
   $("shipmentApiState").textContent = freshness?.level === "stale" ? "数据过期" : hasLivePosition ? "实时结果" : "未取得实时结果";
   $("shipmentSourceLabel").textContent = isWebFallback ? "Public Web AIS" : source.includes("GetManyShip") ? "ShipXY Vessel Result" : "ShipXY ETA Result";
-  $("shipmentApiNote").textContent = `自动查询结果：数据源 ${source}；船位/接口时间 ${dataAge}；新鲜度 ${freshnessLabel}。${hasEta ? "ETA 为接口返回值。" : "当前接口未返回 ETA，页面不会生成模拟 ETA。"}${staleWarning}。`;
+  $("shipmentApiNote").textContent = `自动查询结果：数据源 ${source}；船位/接口时间 ${dataAge}；新鲜度 ${freshnessLabel}。${hasEta ? "ETA 为接口返回值。" : "当前接口未返回 ETA，平台不会补写 ETA。"}${staleWarning}。`;
+  renderShipmentJudgement(buildShipmentJudgement({ payload, result, updatedAt, source, freshness }));
   setVesselMap(result.position, result.nextPort?.name || destination);
   if (stalePosition) {
     showVesselPublicPanel(payload, result, "自动接口返回了船位，但数据时间超过 24 小时，不能当作最新船期。");
@@ -7310,6 +7524,7 @@ function renderShipxyResult(payload = {}, result = {}, updatedAt = "", source = 
 }
 
 function renderShipmentResult(payload = {}, fallback = {}) {
+  const initial = !payload.vessel && !payload.imo && !payload.container && !payload.bl && !fallback.message;
   const vessel = payload.vessel || "EVER GIVEN";
   const voyage = payload.voyage || "001W";
   const origin = payload.origin || "Port Klang";
@@ -7319,7 +7534,7 @@ function renderShipmentResult(payload = {}, fallback = {}) {
   $("shipmentEta").textContent = "实时 ETA 未取得";
   $("shipmentStatus").textContent = "自动查询失败";
   $("shipmentDataTime").textContent = "无实时数据";
-  $("shipmentReminder").textContent = "系统不会生成模拟船期；请补充 MMSI、箱号或提单号，并优先运行网页脚本查询。";
+  $("shipmentReminder").textContent = "未取得可核验船期；请补充 MMSI、箱号或提单号，并优先运行网页脚本查询。";
   $("mapOrigin").textContent = origin;
   $("mapDestination").textContent = destination;
   setVesselMap({}, destination);
@@ -7327,11 +7542,14 @@ function renderShipmentResult(payload = {}, fallback = {}) {
   $("shipmentApiState").textContent = "未取得实时结果";
   $("shipmentSourceLabel").textContent = "No Live Result";
   $("shipmentApiNote").textContent = fallback.message
-    ? `自动查询失败：${fallback.message} 页面不再生成模拟 ETA。`
+    ? `自动查询失败：${fallback.message} 页面只显示可核验 ETA。`
     : "未取得实时船期。真实查询需要 ShipXY API、船司/码头接口，或登录网站脚本返回结果；MMSI、箱号、提单号可提升准确度。";
+  renderShipmentJudgement(initial
+    ? buildShipmentJudgement({ waiting: true })
+    : buildShipmentJudgement({ payload, result: {}, source: fallback.source || "自动接口", message: fallback.message || "未取得实时船期" }));
   showVesselPublicPanel(payload, {}, "自动接口和脚本没有取得可用实时坐标。");
   if (fallback.showDialog) showShipfinderFallbackDialog(payload, {}, fallback.message || "自动接口和脚本没有取得可用实时坐标。");
-  renderShipmentRouteRisk({ ok: false, message: "未取得船舶实时坐标；系统不会用模拟位置判断天气和 ETA 风险。" });
+  renderShipmentRouteRisk({ ok: false, message: "未取得船舶实时坐标；系统只用可核验位置判断天气和 ETA 风险。" });
 }
 
 function numericField(id) {
@@ -7375,6 +7593,115 @@ function renderResultBrief(options = {}) {
       </div>
       ${links.length ? `<div class="result-brief-links">${links.map((item) => `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a>`).join("")}</div>` : ""}
     </article>
+  `;
+}
+
+function smartTextFromItems(items = []) {
+  return normalize((items || []).map((item) => [
+    item.title,
+    item.category,
+    item.summary,
+    item.description,
+    item.takeawayZh,
+    item.takeaway,
+    item.domain,
+    item.sourceCountry
+  ].filter(Boolean).join(" ")).join(" "));
+}
+
+function buildSmartBusinessBrief(items = [], options = {}) {
+  const context = normalize([options.context, options.keyword, options.product, options.country].filter(Boolean).join(" "));
+  const text = `${smartTextFromItems(items)} ${context}`;
+  const dimensions = [
+    {
+      id: "customs",
+      title: "清关/关税",
+      pattern: /tariff|customs|duty|hs code|trade remedy|301|232|cbp|税率|关税|海关|清关|税号|监管条件|贸易救济/,
+      owner: "关务/报关行",
+      action: "复核 HS、税率、原产国、监管条件、额外关税和实施日期。"
+    },
+    {
+      id: "compliance",
+      title: "认证/标签",
+      pattern: /certification|standard|fcc|\bce\b|\bred\b|rohs|reach|weee|anatel|nbtc|saber|saso|ccc|cnca|label|认证|标准|标签|3c|型号核准|无线电/,
+      owner: "认证/质量",
+      action: "确认强制认证、证书覆盖型号、标签语言、说明书和测试报告是否需要更新。"
+    },
+    {
+      id: "battery",
+      title: "电池/DG",
+      pattern: /battery|lithium|dangerous goods|un38|msds|iata|imdg|电池|锂|危险品|移动电源|充电宝|磁性/,
+      owner: "物流/DG",
+      action: "先做 UN38.3、MSDS/SDS、Wh、包装、SOC、磁检或运输条件预审。"
+    },
+    {
+      id: "logistics",
+      title: "物流/时效",
+      pattern: /shipping|vessel|port|terminal|container|freight|congestion|strike|suez|panama|air cargo|express|courier|船期|航运|港口|码头|集装箱|拥堵|罢工|绕航|空运|快件|快递/,
+      owner: "物流/计划",
+      action: "确认 ETA、截关、舱位、提还箱、派送、仓储和客户交付承诺。"
+    },
+    {
+      id: "cost",
+      title: "成本/报价",
+      pattern: /rate|inflation|currency|oil|fuel|surcharge|market|finance|central bank|汇率|利率|通胀|油价|燃油|附加费|金融|成本|报价/,
+      owner: "业务/财务",
+      action: "更新报价中的运费、燃油、汇率、税费、仓储和付款风险假设。"
+    },
+    {
+      id: "geopolitics",
+      title: "合规/地缘",
+      pattern: /sanction|export control|restricted|war|conflict|military|geopolitic|election|制裁|出口管制|受限|战争|冲突|军演|地缘|选举/,
+      owner: "合规/业务",
+      action: "筛查客户、收货人、国家、最终用途和交付路径，必要时升级合规。"
+    }
+  ];
+  const hits = dimensions.filter((item) => item.pattern.test(text));
+  const officialCount = (items || []).filter((item) => /gov|customs|cnca|singlewindow|wto|worldbank|imf|europa|cbp|ustr|iata|imo/i.test(`${item.domain || ""} ${item.url || ""}`)).length;
+  const recentCount = (items || []).filter((item) => Date.parse(item.seendate || item.date || item.updatedAt || item.publishedAt || "")).length;
+  let score = 45 + Math.min(25, hits.length * 5) + Math.min(16, officialCount * 4) + Math.min(10, recentCount * 2);
+  if (!items.length) score -= 16;
+  if (options.fallback) score -= 8;
+  score = Math.max(30, Math.min(96, score));
+  const label = score >= 84 ? "高可信：可直接进入执行清单" : score >= 70 ? "中高可信：适合业务预警" : score >= 56 ? "中可信：需补来源复核" : "低可信：只做观察";
+  const top = hits.slice(0, 3);
+  const conclusion = top.length
+    ? `${options.title || "本次信息"}主要影响 ${top.map((item) => item.title).join("、")}。${top[0].owner}应先处理：${top[0].action}`
+    : `${options.title || "本次信息"}暂未形成明确订单影响，先作为背景观察。`;
+  const actions = top.length
+    ? top.map((item) => `${item.owner}：${item.action}`)
+    : ["业务：先确认是否关联当前国家、产品、客户或出运路线。"];
+  const gaps = [];
+  if (!context) gaps.push("未输入具体国家、产品或路线，判断只能按来源内容做泛化提醒。");
+  if (!officialCount) gaps.push("官方来源不足，不能替代正式公告或报关行/认证机构意见。");
+  if (!items.length) gaps.push("暂无实时来源，当前使用固定观察清单。");
+  return { score, label, conclusion, actions, gaps, dimensions: top.length ? top : dimensions.slice(0, 3), officialCount, itemCount: items.length };
+}
+
+function renderSmartIntelBoard(brief = {}, heading = "智能判断") {
+  if (!brief) return "";
+  return `
+    <section class="smart-intel-board" aria-label="${escapeHtml(heading)}">
+      <div class="smart-intel-head">
+        <span>${escapeHtml(heading)}</span>
+        <strong>${escapeHtml(brief.label || "待判断")}</strong>
+        <small>${escapeHtml(String(brief.score || "0"))}/100 · ${escapeHtml(String(brief.itemCount || 0))} 条来源</small>
+      </div>
+      <p>${escapeHtml(brief.conclusion || "暂无明确业务判断。")}</p>
+      <div class="smart-intel-grid">
+        ${(brief.dimensions || []).map((item) => `
+          <article>
+            <span>${escapeHtml(item.title || "影响")}</span>
+            <strong>${escapeHtml(item.owner || "待分工")}</strong>
+            <small>${escapeHtml(item.action || "先补资料再判断。")}</small>
+          </article>
+        `).join("")}
+      </div>
+      <div class="smart-action-row">
+        ${(brief.actions || []).slice(0, 4).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+      </div>
+      ${(brief.gaps || []).length ? `<div class="smart-gap-row">${brief.gaps.slice(0, 3).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>` : ""}
+    </section>
   `;
 }
 
@@ -8101,6 +8428,97 @@ function renderDocumentCheckLine(missing, checked) {
   return `<p class="${className}">${escapeHtml(documentMissingSummary(missing))}</p>`;
 }
 
+function renderDocumentJudgement(brief = {}) {
+  const evidence = Array.isArray(brief.evidence) ? brief.evidence : [];
+  const actions = Array.isArray(brief.actions) ? brief.actions : [];
+  return `
+    <article class="document-judgement-card ${escapeHtml(brief.tone || "neutral")}">
+      <div>
+        <span>${escapeHtml(brief.label || "单证判断")}</span>
+        <strong>${escapeHtml(brief.score ? `${brief.score}%` : "待补资料")}</strong>
+      </div>
+      <p>${escapeHtml(brief.opinion || "补齐关键字段后再判断。")}</p>
+      <div class="document-evidence-grid">
+        ${evidence.map(([label, value]) => `<small><b>${escapeHtml(label)}</b>${escapeHtml(value)}</small>`).join("")}
+      </div>
+      <ul>${actions.slice(0, 4).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+    </article>
+  `;
+}
+
+function buildInvoiceJudgement(data = {}, missing = []) {
+  const warnings = [];
+  const productText = normalize((data.filledItems || []).map((item) => item.product).join(" ") || data.product);
+  if (data.mode !== "packing" && (!data.amount || data.amount <= 0)) warnings.push("商业发票金额为 0，不能作为正式清关发票。");
+  if (!data.quantity || data.quantity <= 0) warnings.push("数量未形成有效合计。");
+  if (data.net && data.gross && data.net > data.gross) warnings.push("净重大于毛重，和装箱单逻辑冲突。");
+  if (!data.cartons || !data.gross || !data.net || !data.cbm) warnings.push("箱数、毛重、净重、体积没有形成完整装箱口径。");
+  if (!data.hsCode) warnings.push("未写 HS Code，目的港清关和进口税费预估会变弱。");
+  if (!productText || /待填写|goods|product description/.test(productText)) warnings.push("品名仍是占位或过泛，容易被客户/货代退回重做。");
+  if (!data.loading || /待填写/i.test(data.loading) || !data.discharge || /待填写/i.test(data.discharge)) warnings.push("起运港/目的港不完整，不能直接给订舱或目的港清关使用。");
+  if (!data.seller || /待填写/.test(data.seller) || !data.buyer || /待填写/.test(data.buyer)) warnings.push("买卖双方主体不完整，正式单证不可发送。");
+  const score = Math.max(18, Math.min(96, 96 - missing.length * 4 - warnings.length * 9));
+  const label = warnings.length >= 4 || missing.length >= 6 ? "不建议发送" : warnings.length ? "可作草稿" : "可进入复核";
+  const tone = warnings.length >= 4 || missing.length >= 6 ? "danger" : warnings.length ? "warn" : "ok";
+  const leadWarnings = warnings.slice(0, 2).map((item) => item.replace(/[。；;]+$/g, "")).join("；");
+  const opinion = warnings.length
+    ? `我的判断：这份${data.mode === "packing" ? "装箱单" : "商业发票"}现在更适合内部草稿，不适合直接发客户或报关行。最大问题是 ${leadWarnings}。`
+    : `我的判断：这份${data.mode === "packing" ? "装箱单" : "商业发票"}的核心口径已经顺了，可以进入关务/货代复核，但仍要和合同、订舱、报关单保持一致。`;
+  const actions = warnings.length
+    ? warnings
+    : ["和合同/PI 核对买卖双方、币制、贸易条款。", "和报关单核对 HS、品名、数量、毛净重、箱数和金额。"];
+  return {
+    score,
+    label,
+    tone,
+    opinion,
+    evidence: [
+      ["货物行", `${data.filledItems?.length || 0} 行`],
+      ["金额", data.mode === "packing" ? "箱单不显示金额" : `${data.currency || "USD"} ${data.amount ? data.amount.toFixed(2) : "0.00"}`],
+      ["包装", `${data.cartons || 0} CTNS / G.W. ${data.gross || 0} / N.W. ${data.net || 0}`],
+      ["HS", data.hsCode || "未填"]
+    ],
+    actions
+  };
+}
+
+function buildDeclarationJudgement(data = {}, missing = []) {
+  const grossValue = data["毛重 kg"] || data["毛重"] || "";
+  const netValue = data["净重 kg"] || data["净重"] || "";
+  const gross = Number(grossValue || 0);
+  const net = Number(netValue || 0);
+  const incoterm = normalize(data["成交方式"] || "");
+  const goodsName = normalize(data["商品名称及规格型号"] || "");
+  const warnings = [];
+  if (gross && net && net > gross) warnings.push("净重大于毛重，和装箱单/报关逻辑冲突。");
+  if (!data["商品编号"] || !/^\d{8,10}$/.test(String(data["商品编号"]).replace(/\D/g, ""))) warnings.push("商品编号不是清晰的 8-10 位编码，归类风险高。");
+  if (!goodsName || /待填写|goods|product/.test(goodsName)) warnings.push("商品名称及规格型号太弱，缺少中文申报要素。");
+  if (goodsName && !/(品牌|型号|用途|材质|功率|规格|brand|model|use|material|wireless|bluetooth|蓝牙|电池|成分|原理)/i.test(goodsName)) warnings.push("商品名称缺少品牌、型号、用途、材质、规格或工作原理等申报要素。");
+  if (/cif/.test(incoterm) && (!data["运费"] || /无|0|none/i.test(data["运费"]) || !data["保费"] || /无|0|none/i.test(data["保费"]))) warnings.push("CIF 口径下运费/保费为空或为无，估价口径需复核。");
+  if (!data["提运单号"]) warnings.push("缺提运单号，舱单/物流节点无法和报关单闭环。");
+  if (!data["随附单证及编号"]) warnings.push("随附单证未列编号，后续查验或归档会断链。");
+  const score = Math.max(15, Math.min(96, 96 - missing.length * 3 - warnings.length * 8));
+  const label = warnings.length >= 4 || missing.length >= 10 ? "不宜申报" : warnings.length ? "需关务复核" : "可交关务复核";
+  const tone = warnings.length >= 4 || missing.length >= 10 ? "danger" : warnings.length ? "warn" : "ok";
+  const leadWarnings = warnings.slice(0, 2).map((item) => item.replace(/[。；;]+$/g, "")).join("；");
+  const opinion = warnings.length
+    ? `我的判断：这张报关单还不能只按“字段已填”看。最可能被退回或引发查验的问题是 ${leadWarnings}。`
+    : "我的判断：当前报关草稿的主线比较完整，可以交给关务/报关行复核归类、估价、随附单证和监管证件。";
+  return {
+    score,
+    label,
+    tone,
+    opinion,
+    evidence: [
+      ["商品编号", data["商品编号"] || "未填"],
+      ["商品名称", data["商品名称及规格型号"] || "未填"],
+      ["重量", `G.W. ${grossValue || 0} / N.W. ${netValue || 0}`],
+      ["成交方式", data["成交方式"] || "未填"]
+    ],
+    actions: warnings.length ? warnings : ["让关务确认 HS、申报要素、监管条件和征免。", "和发票/箱单/合同核对数量、金额、币制、毛净重和件数。"]
+  };
+}
+
 function renderDeclarationBeginnerTips(missing = getMissingDocumentFields(declarationRequiredFields)) {
   const target = $("declarationBeginnerTips");
   if (!target) return;
@@ -8145,6 +8563,7 @@ function renderInvoiceDoc(event) {
   const data = collectInvoiceDocData();
   const result = $("invoiceDocResult");
   const missing = updateDocumentFieldHighlights(invoiceRequiredFields, invoiceValidationActive);
+  const judgement = buildInvoiceJudgement(data, missing);
   const amountLabel = data.quantity > 0 && data.unitPrice > 0
     ? `${data.currency} ${data.amount.toFixed(2)}`
     : "待填数量/单价";
@@ -8171,6 +8590,7 @@ function renderInvoiceDoc(event) {
         : "填写 Seller、Buyer、品名、数量、单价、箱数、毛重、净重和体积后，可直接复制单证摘要用于内部核对。"}
       </p>
       ${renderDocumentCheckLine(missing, invoiceValidationActive)}
+      ${renderDocumentJudgement(judgement)}
     </div>
   `;
 }
@@ -8325,6 +8745,7 @@ function renderDeclarationDoc(event) {
   const data = collectDeclarationData();
   const result = $("declarationDocResult");
   const missing = updateDocumentFieldHighlights(declarationRequiredFields, declarationValidationActive);
+  const judgement = buildDeclarationJudgement(data, missing);
   renderDeclarationBeginnerTips(missing);
   if (!result) return;
   const goodsCount = (data.商品项 || []).filter((item) => item.code || item.name || item.quantity || item.value).length;
@@ -8333,6 +8754,7 @@ function renderDeclarationDoc(event) {
       <strong>${declarationValidationActive && missing.length ? "报关单草稿待补充" : "已校验当前报关单草稿"}</strong>
       <p>商品项：${goodsCount || 1} 行；首项商品编号：${escapeHtml(declarationValue(data, "商品编号"))}；商品名称：${escapeHtml(declarationValue(data, "商品名称及规格型号"))}；件数、重量、成交方式和单证口径需一致。</p>
       ${renderDocumentCheckLine(missing, declarationValidationActive)}
+      ${renderDocumentJudgement(judgement)}
     </div>
   `;
 }
@@ -8448,14 +8870,14 @@ function declarationExcelHtml(data = collectDeclarationData()) {
   return `
     <html><head><meta charset="utf-8" /></head><body>
       <table border="1">
-        <tr><th colspan="2" style="font-size:18px;">中华人民共和国海关出口货物报关单（模拟）</th></tr>
+        <tr><th colspan="2" style="font-size:18px;">中华人民共和国海关出口货物报关单（草稿）</th></tr>
         ${headerRows}
         <tr><th colspan="2" style="background:#dbeafe;">商品项</th></tr>
         ${goodsRows}
         <tr><th colspan="2" style="background:#dbeafe;">底部确认与签章</th></tr>
         ${footerRows}
         <tr><td style="font-weight:bold;background:#eef6ff;">申报日期</td><td>${todayIsoDate()}</td></tr>
-        <tr><td colspan="2">提示：本 Excel 为模拟填制草稿，正式申报以单一窗口、海关总署填制规范和报关行复核为准。</td></tr>
+        <tr><td colspan="2">提示：本 Excel 为填制草稿，正式申报以单一窗口、海关总署填制规范和报关行复核为准。</td></tr>
       </table>
     </body></html>
   `;
@@ -8464,7 +8886,7 @@ function declarationExcelHtml(data = collectDeclarationData()) {
 function downloadDeclarationExcelFile() {
   const data = collectDeclarationData();
   if (!$("declarationDocResult")?.innerHTML) renderDeclarationDoc({ preventDefault() {} });
-  downloadBlob("模拟报关单.xls", `\ufeff${declarationExcelHtml(data)}`, "application/vnd.ms-excel;charset=utf-8");
+  downloadBlob("报关单草稿.xls", `\ufeff${declarationExcelHtml(data)}`, "application/vnd.ms-excel;charset=utf-8");
 }
 
 function printDocumentPaper(moduleId) {
@@ -9751,7 +10173,7 @@ function showCustomsFallbackDialog(payload = {}, reason = "") {
     "箱货/放行状态暂未查到",
     "Customs / Manifest",
     buildFailureDialogHtml({
-      intro: "自动查询没有拿到可用放行结果，可能是验证码、登录、网站限制或字段不完整。系统不会生成模拟放行状态。",
+      intro: "自动查询没有拿到可用放行结果，可能是验证码、登录、网站限制或字段不完整。平台不会编造放行状态。",
       reason,
       fields: [["箱号", payload.container || "未填写"], ["提单号", payload.bl || "未填写"], ["口岸/港区", payload.destination || "上海港"]],
       links,
@@ -9969,6 +10391,25 @@ function buildAirOperationAdvice(origin = "", destination = "", product = "", mo
     riskFlags.push("样品：不要低申报或只写 sample，要写具体产品、用途和是否用于销售。");
   }
 
+  const signalCount = [battery, magnetic, wireless, repair, sample].filter(Boolean).length;
+  const confidence = Math.max(42, Math.min(92, 58 + signalCount * 8 + (destination ? 8 : 0) + (product ? 6 : 0) + (origin ? 4 : 0)));
+  let opinion = "";
+  if (battery && wireless) {
+    opinion = `我的判断：这票不应按普通电子样品走。电池先决定承运商是否接，${destProfile.market}的无线/认证资料决定到达后会不会卡清关；先做承运商预审，再承诺时效。`;
+  } else if (battery) {
+    opinion = `我的判断：核心风险在启运前，不在目的港。只要电池文件、Wh、包装方式或 SOC 说不清，快件/空运就可能被拒收或改渠道。`;
+  } else if (magnetic) {
+    opinion = "我的判断：这票最容易在安检环节被退回。喇叭/磁性件即使不算危险品，也要先确认磁检或航空运输条件鉴定。";
+  } else if (wireless) {
+    opinion = `我的判断：承运可能不难，难点在 ${destProfile.market} 的准入资料。无线型号、频段、证书覆盖型号和收件人进口资质要先确认。`;
+  } else if (repair) {
+    opinion = "我的判断：维修/返修件的风险不是货值高低，而是用途、是否收费、是否返回和序列号说不清，被当作普通销售清关。";
+  } else if (sample) {
+    opinion = "我的判断：样品可以走快，但不能用“sample”替代真实品名。用途、型号、货值和是否销售要写清楚，否则清关延误概率会升高。";
+  } else {
+    opinion = "我的判断：目前没有命中强限制，但这只能说明输入文本风险不高；正式出运仍要让承运商按真实品名、材质、用途和目的国资料预审。";
+  }
+
   const level = riskFlags.length >= 3 ? "高关注" : riskFlags.length ? "需预审" : "常规可查";
   const conclusion = riskFlags.length
     ? `${destProfile.market} 空运/快件初判：${level}。先补文件并让承运商预审，再承诺时效。`
@@ -9976,6 +10417,8 @@ function buildAirOperationAdvice(origin = "", destination = "", product = "", mo
   return {
     level,
     conclusion,
+    opinion,
+    confidence,
     departure,
     docs,
     riskFlags: riskFlags.length ? riskFlags : ["未命中电池、磁性、无线、维修或样品关键词；仍需按真实产品资料复核。"],
@@ -9996,6 +10439,13 @@ function renderAirGuideResult(data = {}) {
     <article class="air-guide-verdict">
       <span>${escapeHtml(data.level || "待判断")}</span>
       <strong>${escapeHtml(data.conclusion || "请先输入启运地、目的地和产品。")}</strong>
+    </article>
+    <article class="air-guide-opinion">
+      <div>
+        <span>独立判断</span>
+        <strong>${escapeHtml(data.confidence ? `${data.confidence}%` : "待补资料")}</strong>
+      </div>
+      <p>${escapeHtml(data.opinion || "输入产品、目的国和出运方式后生成承运/清关判断。")}</p>
     </article>
     <div class="air-guide-result-grid">
       <article><span>启运前限制</span><ul>${(data.departure || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
@@ -10075,7 +10525,7 @@ async function queryAirTracking(event) {
       <article class="air-result-card warning">
         <span>等待输入</span>
         <strong>请输入快件/空运单号</strong>
-        <p>输入后系统会识别承运商并给出官网查询入口。当前测试版不会编造轨迹状态。</p>
+        <p>输入后系统会识别承运商并给出官网查询入口。平台不会编造轨迹状态。</p>
       </article>
     `;
     return;
@@ -10111,7 +10561,7 @@ async function queryAirTracking(event) {
         "快件/空运状态暂未查到",
         data.carrier?.name || carrier.name,
         buildFailureDialogHtml({
-          intro: "后端没有拿到承运商官网的可解析实时状态，平台不会生成模拟轨迹。",
+          intro: "后端没有拿到承运商官网的可解析实时状态，平台不会编造轨迹。",
           reason: data.message || "官网可能需要验证码、登录、本地站点跳转或动态接口。",
           fields: [["承运商", data.carrier?.name || carrier.name], ["运单号", carrier.clean], ["目的地", destination || "未填写"]],
           links: data.links || links,
@@ -10139,7 +10589,7 @@ async function queryAirTracking(event) {
       "快件/空运状态暂未查到",
       carrier.name,
       buildFailureDialogHtml({
-        intro: "查询接口请求失败，平台不会生成模拟轨迹。",
+        intro: "查询接口请求失败，平台不会编造轨迹。",
         reason: data.message,
         fields: [["承运商", carrier.name], ["运单号", carrier.clean], ["目的地", destination || "未填写"]],
         links,
@@ -10425,7 +10875,7 @@ function fallbackHotspotData() {
     ok: true,
     fallback: true,
     updatedAt: new Date().toISOString(),
-    source: "fallback daily hotlist",
+    source: "daily baseline hotlist",
     boards: hotspotDisplayCategories.map((category) => ({
       category,
       items: items.filter((item) => item.hotCategory === category).slice(0, 8)
@@ -10513,12 +10963,14 @@ function renderDynamicHotspotCard(item = {}, index = 0) {
   const rank = String(index + 1).padStart(2, "0");
   const source = item.domain || sourceDomainLabel(item);
   const summary = sourceStatementForItem(item);
+  const opinion = sourceOpinionForItem(item, summary, item.hotCategory || item.category || "");
   return `
     <article class="hotspot-rank-card dynamic-hotspot-card">
       <span>${rank}</span>
       <div>
         <strong>${escapeHtml(item.title || source || "热点来源")}</strong>
         <p>${escapeHtml(summary)}</p>
+        <p class="opinion-line"><b>判断：</b>${escapeHtml(opinion)}</p>
         <small>${escapeHtml(source)}${item.seendate || item.date ? ` · ${escapeHtml(formatEta(item.seendate || item.date))}` : ""}</small>
       </div>
       ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">来源</a>` : ""}
@@ -10668,7 +11120,7 @@ function renderTrends(data = {}) {
   const indicators = Array.isArray(data.indicators) ? data.indicators : [];
   const insights = Array.isArray(data.insights) && data.insights.length ? data.insights : buildTrendInsightCards(items, indicators, data.keyword);
   const hotspots = buildTrendHotspots(items);
-  const sourceDigests = buildSourceDigests(items, { limit: 9 });
+  const sourceDigests = buildSourceDigests(items, { limit: 9, context: data.keyword || "" });
   $("trendStatus").textContent = `已更新 · ${formatEta(data.updatedAt)}`;
   renderTrendHotspotBoard(data);
   const trendSummaryText = sourceDigests.length ? summarizeSourceDigests(sourceDigests, data.keyword) : (data.summary || summarizeTrendItems(items, data.keyword));
@@ -10718,13 +11170,16 @@ function renderTrends(data = {}) {
   `;
   $("trendGrid").innerHTML = items.length
     ? items
-        .map(
-          (item) => `
+        .map((item) => {
+          const statement = sourceStatementForItem(item);
+          const opinion = sourceOpinionForItem(item, statement, data.keyword || "");
+          return `
             <article class="trend-card logistics-impact-card">
               <span>${escapeHtml(item.sourceCountry || item.domain || "Global")}</span>
               <h3>${escapeHtml(item.title)}</h3>
-              <p><b>提炼要点：</b>${escapeHtml(sourceStatementForItem(item))}</p>
-              <small>${escapeHtml(sourceBusinessMeaning(item, sourceStatementForItem(item)))}</small>
+              <p><b>提炼要点：</b>${escapeHtml(statement)}</p>
+              <p class="opinion-line"><b>判断：</b>${escapeHtml(opinion)}</p>
+              <small>${escapeHtml(sourceBusinessMeaning(item, statement))}</small>
               <div class="logistics-impact-matrix">
                 ${logisticsImpactForTrend(item)
                   .map(([label, impact]) => `<div><b>${escapeHtml(label)}</b><small>${escapeHtml(impact)}</small></div>`)
@@ -10732,8 +11187,8 @@ function renderTrends(data = {}) {
               </div>
               <a href="${escapeHtml(item.url || "#")}" target="_blank" rel="noreferrer">${escapeHtml(item.domain || "查看来源")}</a>
             </article>
-          `
-        )
+          `;
+        })
         .join("")
     : `<article class="trend-card"><h3>暂无趋势结果</h3><p>${escapeHtml(data.message || "稍后重试。")}</p></article>`;
 }
@@ -11257,7 +11712,7 @@ function resetBattery() {
   $("batteryForm").reset();
   $("batteryRiskLevel").textContent = "待判断";
   $("batteryResult").className = "decision-box";
-  $("batteryResult").innerHTML = "<strong>填写电池信息后生成提醒</strong><p>测试版不替代货代、航司、船司或 DG 专员判断。</p>";
+  $("batteryResult").innerHTML = "<strong>填写电池信息后生成提醒</strong><p>本工具不替代货代、航司、船司或 DG 专员判断。</p>";
 }
 
 function renderIssues() {
@@ -11413,7 +11868,7 @@ function addFeedback(event) {
   saveFeedbacks();
   renderFeedbacks();
   $("feedbackForm").reset();
-  $("feedbackResult").innerHTML = `<article class="alert-card success"><strong>已保存反馈</strong><p>测试版先保存到本机浏览器；正式版可接邮件、数据库或企业微信/飞书。</p></article>`;
+  $("feedbackResult").innerHTML = `<article class="alert-card success"><strong>已保存反馈</strong><p>已保存到本机浏览器；后续可接邮件、数据库或企业微信/飞书。</p></article>`;
 }
 
 function deleteFeedback(index) {
@@ -11583,7 +12038,7 @@ async function queryRequirements(event) {
 
   if (location.protocol.startsWith("http")) {
     try {
-      const params = new URLSearchParams({ product, country });
+      const params = new URLSearchParams({ product, country, origin: $("requirementOrigin")?.value || $("originCountry")?.value || $("tariffCheckOrigin")?.value || "" });
       const data = await fetchJsonOrFallback(`/.netlify/functions/requirement-check?${params.toString()}`, null);
       if (data?.ok) {
         renderRequirementResult(data);
@@ -11618,9 +12073,15 @@ function renderRequirementResult(data = {}) {
   const sections = Array.isArray(data.sections)
     ? data.sections.filter((section) => section.title !== "结论" && Array.isArray(section.items) && section.items.length)
     : [];
+  const tariffCandidates = Array.isArray(data.tariffCandidates) ? data.tariffCandidates : [];
   const apiSections = sections.filter((section) => /官方税则|API|命中/i.test(section.title || ""));
-  const detailSections = sections.filter((section) => !/官方税则|API|命中/i.test(section.title || ""));
+  const detailSections = sections.filter((section) => !/官方税则|API|命中/i.test(section.title || "") && !(tariffCandidates.length && section.title === "直接结果"));
   const sources = Array.isArray(data.sources) ? data.sources : [];
+  const evidence = Array.isArray(data.evidence) ? data.evidence : [];
+  const gaps = Array.isArray(data.gaps) ? data.gaps : [];
+  const actionItems = Array.isArray(data.actionItems) ? data.actionItems : [];
+  const apiStatus = Array.isArray(data.apiStatus) ? data.apiStatus : [];
+  const confidenceText = [data.confidenceScore ? `${data.confidenceScore}/100` : "", data.confidenceLabel || ""].filter(Boolean).join(" · ") || "待复核";
   $("requirementResult").innerHTML = `
     <article class="requirement-card">
       <div class="requirement-summary-grid">
@@ -11636,12 +12097,59 @@ function renderRequirementResult(data = {}) {
           <span>识别类别</span>
           <strong>${escapeHtml((data.signals || []).join("、") || "一般商品")}</strong>
         </div>
+        <div>
+          <span>结论可信度</span>
+          <strong>${escapeHtml(confidenceText)}</strong>
+        </div>
       </div>
       <div class="requirement-conclusion">
         <strong>结论</strong>
         <p>${escapeHtml(data.conclusion || data.customsConclusion || "请先确认海关编码、税率、监管证件和产品合规要求。")}</p>
         ${data.customsConclusion ? `<p>${escapeHtml(data.customsConclusion)}</p>` : ""}
       </div>
+      ${
+        tariffCandidates.length
+          ? `<section class="requirement-section requirement-direct-result">
+              <h3>直接匹配结果</h3>
+              <div class="tariff-candidate-grid">
+                ${tariffCandidates
+                  .map(
+                    (candidate) => `
+                      <article class="tariff-candidate-card">
+                        <span>${escapeHtml(candidate.codeDisplay || candidate.code || "税号待确认")}</span>
+                        <strong>${escapeHtml(candidate.name || "商品名称待确认")}</strong>
+                        <p>${escapeHtml(candidate.rationale || "系统根据输入品名和规则库匹配。")}</p>
+                        <small>${escapeHtml(candidate.appliedRateType || "适用税率")} ${escapeHtml(candidate.appliedRate || "待确认")} · 最惠国 ${escapeHtml(candidate.mfnRate || "待确认")} · 普通 ${escapeHtml(candidate.ordinaryRate || "待确认")}</small>
+                      </article>
+                    `
+                  )
+                  .join("")}
+              </div>
+            </section>`
+          : ""
+      }
+      ${
+        actionItems.length || gaps.length
+          ? `<div class="requirement-action-grid">
+              ${
+                actionItems.length
+                  ? `<section class="requirement-section">
+                      <h3>可执行动作</h3>
+                      <ul>${actionItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+                    </section>`
+                  : ""
+              }
+              ${
+                gaps.length
+                  ? `<section class="requirement-section requirement-gap-card">
+                      <h3>需要补充/人工复核</h3>
+                      <ul>${gaps.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+                    </section>`
+                  : ""
+              }
+            </div>`
+          : ""
+      }
       ${
         apiSections.length
           ? `<div class="requirement-api-strip">
@@ -11658,6 +12166,13 @@ function renderRequirementResult(data = {}) {
             </div>`
           : ""
       }
+      ${
+        apiStatus.length
+          ? `<div class="requirement-api-status" aria-label="API 接入状态">
+              ${apiStatus.map((item) => `<span><b>${escapeHtml(item.source || "数据源")}</b>${escapeHtml(item.status || "状态待确认")}</span>`).join("")}
+            </div>`
+          : ""
+      }
       <div class="requirement-section-grid">
         ${detailSections
           .map(
@@ -11670,6 +12185,28 @@ function renderRequirementResult(data = {}) {
           )
           .join("")}
       </div>
+      ${
+        evidence.length
+          ? `<section class="requirement-section source-card-compact">
+              <h3>证据链</h3>
+              <div class="evidence-card-grid">
+                ${evidence
+                  .map(
+                    (item) => `
+                      <article class="evidence-card">
+                        <span>${escapeHtml(item.sourceType || "来源")}</span>
+                        <strong>${escapeHtml(item.title || "未命名来源")}</strong>
+                        <p>${escapeHtml(item.usedFor || "用于核验结论。")}</p>
+                        ${item.match ? `<small>${escapeHtml(item.match)}</small>` : ""}
+                        ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">打开来源</a>` : ""}
+                      </article>
+                    `
+                  )
+                  .join("")}
+              </div>
+            </section>`
+          : ""
+      }
       <section class="requirement-section source-card-compact">
         <h3>数据来源</h3>
         <div class="source-chip-grid">
@@ -11684,6 +12221,7 @@ function renderRequirementResult(data = {}) {
 function loadRequirementExample() {
   $("requirementProduct").value = "蓝牙耳机，内置锂电池，带充电盒，USB-C 充电，零售包装";
   $("requirementCountry").value = "欧盟";
+  if ($("requirementOrigin")) $("requirementOrigin").value = "中国";
   queryRequirements(new Event("submit"));
 }
 

@@ -1,0 +1,20 @@
+name: Monitor Production
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      HEALTH_TARGETS: ${{ vars.PROD_HEALTH_URLS || 'https://logismaster.cn/health https://156-238-241-168.sslip.io/health https://logismaster.cn/ https://156-238-241-168.sslip.io/' }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check production endpoints
+        run: node scripts/health-check.js
