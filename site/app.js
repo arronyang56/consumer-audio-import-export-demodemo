@@ -7804,7 +7804,10 @@ function classifyGlobalSearch(raw = "") {
   const airLike = /空运|机场|航空|快件|快递|dhl|ups|fedex|sf|顺丰|awb|iata|货站/.test(text) || hasCodeMatch(airportCodeData, query, ["iata", "icao", "name", "cn", "city", "country", "aliases"]);
   const seaLike = /海运|港口|码头|船|船期|箱号|提单|港杂|堆存|冷箱|危险品|oog|bbk|reefer|dg|vessel|port|container/.test(text) || hasCodeMatch(seaPortCodeData, query, ["code", "name", "cn", "country", "aliases"]);
   const countryLike = /中国|美国|欧盟|英国|日本|泰国|巴西|中东|沙特|阿联酋|印度|越南|印尼|菲律宾|加拿大|墨西哥|澳大利亚|韩国|南非|土耳其|新加坡|马来西亚|country|import|export/.test(text);
-  const policyLike = /政策|关税|301|232|cbp|ustr|海关|公告|认证|anatel|inmetro|nbtc|saber|fcc|ce|rohs|reach|制裁|出口管制|趋势|新闻|市场|金融|汇率|利率/.test(text);
+  const politicalHotspotLike = /特朗普|川普|trump|拜登|biden|习近平|普京|putin|泽连斯基|zelensky|总统|首相|国会|白宫|共和党|民主党|大选|选举|election|president|congress|white house|geopolitic|地缘|贸易战|trade war/.test(text);
+  const policyHardLike = /政策|关税|301|232|cbp|ustr|海关|公告|认证|anatel|inmetro|nbtc|saber|fcc|ce|rohs|reach|制裁|出口管制/.test(text);
+  const trendLike = /趋势|新闻|热点|热搜|市场|金融|汇率|利率|突发|实时|最新|影响/.test(text) || politicalHotspotLike;
+  const policyLike = policyHardLike || trendLike;
   const documentLike = /单证|箱单|发票|invoice|packing|装箱单|报关单|报关草稿|declaration|申报单/.test(text);
   const airportCodeOnly = /^[A-Z]{3,4}$/i.test(query) && hasCodeMatch(airportCodeData, query, ["iata", "icao", "name", "cn", "city", "country", "aliases"]);
   const portCodeOnly = /^[A-Z]{5}$/i.test(query) && hasCodeMatch(seaPortCodeData, query, ["code", "name", "cn", "country", "aliases"]);
@@ -7812,6 +7815,10 @@ function classifyGlobalSearch(raw = "") {
   const candidates = [];
   const add = (module, title, reason, score, fill = {}) => candidates.push({ module, title, reason, score, fill });
 
+  if (politicalHotspotLike && !containerLike && !trackingLike && !feeLike && !documentLike) {
+    add("trends", "政策/热点趋势影响", "识别为政治人物、选举、地缘或贸易热点，直接搜索公开趋势并生成物流/关务影响判断。", policyHardLike ? 124 : 136, { trend: query });
+    add("policy", "政策变化雷达", "如果它关联关税、制裁、出口管制或海关公告，可继续看政策来源和实施日期。", policyHardLike ? 138 : 98, { policy: query });
+  }
   if ((vesselIntent || vesselNameLike) && !containerLike && !trackingLike && !feeLike && !policyLike && !documentLike) {
     add("shipment", "船期和船舶位置", "识别为船名、航次、IMO/MMSI 或船舶位置查询，直接进入船舶位置界面。", 132, { vessel: extractVesselQuery(query) });
   }
@@ -7852,7 +7859,9 @@ function classifyGlobalSearch(raw = "") {
     add("matrix", "进口国要求", "看起来是在查某个国家/地区的进口准入、认证、标签或清关要求。", 82, { country: query });
   }
   if (policyLike) {
-    add(/趋势|新闻|市场|金融|汇率|利率/.test(text) ? "trends" : "policy", /趋势|新闻|市场|金融|汇率|利率/.test(text) ? "市场动态对物流的影响" : "政策变化雷达", "看起来是政策、趋势、监管、认证或市场影响查询。", 80, { policy: query });
+    const explicitTrendRoute = /趋势|新闻|热点|热搜|市场|金融|汇率|利率|突发|实时|影响/.test(text);
+    const policyRoute = policyHardLike && !explicitTrendRoute;
+    add(policyRoute ? "policy" : "trends", policyRoute ? "政策变化雷达" : "市场动态对物流的影响", "看起来是政策、趋势、监管、认证或市场影响查询；进入后会直接生成结果。", policyRoute ? 116 : 112, { policy: query, trend: query });
   }
   if (!candidates.length) {
     if (/[A-Z]{3,}/i.test(cleanText) && !/产品|货物|音箱|耳机|电池|政策|费用|报关|发票|箱单/.test(text)) {
@@ -7977,7 +7986,57 @@ function applyGlobalSearchFill(moduleId = "", query = "") {
   if (item) addHistory("全局搜索", value, `已跳转到 ${item.title}`);
 }
 
-function runGlobalSearch(event) {
+async function executeGlobalSearchModule(moduleId = "", query = "") {
+  const value = String(query || "").trim();
+  if (!value) return;
+  const submitEvent = { preventDefault() {} };
+  try {
+    if (moduleId === "trends") {
+      await loadTrends(value, true);
+      return;
+    }
+    if (moduleId === "policy") {
+      await loadPolicyUpdates(true);
+      return;
+    }
+    if (moduleId === "matrix") {
+      await queryRequirements(submitEvent);
+      return;
+    }
+    if (moduleId === "port-risk") {
+      await queryPortRisk(submitEvent);
+      return;
+    }
+    if (moduleId === "air") {
+      await queryAirTracking(submitEvent);
+      return;
+    }
+    if (moduleId === "shipment") {
+      await queryShipment(submitEvent);
+      return;
+    }
+    if (moduleId === "customs") {
+      await queryCustoms(submitEvent);
+      return;
+    }
+    if (moduleId === "hs") {
+      if (/^\d{8,10}$/.test(value) && typeof evaluateTariffCheck === "function") {
+        await evaluateTariffCheck(submitEvent);
+      } else if (typeof updateHsSmartAssist === "function") {
+        updateHsSmartAssist({ manualCategory: false });
+      }
+    }
+  } catch (error) {
+    recordQueryFailure({
+      module: moduleId || "global-search",
+      query: value,
+      reason: error.message || "全局搜索自动查询失败",
+      next: "已跳转到对应模块；请查看模块结果区，必要时手动刷新一次。"
+    });
+  }
+}
+
+async function runGlobalSearch(event) {
   event?.preventDefault();
   const query = $("globalSearchInput")?.value || "";
   const candidates = classifyGlobalSearch(query);
@@ -7987,6 +8046,7 @@ function runGlobalSearch(event) {
   if (!target || target.module === "dashboard") return;
   applyGlobalSearchFill(target.module, query);
   activateWorkspaceModule(target.module, true);
+  await executeGlobalSearchModule(target.module, query);
 }
 
 function populateOpsFeeSelects() {
@@ -12879,13 +12939,15 @@ function bindEvents() {
     $("globalSearchInput").value = button.dataset.globalQuery || "";
     runGlobalSearch(new Event("submit"));
   });
-  $("globalSearchResult")?.addEventListener("click", (event) => {
+  $("globalSearchResult")?.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-global-module]");
     if (!button) return;
     if (!requireAccess()) return;
     const query = button.dataset.globalQuery || $("globalSearchInput")?.value || "";
-    applyGlobalSearchFill(button.dataset.globalModule, query);
-    activateWorkspaceModule(button.dataset.globalModule, true);
+    const moduleId = button.dataset.globalModule || "";
+    applyGlobalSearchFill(moduleId, query);
+    activateWorkspaceModule(moduleId, true);
+    await executeGlobalSearchModule(moduleId, query);
   });
   document.addEventListener("click", (event) => {
     const button = event.target.closest("[data-copy-inquiry]");
