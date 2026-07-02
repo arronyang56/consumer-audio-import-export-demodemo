@@ -10483,6 +10483,7 @@ function loadAirGuideExample() {
 function renderAirTrackingCards(data = {}, product = "", destination = "") {
   const links = Array.isArray(data.links) && data.links.length ? data.links : buildAirTrackingLinks(detectAirCarrier(data.trackingNo || "", data.carrier?.id || "auto"), data.trackingNo || "");
   const riskRows = buildAirRiskChecklist(product, destination).slice(0, 4);
+  const judgement = data.judgement && typeof data.judgement === "object" ? data.judgement : null;
   $("airTrackingResult").innerHTML = `
     <article class="air-result-card primary ${data.ok ? "success" : ""}">
       <span>${data.ok ? "当前状态" : "未取得实时状态"}</span>
@@ -10498,6 +10499,19 @@ function renderAirTrackingCards(data = {}, product = "", destination = "") {
         ${links.map(([title, url]) => `<a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${escapeHtml(title)}</a>`).join("")}
       </div>
     </article>
+    ${
+      judgement
+        ? `<article class="air-result-card">
+            <span>独立判断</span>
+            <strong>${escapeHtml(judgement.label || "待判断")} · ${escapeHtml(String(judgement.score || 0))}/100</strong>
+            <p>${escapeHtml(judgement.opinion || "需要结合官网完整页面和产品资料判断。")}</p>
+            <div class="manual-field-grid">
+              ${(judgement.evidence || []).map(([label, value]) => `<div><span>${escapeHtml(label)}</span><b>${escapeHtml(value)}</b></div>`).join("")}
+            </div>
+            <ul>${(judgement.actions || []).slice(0, 4).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+          </article>`
+        : ""
+    }
     <article class="air-result-card">
       <span>状态解释</span>
       <strong>${escapeHtml(data.ok ? "请同步看官网更新时间" : "官网可能需要验证码/动态接口")}</strong>
@@ -10830,6 +10844,19 @@ const techHotspotTopics = [
   ["绿色材料和限制物质", "RoHS、REACH、PFAS、包装限制会影响 BOM、供应商声明和客户文件。", "质量/供应商", "https://echa.europa.eu/"]
 ];
 
+const financeHotspotTopics = [
+  ["海运运价指数", "SCFI、FBX、WCI 等指数变化会影响报价有效期、旺季附加费和客户预算。", "物流/财务", "https://en.sse.net.cn/indices/scfinew.jsp"],
+  ["空运燃油附加费", "燃油、安检、旺季和危险品附加费会影响样品、急单和高货值订单报价。", "物流/财务", "https://www.iata.org/en/programs/cargo/"],
+  ["美元指数与人民币汇率", "美元/人民币波动会影响 FOB、CIF、DDP 报价和收款利润。", "财务/业务", "https://www.bis.org/"],
+  ["客户信用和账期", "利率和融资环境变化会影响客户付款速度、信用额度和赊销风险。", "财务/业务", "https://www.worldbank.org/"],
+  ["油价与本地派送", "柴油、航空煤油和能源价格会影响拖车、快递、空运和燃油附加费。", "物流/采购", "https://www.iea.org/"],
+  ["保险费率和战争险", "高风险航线、绕航和地缘事件可能提高战争险、货运险和免赔要求。", "物流/业务", "https://iccwbo.org/"],
+  ["材料价格", "铜、铝、塑胶、纸箱和电池材料价格会影响 BOM、采购成本和报价周期。", "采购/财务", "https://www.worldbank.org/en/research/commodity-markets"],
+  ["库存资金成本", "交期拉长或客户推迟提货会增加库存占用、仓租和现金流压力。", "计划/财务", "https://www.imf.org/"],
+  ["目的国税费成本", "VAT、GST、关税和清关服务费变化会影响 DDP/DDU 报价和客户收货体验。", "关务/财务", "https://trade.ec.europa.eu/access-to-markets/"],
+  ["平台费用和退货成本", "电商平台仓储费、退货费和合规整改费会影响实际利润。", "业务/财务", "https://sellercentral.amazon.com/"]
+];
+
 function fallbackHotspotCards(rows = []) {
   return rows
     .map(
@@ -10849,6 +10876,9 @@ function fallbackHotspotCards(rows = []) {
 }
 
 const hotspotDisplayCategories = ["政治", "科技", "金融"];
+const hotspotBoardMinimum = 10;
+const hotspotStaleMs = 2 * 60 * 60 * 1000;
+const hotspotAutoRefreshMs = 60 * 60 * 1000;
 
 function fallbackHotspotData() {
   const makeItem = ([title, summary, owner, url], index, category) => ({
@@ -10868,6 +10898,7 @@ function fallbackHotspotData() {
     .map((row, index) => makeItem(row, index, "政治"));
   const financeItems = globalHotspotTopics
     .filter((row) => hotspotCategoryForStaticTopic(row[0], row[1]) === "金融")
+    .concat(financeHotspotTopics)
     .map((row, index) => makeItem(row, index, "金融"));
   const techItems = techHotspotTopics.map((row, index) => makeItem(row, index, "科技"));
   const items = [...politicalItems, ...techItems, ...financeItems].sort((a, b) => b.hotScore - a.hotScore);
@@ -10878,7 +10909,7 @@ function fallbackHotspotData() {
     source: "daily baseline hotlist",
     boards: hotspotDisplayCategories.map((category) => ({
       category,
-      items: items.filter((item) => item.hotCategory === category).slice(0, 8)
+      items: items.filter((item) => item.hotCategory === category).slice(0, hotspotBoardMinimum)
     })),
     items
   };
@@ -10932,6 +10963,9 @@ function buildHotspotBoardsFromData(data = {}) {
   if (!data || (!Array.isArray(data.boards) && !Array.isArray(data.items))) {
     return buildHotspotBoardsFromData(fallbackHotspotData());
   }
+  if (data.fallback && !Array.isArray(data.boards) && String(data.source || "").includes("Manual trend")) {
+    return buildHotspotBoardsFromData(fallbackHotspotData());
+  }
   const boardItems = Array.isArray(data.boards) ? data.boards.flatMap((board) => board.items || []) : [];
   const seen = new Set();
   const items = [...boardItems, ...(Array.isArray(data.items) ? data.items : [])].filter((item) => {
@@ -10951,29 +10985,141 @@ function buildHotspotBoardsFromData(data = {}) {
     .sort((a, b) => b.hotScore - a.hotScore);
   if (!ranked.length) return buildHotspotBoardsFromData(fallbackHotspotData());
   const fallbackBoards = fallbackHotspotData().boards || [];
-  return hotspotDisplayCategories.map((category) => ({
-    category,
-    items: ranked.filter((item) => item.hotCategory === category).slice(0, 8).length
-      ? ranked.filter((item) => item.hotCategory === category).slice(0, 8)
-      : (fallbackBoards.find((board) => board.category === category)?.items || []).slice(0, 6)
-  }));
+  return hotspotDisplayCategories.map((category) => {
+    const primaryItems = ranked.filter((item) => item.hotCategory === category);
+    const fallbackItems = fallbackBoards.find((board) => board.category === category)?.items || [];
+    const mergedItems = [...primaryItems, ...fallbackItems].filter((item, index, rows) => {
+      const key = `${item.url || ""}|${item.title || ""}`.toLowerCase();
+      return key.trim() && rows.findIndex((row) => `${row.url || ""}|${row.title || ""}`.toLowerCase() === key) === index;
+    });
+    return {
+      category,
+      items: mergedItems.slice(0, hotspotBoardMinimum)
+    };
+  });
 }
 
-function renderDynamicHotspotCard(item = {}, index = 0) {
+function hotspotFreshnessMeta(data = {}) {
+  const updatedAt = data.updatedAt || "";
+  const stamp = Date.parse(updatedAt);
+  const fallback = Boolean(data.fallback);
+  if (!Number.isFinite(stamp)) {
+    return {
+      state: fallback ? "fallback" : "watch",
+      label: fallback ? "基线热榜" : "页面实时生成",
+      ageText: "刚刚",
+      detail: fallback ? "未取得后台缓存，使用本地业务规则兜底。" : "未取得后台时间戳，按当前页面结果判断。"
+    };
+  }
+  const ageMs = Math.max(0, Date.now() - stamp);
+  if (fallback) {
+    return {
+      state: "fallback",
+      label: "基线热榜",
+      ageText: formatEta(updatedAt),
+      detail: "当前是本地规则兜底，不代表公开来源已经完成刷新。"
+    };
+  }
+  if (ageMs > hotspotStaleMs) {
+    return {
+      state: "stale",
+      label: "待刷新",
+      ageText: formatEta(updatedAt),
+      detail: "缓存偏旧，页面会尝试重新拉取公开来源。"
+    };
+  }
+  if (ageMs <= 15 * 60 * 1000) {
+    return {
+      state: "live",
+      label: "刚同步",
+      ageText: formatEta(updatedAt),
+      detail: "后台缓存很新，可按近实时信号处理。"
+    };
+  }
+  return {
+    state: "fresh",
+    label: "近实时",
+    ageText: formatEta(updatedAt),
+    detail: "仍在有效窗口内，重要订单建议手动刷新一次。"
+  };
+}
+
+function renderHotspotPulsePanel(data = {}, boards = []) {
+  const meta = hotspotFreshnessMeta(data);
+  const allItems = boards
+    .flatMap((board) => (board.items || []).map((item) => ({ ...item, boardCategory: board.category })))
+    .sort((a, b) => hotspotScoreForItem(b) - hotspotScoreForItem(a));
+  const priorityItems = allItems.slice(0, 3);
+  const categoryLine = boards
+    .filter((board) => (board.items || []).length)
+    .map((board) => `${board.category}${(board.items || []).length}`)
+    .join(" / ");
+  const sourceMode = data.fallback ? "本地规则" : (data.source || "后台趋势缓存");
+  return `
+    <section class="hotspot-pulse-panel hotspot-state-${escapeHtml(meta.state)}" aria-label="热点实时摘要">
+      <div class="hotspot-pulse-head">
+        <span>Near-live Radar</span>
+        <strong>${escapeHtml(meta.label)} · ${escapeHtml(meta.ageText)}</strong>
+        <small>${escapeHtml(meta.detail)}</small>
+      </div>
+      <div class="hotspot-pulse-grid">
+        <article>
+          <span>来源状态</span>
+          <strong>${escapeHtml(sourceMode)}</strong>
+          <p>${escapeHtml(data.fallback ? "先给业务基线判断；刷新成功后会替换为公开来源。" : "公开来源已进入缓存，按业务影响重新排序。")}</p>
+        </article>
+        <article>
+          <span>榜单覆盖</span>
+          <strong>${escapeHtml(String(allItems.length || 0))} 条</strong>
+          <p>${escapeHtml(categoryLine || "等待公开来源返回。")}</p>
+        </article>
+        <article>
+          <span>首要判断</span>
+          <strong>${escapeHtml(priorityItems[0]?.boardCategory || priorityItems[0]?.hotCategory || "待观察")}</strong>
+          <p>${escapeHtml(priorityItems[0] ? compactSourceStatement(sourceOpinionForItem(priorityItems[0], sourceStatementForItem(priorityItems[0]), priorityItems[0].hotCategory || ""), 128) : "暂无足够信号形成优先级。")}</p>
+        </article>
+      </div>
+      ${
+        priorityItems.length
+          ? `<div class="hotspot-priority-list">
+              ${priorityItems
+                .map((item, index) => {
+                  const summary = compactSourceStatement(sourceStatementForItem(item), 120);
+                  return `
+                    <article>
+                      <span>${String(index + 1).padStart(2, "0")}</span>
+                      <div>
+                        <strong>${escapeHtml(item.title || sourceDomainLabel(item) || "热点信号")}</strong>
+                        <p>${escapeHtml(summary)}</p>
+                      </div>
+                    </article>
+                  `;
+                })
+                .join("")}
+            </div>`
+          : ""
+      }
+    </section>
+  `;
+}
+
+function renderDynamicHotspotCard(item = {}, index = 0, options = {}) {
   const rank = String(index + 1).padStart(2, "0");
   const source = item.domain || sourceDomainLabel(item);
   const summary = sourceStatementForItem(item);
   const opinion = sourceOpinionForItem(item, summary, item.hotCategory || item.category || "");
+  const compact = Boolean(options.compact);
+  const showLink = options.showLink !== false;
   return `
     <article class="hotspot-rank-card dynamic-hotspot-card">
       <span>${rank}</span>
       <div>
         <strong>${escapeHtml(item.title || source || "热点来源")}</strong>
-        <p>${escapeHtml(summary)}</p>
-        <p class="opinion-line"><b>判断：</b>${escapeHtml(opinion)}</p>
+        <p>${escapeHtml(compact ? compactSourceStatement(summary, 118) : summary)}</p>
+        ${compact ? "" : `<p class="opinion-line"><b>判断：</b>${escapeHtml(opinion)}</p>`}
         <small>${escapeHtml(source)}${item.seendate || item.date ? ` · ${escapeHtml(formatEta(item.seendate || item.date))}` : ""}</small>
       </div>
-      ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">来源</a>` : ""}
+      ${showLink && item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">来源</a>` : ""}
     </article>
   `;
 }
@@ -10985,25 +11131,43 @@ function renderTrendHotspotBoard(data = {}) {
   const sourceStrip = $("hotspotSourceStrip");
 
   if (dailyBoard && hasDynamic) {
-    dailyBoard.innerHTML = boards
-      .filter((board) => board.items.length)
-      .map((board) => `
+    dailyBoard.innerHTML = `
+      ${renderHotspotPulsePanel(data, boards)}
+      ${boards
+        .filter((board) => board.items.length)
+        .map((board) => {
+          const visibleItems = board.items.slice(0, hotspotBoardMinimum);
+          const hiddenItems = board.items.slice(hotspotBoardMinimum);
+          return `
         <section class="hotspot-board-column">
           <div class="hotspot-board-head">
             <span>${escapeHtml(board.category)}</span>
             <strong>${escapeHtml(String(board.items.length))} 条</strong>
           </div>
           <div class="hotspot-rank-grid dynamic-hotspot-grid">
-            ${board.items.map((item, index) => renderDynamicHotspotCard(item, index)).join("")}
+            ${visibleItems.map((item, index) => renderDynamicHotspotCard(item, index, { compact: true })).join("")}
           </div>
+          ${
+            hiddenItems.length
+              ? `<details class="hotspot-more-list">
+                  <summary>展开另外 ${escapeHtml(String(hiddenItems.length))} 条来源</summary>
+                  <div class="hotspot-rank-grid dynamic-hotspot-grid">
+                    ${hiddenItems.map((item, index) => renderDynamicHotspotCard(item, index + visibleItems.length, { compact: true })).join("")}
+                  </div>
+                </details>`
+              : ""
+          }
         </section>
-      `)
-      .join("");
+      `;
+        })
+        .join("")}
+    `;
   } else if (dailyBoard) {
     dailyBoard.innerHTML = "";
   }
 
   if (sourceStrip) {
+    const meta = hotspotFreshnessMeta(data);
     const topicRows = Array.isArray(data.topics)
       ? data.topics
           .filter((topic) => hotspotDisplayCategories.some((category) => String(topic.label || topic.id || "").includes(category)))
@@ -11014,7 +11178,8 @@ function renderTrendHotspotBoard(data = {}) {
       ? data.sourceBreakdown.slice(0, 6).map((item) => `${item.source}: ${item.status}`)
       : [];
     sourceStrip.innerHTML = [
-      data.updatedAt ? `后台刷新 ${formatEta(data.updatedAt)}` : `页面刷新 ${formatEta(new Date().toISOString())}`,
+      `${meta.label} ${meta.ageText}`,
+      data.fallback ? "来源模式：本地规则兜底" : "来源模式：公开来源缓存",
       ...topicRows,
       ...sourceRows
     ]
@@ -11025,7 +11190,8 @@ function renderTrendHotspotBoard(data = {}) {
   }
 
   if ($("hotspotStatus") && !$("hotspotStatus").dataset.manual) {
-    $("hotspotStatus").textContent = data.updatedAt ? `已同步热榜 · ${formatEta(data.updatedAt)}` : `已加载 · ${formatEta(new Date().toISOString())}`;
+    const meta = hotspotFreshnessMeta(data);
+    $("hotspotStatus").textContent = `${meta.label} · ${meta.ageText}`;
   }
 }
 
@@ -11056,7 +11222,7 @@ async function loadHotspotCache() {
     const data = await fetchJsonOrFallback(`/.netlify/functions/hotspot-cache?_t=${Date.now()}`, { ok: false });
     if (data?.ok && (Array.isArray(data.boards) || Array.isArray(data.items))) {
       const stampTime = Date.parse(data.updatedAt || "");
-      const stale = !Number.isFinite(stampTime) || Date.now() - stampTime > 8 * 60 * 60 * 1000;
+      const stale = !Number.isFinite(stampTime) || Date.now() - stampTime > hotspotStaleMs;
       if (stale) {
         try {
           localStorage.removeItem("hotspotLastRefreshDate");
@@ -11109,10 +11275,10 @@ function maybeAutoRefreshHotspots() {
     } catch (error) {
       saved = "";
     }
-    if (saved !== current) loadHotspotCache().then((loaded) => {
+    loadHotspotCache().then((loaded) => {
       if (!loaded) refreshHotspots(false);
     });
-  }, 60 * 60 * 1000);
+  }, hotspotAutoRefreshMs);
 }
 
 function renderTrends(data = {}) {
@@ -11136,7 +11302,7 @@ function renderTrends(data = {}) {
       cost: "把金额影响拆成运费、燃油、汇率、关税、仓储、查验和客户交付承诺逐项看。",
       action: "把趋势转成业务问题：是否影响报价、舱位、清关资料、认证、港口作业或客户 ETA。",
       source: sourceDigests.length ? `已逐条提炼 ${sourceDigests.length} 个来源网页。` : (items.length ? `公开消息 ${items.length} 条；更新时间 ${formatEta(data.updatedAt)}。` : "当前为固定观察清单或离线兜底结果。"),
-      links: items.map((item) => [item.domain || item.title || "来源", item.url]).filter((item) => item[1])
+      links: sourceDigests.length ? [] : items.slice(0, 4).map((item) => [item.domain || item.title || "来源", item.url]).filter((item) => item[1])
     })}
     ${renderSourceDigestBoard(sourceDigests, "趋势来源逐条解读")}
     <strong>综合判断</strong>
@@ -11168,28 +11334,41 @@ function renderTrends(data = {}) {
         .join("")}
     </div>
   `;
-  $("trendGrid").innerHTML = items.length
-    ? items
-        .map((item) => {
-          const statement = sourceStatementForItem(item);
-          const opinion = sourceOpinionForItem(item, statement, data.keyword || "");
-          return `
-            <article class="trend-card logistics-impact-card">
-              <span>${escapeHtml(item.sourceCountry || item.domain || "Global")}</span>
-              <h3>${escapeHtml(item.title)}</h3>
-              <p><b>提炼要点：</b>${escapeHtml(statement)}</p>
-              <p class="opinion-line"><b>判断：</b>${escapeHtml(opinion)}</p>
-              <small>${escapeHtml(sourceBusinessMeaning(item, statement))}</small>
-              <div class="logistics-impact-matrix">
-                ${logisticsImpactForTrend(item)
-                  .map(([label, impact]) => `<div><b>${escapeHtml(label)}</b><small>${escapeHtml(impact)}</small></div>`)
-                  .join("")}
-              </div>
-              <a href="${escapeHtml(item.url || "#")}" target="_blank" rel="noreferrer">${escapeHtml(item.domain || "查看来源")}</a>
-            </article>
-          `;
-        })
-        .join("")
+  const actionRows = [
+    ...hotspots
+      .filter((item) => item.count > 0)
+      .map((item) => ({
+        label: item.name,
+        title: item.conclusion,
+        body: `命中 ${item.count} 条信号，先判断是否影响报价、舱位、清关资料或 ETA 承诺。`,
+        metric: `${item.count} 条`
+      })),
+    ...insights.map((item) => ({
+      label: item.title,
+      title: item.signal,
+      body: item.impact,
+      metric: "动作"
+    }))
+  ].slice(0, 6);
+  $("trendGrid").innerHTML = actionRows.length
+    ? `
+      <article class="trend-card logistics-impact-card">
+        <span>来源规则</span>
+        <h3>同一个来源只在上方解读一次</h3>
+        <p>这里改为影响维度和下一步动作，不再重复列新闻链接。</p>
+        <small>${escapeHtml(sourceDigests.length ? `已去重 ${sourceDigests.length} 个来源。` : "没有来源解读时才保留摘要链接。")}</small>
+      </article>
+      ${actionRows
+        .map((item) => `
+          <article class="trend-card logistics-impact-card">
+            <span>${escapeHtml(item.label)}</span>
+            <h3>${escapeHtml(item.title)}</h3>
+            <p>${escapeHtml(item.body)}</p>
+            <small>${escapeHtml(item.metric)}</small>
+          </article>
+        `)
+        .join("")}
+    `
     : `<article class="trend-card"><h3>暂无趋势结果</h3><p>${escapeHtml(data.message || "稍后重试。")}</p></article>`;
 }
 
@@ -12081,6 +12260,11 @@ function renderRequirementResult(data = {}) {
   const gaps = Array.isArray(data.gaps) ? data.gaps : [];
   const actionItems = Array.isArray(data.actionItems) ? data.actionItems : [];
   const apiStatus = Array.isArray(data.apiStatus) ? data.apiStatus : [];
+  const declarationElements = Array.isArray(data.declarationElements) ? data.declarationElements : [];
+  const regulatoryNotes = Array.isArray(data.regulatoryNotes) ? data.regulatoryNotes : [];
+  const redFlags = Array.isArray(data.redFlags) ? data.redFlags : [];
+  const nextQuestions = Array.isArray(data.nextQuestions) ? data.nextQuestions : [];
+  const originAssessment = data.originAssessment && typeof data.originAssessment === "object" ? data.originAssessment : null;
   const confidenceText = [data.confidenceScore ? `${data.confidenceScore}/100` : "", data.confidenceLabel || ""].filter(Boolean).join(" · ") || "待复核";
   $("requirementResult").innerHTML = `
     <article class="requirement-card">
@@ -12108,6 +12292,15 @@ function renderRequirementResult(data = {}) {
         ${data.customsConclusion ? `<p>${escapeHtml(data.customsConclusion)}</p>` : ""}
       </div>
       ${
+        data.independentOpinion
+          ? `<section class="requirement-section requirement-direct-result">
+              <h3>我的独立判断</h3>
+              <p>${escapeHtml(data.independentOpinion)}</p>
+              ${originAssessment ? `<small>${escapeHtml(originAssessment.label || "原产地判断")}：${escapeHtml(originAssessment.opinion || "")}</small>` : ""}
+            </section>`
+          : ""
+      }
+      ${
         tariffCandidates.length
           ? `<section class="requirement-section requirement-direct-result">
               <h3>直接匹配结果</h3>
@@ -12126,6 +12319,44 @@ function renderRequirementResult(data = {}) {
                   .join("")}
               </div>
             </section>`
+          : ""
+      }
+      ${
+        declarationElements.length || regulatoryNotes.length || redFlags.length || nextQuestions.length
+          ? `<div class="requirement-action-grid">
+              ${
+                declarationElements.length
+                  ? `<section class="requirement-section">
+                      <h3>中国申报要素</h3>
+                      <ul>${declarationElements.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+                    </section>`
+                  : ""
+              }
+              ${
+                regulatoryNotes.length
+                  ? `<section class="requirement-section">
+                      <h3>监管/认证判断</h3>
+                      <ul>${regulatoryNotes.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+                    </section>`
+                  : ""
+              }
+              ${
+                redFlags.length
+                  ? `<section class="requirement-section requirement-gap-card">
+                      <h3>红旗风险</h3>
+                      <ul>${redFlags.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+                    </section>`
+                  : ""
+              }
+              ${
+                nextQuestions.length
+                  ? `<section class="requirement-section">
+                      <h3>下一步追问</h3>
+                      <ul>${nextQuestions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+                    </section>`
+                  : ""
+              }
+            </div>`
           : ""
       }
       ${

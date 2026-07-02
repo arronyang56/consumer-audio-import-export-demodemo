@@ -273,9 +273,26 @@ const chinaProductRules = [
     id: "single-speaker",
     hs: "85182100",
     score: 78,
-    patterns: [/单喇叭音箱|single speaker/i],
+    patterns: [/单喇叭音箱|单扬声器音箱|single speaker/i],
     rationale: "产品描述命中单喇叭音箱，按 8518.2100 方向初筛。",
     required: ["是否单喇叭", "是否带箱体", "额定功率", "品牌型号"]
+  },
+  {
+    id: "bluetooth-speaker",
+    hs: "85182200",
+    alternatives: ["85182100"],
+    score: 86,
+    patterns: [/蓝牙音箱|无线音箱|便携音箱|智能音箱|portable speaker|bluetooth speaker|wireless speaker|smart speaker/i],
+    rationale: "产品描述命中蓝牙/无线音箱。若为多喇叭或组合音箱，优先按 8518.2200；若确认为单喇叭，再收敛至 8518.2100。",
+    required: ["单喇叭/多喇叭", "是否带箱体", "是否带功放", "蓝牙/无线模块资料", "额定功率", "是否含电池"]
+  },
+  {
+    id: "microphone",
+    hs: "85181000",
+    score: 84,
+    patterns: [/麦克风|话筒|传声器|microphone|mic\b/i],
+    rationale: "产品描述命中麦克风/传声器，按 8518.1000 方向初筛。",
+    required: ["有线/无线", "是否带接收器", "频段", "用途", "品牌型号", "是否带电池"]
   },
   {
     id: "speaker-driver",
@@ -327,14 +344,87 @@ const chinaProductRules = [
     required: ["输入/输出电压电流", "额定功率", "AC/DC 结构", "是否随整机进口", "插头形式", "是否中国内销"]
   },
   {
+    id: "data-cable",
+    hs: "85444229",
+    alternatives: ["85444219", "85444211"],
+    score: 78,
+    patterns: [/数据线|充电线|usb.?c|type.?c|lightning|连接线|电缆|cable|wire harness|线束/i],
+    rationale: "产品描述命中带接头电导体/数据线。额定电压、用途和是否为汽车线束会影响 8544 项下子目，当前先按低压带接头线缆方向初筛。",
+    required: ["两端接头类型", "额定电压", "是否用于汽车/机器", "是否单独销售", "线长", "导体材质"]
+  },
+  {
+    id: "router",
+    hs: "85176236",
+    alternatives: ["85176295", "85176299"],
+    score: 86,
+    patterns: [/路由器|router|网关|gateway|mesh/i],
+    rationale: "产品描述命中路由器/网关。普通路由器优先按 8517.6236；若明确为无线路由器，可复核 8517.6295。",
+    required: ["有线/无线", "Wi-Fi/蜂窝通信制式", "端口数量", "是否带电源适配器", "品牌型号", "无线电资料"]
+  },
+  {
+    id: "plastic-parts",
+    hs: "39269090",
+    alternatives: ["39269010"],
+    score: 72,
+    patterns: [/塑胶件|塑料件|塑料外壳|塑胶外壳|注塑件|外壳|plastic housing|plastic part|injection molded/i],
+    rationale: "产品描述命中塑料/塑胶外壳或注塑件。若能证明专用于特定整机，可能需回到零件归类；当前先按其他塑料制品方向初筛。",
+    required: ["材质树脂", "用途主机", "是否专用零件", "是否单独销售", "成型方式", "图片/图纸"]
+  },
+  {
+    id: "steel-screws",
+    hs: "73181590",
+    alternatives: ["73181400"],
+    score: 74,
+    patterns: [/螺丝|螺钉|螺栓|螺母|自攻螺丝|screw|bolt|nut/i],
+    rationale: "产品描述命中钢铁螺钉/螺栓/紧固件。是否自攻、材质和是否带垫圈会影响 7318 项下子目。",
+    required: ["材质", "是否自攻", "直径/长度", "是否带螺母或垫圈", "用途", "表面处理"]
+  },
+  {
+    id: "paper-label",
+    hs: "48211000",
+    alternatives: ["48209000"],
+    score: 76,
+    patterns: [/纸标签|贴纸|纸质标签|不干胶标签|label|sticker/i],
+    rationale: "产品描述命中纸质标签/贴纸；若为纸或纸板标签，不论是否印制，优先按 4821 项下复核。",
+    required: ["材质：纸/塑料/纺织", "是否印制", "是否自粘", "尺寸", "用途", "成卷或裁切"]
+  },
+  {
+    id: "printed-manual",
+    hs: "49111090",
+    alternatives: ["49111010"],
+    score: 68,
+    patterns: [/说明书|宣传册|彩页|保修卡|用户手册|manual|leaflet|brochure|warranty card/i],
+    rationale: "产品描述命中印刷说明书/宣传资料，按 4911 项下印刷品方向初筛；若只是随整机附带，需确认是否与整机合并申报。",
+    required: ["印刷内容", "是否商业广告资料", "是否随整机附带", "数量", "材质", "语言版本"]
+  },
+  {
+    id: "generic-electronic-device",
+    hs: "85437099",
+    alternatives: ["85437091", "85437092"],
+    score: 60,
+    patterns: [/电子设备|电子模块|控制器|遥控器|电子产品|electronic device|controller|remote control|module/i],
+    rationale: "产品描述过宽，仅命中未列名电子设备方向；必须补功能、工作原理和用途后再定税号。",
+    required: ["具体功能", "工作原理", "是否收发信号", "用途主机", "是否完整成品", "品牌型号"]
+  },
+  {
     id: "lithium-battery",
     hs: "85076000",
     score: 78,
     patterns: [/锂电池|锂离子|battery|li-ion|lithium/i],
     rationale: "产品描述命中锂离子电池，按 8507.6000 方向初筛；如电池已装入设备，则应回到整机税号判断。",
     required: ["电池型号", "容量/Wh", "是否单独进口", "UN38.3", "MSDS/SDS", "包装方式"]
+  },
+  {
+    id: "power-bank",
+    hs: "85076000",
+    score: 74,
+    patterns: [/移动电源|充电宝|power bank|portable charger/i],
+    rationale: "产品描述命中移动电源/充电宝。归类和监管通常不只看电池，还要看外壳、电路、输出口和成品用途；当前先按锂离子蓄电池方向初筛并提示 DG 文件。",
+    required: ["容量/Wh", "输入输出参数", "电芯类型", "UN38.3", "MSDS/SDS", "包装和 SOC"]
   }
 ];
+
+const chinaGenericRequiredFields = ["中文品名", "品牌型号", "材质/用途", "工作原理", "规格参数", "原产国", "成交价格", "图片/规格书"];
 
 function detectHsFromInput(product = "", params = {}) {
   const direct = compactHs(params.hs || params.code || "");
@@ -367,10 +457,68 @@ function buildChinaTariffCandidate(rule, direct = false) {
   };
 }
 
+function extractChinaSearchTerms(product = "") {
+  const text = clean(product).toLowerCase();
+  const terms = new Set();
+  [
+    "蓝牙", "无线", "耳机", "耳塞", "音箱", "扬声器", "喇叭", "麦克风", "话筒", "功放", "适配器", "充电器",
+    "电源", "锂电池", "电池", "移动电源", "充电宝", "纸箱", "纸盒", "标签", "说明书", "塑料", "塑胶",
+    "外壳", "螺丝", "螺钉", "路由器", "数据线", "电缆", "线束", "显示屏", "显示板", "摄像头"
+  ].forEach((term) => {
+    if (text.includes(term)) terms.add(term);
+  });
+  String(product || "")
+    .split(/[\s,，、/;；|()（）]+/)
+    .map((item) => item.trim())
+    .filter((item) => item.length >= 2 && item.length <= 24 && !/^\d+(\.\d+)?(w|v|a|mah|wh|kg|cm|mm)?$/i.test(item))
+    .forEach((item) => terms.add(item.toLowerCase()));
+  return Array.from(terms).slice(0, 10);
+}
+
+function scoreChinaTariffRecord(row = {}, terms = [], product = "") {
+  const haystack = clean([row.hs, row.codeDisplay, row.name, row.keywords].filter(Boolean).join(" ")).toLowerCase();
+  if (!haystack || !terms.length) return 0;
+  let score = 0;
+  terms.forEach((term) => {
+    const key = String(term || "").toLowerCase();
+    if (!key) return;
+    if (haystack.includes(key)) score += key.length >= 4 ? 18 : 12;
+    if (String(row.name || "").toLowerCase() === key) score += 28;
+  });
+  const productText = String(product || "").toLowerCase();
+  if (/无线|蓝牙|bluetooth|wireless/.test(productText) && /无线/.test(haystack)) score += 12;
+  if (/耳机|earphone|headset|earbud/.test(productText) && /耳机|耳塞/.test(haystack)) score += 18;
+  if (/音箱|speaker/.test(productText) && /音箱|扬声器/.test(haystack)) score += 16;
+  if (/纸箱|carton|box/.test(productText) && /纸|纸板|纸箱/.test(haystack)) score += 16;
+  if (/其他|未列名/.test(row.name || "")) score -= 8;
+  if (/税目|本章|以上|以下/.test(row.name || "")) score -= 6;
+  return score;
+}
+
+function buildChinaTariffSearchCandidates(product = "", usedCodes = new Set()) {
+  const terms = extractChinaSearchTerms(product);
+  if (!terms.length) return [];
+  return loadChinaTariffRows()
+    .map((row) => ({ row, score: scoreChinaTariffRecord(row, terms, product) }))
+    .filter(({ row, score }) => score >= 32 && !usedCodes.has(row.hs8 || row.hs))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map(({ row, score }) => buildChinaTariffCandidate({
+      hs: row.hs8 || row.hs,
+      score: Math.max(55, Math.min(78, score)),
+      rationale: `未命中特定业务规则，系统按输入关键词（${terms.slice(0, 4).join("、")}）在中国 2026 税则基础库中检索到相近条目。`,
+      required: chinaGenericRequiredFields
+    }))
+    .filter(Boolean);
+}
+
 function buildChinaTariffCandidates(product = "", params = {}) {
   const text = String(product || "");
   const hs = detectHsFromInput(text, params);
   const wirelessEarphoneHit = chinaProductRules.find((rule) => rule.id === "wireless-earphone")?.patterns.some((pattern) => pattern.test(text));
+  const componentHit = /外壳|壳料|塑胶件|塑料件|注塑件|零件|配件|维修件|spare|repair|parts?|housing|component/i.test(text);
+  const finishedHit = /整机|成品|套装|完整|complete|finished|whole/i.test(text);
+  const finishedProductRuleIds = new Set(["wireless-earphone", "wired-earphone", "bluetooth-speaker", "soundbar-speaker", "single-speaker", "microphone", "amplifier", "router"]);
   const directCandidates = [];
   if (hs) {
     const record = findChinaTariffRecord(hs);
@@ -386,6 +534,7 @@ function buildChinaTariffCandidates(product = "", params = {}) {
   const ruleCandidates = chinaProductRules
     .filter((rule) => {
       if (!rule.patterns.some((pattern) => pattern.test(text))) return false;
+      if (componentHit && !finishedHit && finishedProductRuleIds.has(rule.id)) return false;
       if (rule.id === "wired-earphone" && wirelessEarphoneHit) return false;
       if (rule.id === "lithium-battery" && /内置|内含|带.*电池|含.*电池|配有.*电池|充电盒|耳机|音箱|speaker|headphones?|earbuds?/i.test(text)) return false;
       return true;
@@ -394,7 +543,8 @@ function buildChinaTariffCandidates(product = "", params = {}) {
     .filter(Boolean);
 
   const seen = new Set();
-  return [...directCandidates, ...ruleCandidates]
+  const searchCandidates = buildChinaTariffSearchCandidates(text, new Set([...directCandidates, ...ruleCandidates].map((candidate) => candidate.code)));
+  return [...directCandidates, ...ruleCandidates, ...searchCandidates]
     .filter((candidate) => {
       const key = candidate.code;
       if (!key || seen.has(key)) return false;
@@ -431,6 +581,113 @@ function buildChinaGaps(product = "", signals = [], candidates = [], params = {}
   if (signals.includes("电源/适配器") && !/(\d+\s*w|\d+\s*瓦|\d+v|伏|a\b|安)/i.test(text)) gaps.push("电源类缺输入输出、电压电流、功率和用途，8504.40 子目只能先给备选。");
   if (candidates.length > 1) gaps.push("存在多个候选税号，请按上方缺口补资料后收敛到一个申报税号。");
   return gaps;
+}
+
+function buildChinaOriginAssessment(params = {}, product = "") {
+  const origin = originFromParams(params, product);
+  if (!origin) {
+    return {
+      label: "原产国缺失",
+      opinion: "当前不能判断协定税率、贸易措施或原产地证路径；报价和税费只能按基础税率先估。",
+      actions: ["补原产国/地区。", "确认是否有原产地证、RCEP/其他协定税率适用可能。"]
+    };
+  }
+  if (/中国|大陆|china|cn/i.test(origin)) {
+    return {
+      label: "原产国：中国",
+      opinion: "如果货物进口中国且原产国也是中国，要先判断是否属于退运、返修、复进口或保税流转，不应简单按一般进口口径处理。",
+      actions: ["确认贸易方式：一般贸易、退运、修理物品、保税或暂时进出境。", "准备原出口报关单、维修说明或退运原因资料。"]
+    };
+  }
+  if (/越南|泰国|马来|新加坡|印尼|菲律宾|老挝|柬埔寨|缅甸|asean|vietnam|thailand|malaysia|singapore|indonesia|philippines/i.test(origin)) {
+    return {
+      label: `原产国：${origin}`,
+      opinion: "东盟来源建议同步评估 RCEP/中国-东盟协定税率，但能否享惠取决于原产地规则和证书，不自动默认低税率。",
+      actions: ["确认 HS 对应协定税率。", "确认原产地证格式、直运规则和生产工序是否满足原产地标准。"]
+    };
+  }
+  if (/美国|usa|united states|us/i.test(origin)) {
+    return {
+      label: "原产国：美国",
+      opinion: "美国原产进口中国时，要额外核对是否涉及对美加征、排除清单、反倾销/反补贴或其他贸易措施。",
+      actions: ["让报关行按 10 位税号复核对美措施。", "报价中单独列基础关税、增值税和可能叠加税费。"]
+    };
+  }
+  return {
+    label: `原产国：${origin}`,
+    opinion: "已获得原产国信息，可以进入协定税率、原产地证和贸易措施判断；是否享惠仍需按 10 位税号和证书复核。",
+    actions: ["确认是否有可用原产地证。", "让报关行按税号核对协定税率和贸易措施。"]
+  };
+}
+
+function buildChinaDeclarationElements(product = "", signals = [], candidate = null) {
+  const elements = new Set(["品名", "品牌类型", "出口享惠情况", "用途", "材质", "品牌", "型号", "规格参数"]);
+  if (candidate?.codeDisplay) elements.add(`候选税号：${candidate.codeDisplay}`);
+  if (signals.includes("无线/蓝牙")) ["无线功能", "频段", "发射功率", "无线模块/芯片", "是否带接收器"].forEach((item) => elements.add(item));
+  if (signals.includes("电池/DG")) ["电池类型", "容量/Wh", "是否单独电池", "UN38.3", "MSDS/SDS", "包装方式"].forEach((item) => elements.add(item));
+  if (signals.includes("电源/适配器")) ["输入电压电流", "输出电压电流", "额定功率", "插头形式", "是否随整机"].forEach((item) => elements.add(item));
+  if (signals.includes("线缆/连接器")) ["接头类型", "额定电压", "导体材质", "线长", "用途设备"].forEach((item) => elements.add(item));
+  if (signals.includes("塑料/外壳")) ["塑料材质", "成型方式", "用途主机", "是否专用零件", "图纸/图片"].forEach((item) => elements.add(item));
+  if (signals.includes("五金/紧固件")) ["材质", "是否自攻", "尺寸", "表面处理", "是否带垫圈/螺母"].forEach((item) => elements.add(item));
+  if (signals.includes("印刷/标签")) ["材质", "是否印制", "内容用途", "尺寸", "成卷或裁切"].forEach((item) => elements.add(item));
+  return Array.from(elements).slice(0, 18);
+}
+
+function buildChinaRegulatoryNotes(signals = [], candidate = null) {
+  const notes = [];
+  if (candidate) notes.push(`税率先按 ${candidate.appliedRateType} ${candidate.appliedRate} 估算，正式仍以通关时税则和海关解释为准。`);
+  if (signals.includes("无线/蓝牙")) notes.push("无线/蓝牙产品在中国进口或内销前，要判断 SRRC 无线电型号核准和标签说明书要求。");
+  if (signals.includes("电源/适配器")) notes.push("电源/适配器、电源线、带电产品要判断 CCC 目录边界，不要只看税号。");
+  if (signals.includes("电池/DG")) notes.push("电池或含电设备同时影响运输：空运/快递/海运 DG 文件、包装、SOC 和承运限制要提前确认。");
+  if (signals.includes("维修件/配件")) notes.push("维修件/零件要确认是否专用于整机、是否成套进口，以及是否可按零件或整机归类。");
+  if (signals.includes("包装/纸制品")) notes.push("包装物要区分运输包装、零售包装、标签/说明书，不能和整机自动合并。");
+  return notes.length ? notes : ["当前未命中无线、电池、电源等专项监管词，先按一般商品归类、估价、原产地和单证完整性复核。"];
+}
+
+function buildChinaRedFlags(product = "", signals = [], gaps = []) {
+  const text = String(product || "");
+  const flags = [];
+  if (/样品|sample/i.test(text)) flags.push("样品不等于免税或免证；仍要看数量、价值、用途和监管条件。");
+  if (/维修|退运|返修|repair|return/i.test(text)) flags.push("维修/退运场景不能直接按一般贸易处理，要先确认贸易方式和旧件资料。");
+  if (signals.includes("无线/蓝牙") && !/型号|model|频段|功率|fcc|srrc/i.test(text)) flags.push("无线产品缺型号、频段、功率或证书信息，认证判断不可靠。");
+  if (signals.includes("电池/DG") && !/(wh|mah|毫安|瓦时|un38|msds|sds)/i.test(text)) flags.push("含电池但缺 Wh、UN38.3 或 MSDS/SDS，运输结论不能定。");
+  if (signals.includes("电源/适配器") && !/(\d+\s*w|\d+\s*瓦|\d+v|伏|a\b|安)/i.test(text)) flags.push("电源类缺电气参数，CCC 和子目判断都会变弱。");
+  if (gaps.length >= 3) flags.push("缺口较多，当前结论只能用于初筛，不建议直接给客户承诺税费或清关资料。");
+  return flags;
+}
+
+function buildChinaNextQuestions(signals = [], candidate = null) {
+  const questions = ["这个货是进口中国内销、退运返修，还是保税/暂时进出境？", "原产国和是否有原产地证是什么？"];
+  if (!candidate) questions.push("有没有候选 HS、图片、规格书或历史报关单？");
+  if (signals.includes("无线/蓝牙")) questions.push("是否有 SRRC/无线电型号核准、频段和发射功率资料？");
+  if (signals.includes("电池/DG")) questions.push("电池是单独进口还是装在设备内？Wh、UN38.3、MSDS/SDS 是否齐？");
+  if (signals.includes("电源/适配器")) questions.push("适配器输入输出、功率、插头和 CCC 证书状态是什么？");
+  if (signals.includes("线缆/连接器")) questions.push("线缆两端接头、额定电压和用途设备是什么？");
+  return questions.slice(0, 6);
+}
+
+function buildChinaIndependentOpinion({ product = "", signals = [], candidates = [], gaps = [], reliability = {} }) {
+  const main = candidates[0];
+  if (!main) {
+    return `我的判断：${product} 现在不能直接给税号。问题不是数据库没有，而是输入信息还不足以把税则表收敛到一个条目；先补用途、材质、功能、图片/规格书和候选 HS。`;
+  }
+  if ((main.confidence || 0) >= 88 && gaps.length <= 2) {
+    return `我的判断：${product} 可以先按 ${main.codeDisplay} 做报价和资料清单初稿，但正式申报前仍要用品牌型号、规格书和原产国把监管条件、认证和税费补齐。`;
+  }
+  if (signals.includes("电池/DG")) {
+    return `我的判断：税号只是第一步。${product} 同时命中 ${signals.join("、")}，真正容易出问题的是认证、危险品文件、标签和报关资料口径不一致。`;
+  }
+  if (signals.includes("无线/蓝牙") || signals.includes("电源/适配器")) {
+    const concerns = [
+      signals.includes("无线/蓝牙") && "无线认证/频段功率",
+      signals.includes("电源/适配器") && "电气参数/CCC边界",
+      signals.includes("线缆/连接器") && "接头/额定电压/用途",
+      signals.includes("塑料/外壳") && "材质/用途主机",
+      signals.includes("印刷/标签") && "材质/印刷内容"
+    ].filter(Boolean).join("、");
+    return `我的判断：${product} 的风险不只在税号，还在${concerns || "认证、标签和申报要素"}是否一致；不能只凭品名就给最终清关结论。`;
+  }
+  return `我的判断：${product} 已有候选方向 ${main.codeDisplay}，但可信度是 ${reliability.label || "待复核"}；下一步要用缺口问题把候选压缩到一个可申报税号。`;
 }
 
 function scoreReliability({ candidates = [], gaps = [], liveSource = "", profile = {}, signals = [] }) {
@@ -478,6 +735,12 @@ function buildChinaDirectResult({ profile, product, signals, params }) {
   const reliability = scoreReliability({ candidates, gaps, liveSource: main ? "中国 2026 税则基础库" : "", profile, signals });
   const actionItems = buildChinaActionItems(signals, main);
   const evidence = buildChinaEvidence(profile, candidates, signals);
+  const originAssessment = buildChinaOriginAssessment(params, product);
+  const declarationElements = buildChinaDeclarationElements(product, signals, main);
+  const regulatoryNotes = buildChinaRegulatoryNotes(signals, main);
+  const redFlags = buildChinaRedFlags(product, signals, gaps);
+  const nextQuestions = buildChinaNextQuestions(signals, main);
+  const independentOpinion = buildChinaIndependentOpinion({ product, signals, candidates, gaps, reliability });
   const direct = main
     ? `中国进口初判：${product} 优先按 ${main.codeDisplay}（${main.name}）方向处理；当前适用 ${main.appliedRateType} ${main.appliedRate}，普通税率 ${main.ordinaryRate}，进口增值税按现行政策确认。`
     : `中国进口初判：${product} 暂未从已接入的中国 2026 税则库命中具体税号；请补充更完整品名、用途、材质、功能和候选 HS。`;
@@ -489,13 +752,21 @@ function buildChinaDirectResult({ profile, product, signals, params }) {
     reliability,
     actionItems,
     evidence,
+    independentOpinion,
+    declarationElements,
+    regulatoryNotes,
+    redFlags,
+    nextQuestions,
+    originAssessment,
     conclusion: `${direct}${compliance.length ? ` ${compliance.join(" ")}` : ""} 可信度：${reliability.label}。`,
     sections: [
       {
         title: "直接结果",
         items: [
           direct,
+          independentOpinion,
           main ? `税费口径：${main.appliedRateType} ${main.appliedRate}；最惠国 ${main.mfnRate}；暂定 ${main.provisionalRate}；普通 ${main.ordinaryRate}。` : "暂未形成可核算税率。",
+          originAssessment.opinion,
           ...actionItems
         ]
       },
@@ -541,11 +812,15 @@ function detectSignals(product = "") {
   const text = clean(product).toLowerCase();
   const signals = [];
   if (/纸箱|纸盒|彩盒|carton|paperboard box|corrugated|packaging box|包装/.test(text)) signals.push("包装/纸制品");
+  if (/标签|贴纸|说明书|宣传册|保修卡|label|sticker|manual|leaflet|brochure|warranty/.test(text)) signals.push("印刷/标签");
   if (/lcd|液晶|显示屏|显示板|显示面板|指示板|indicator panel|display panel|display module/.test(text)) signals.push("显示/指示面板");
   if (/蓝牙|无线|wifi|wi-fi|bluetooth|wireless|radio|tws/.test(text)) signals.push("无线/蓝牙");
   if (/电池|锂|battery|li-ion|charging case|充电盒|power bank/.test(text)) signals.push("电池/DG");
   if (/适配器|电源|插头|adapter|charger|power supply|usb-c|type-c/.test(text)) signals.push("电源/适配器");
-  if (/耳机|音箱|soundbar|speaker|headphone|earbuds|audio|cd player|播放/.test(text)) signals.push("音频整机");
+  if (/数据线|连接线|线束|电缆|cable|wire harness/.test(text)) signals.push("线缆/连接器");
+  if (/塑料|塑胶|外壳|注塑|plastic|housing|injection molded/.test(text)) signals.push("塑料/外壳");
+  if (/螺丝|螺钉|螺栓|螺母|紧固件|screw|bolt|nut|fastener/.test(text)) signals.push("五金/紧固件");
+  if (/耳机|音箱|soundbar|speaker|headphone|earbuds|audio|cd player|播放|麦克风|话筒|microphone/.test(text)) signals.push("音频整机");
   if (/维修|配件|零件|spare|repair|part/.test(text)) signals.push("维修件/配件");
   return signals;
 }
@@ -564,6 +839,10 @@ function productQuery(product = "") {
 
 function productFamily(product = "", signals = []) {
   const text = clean(product).toLowerCase();
+  if (signals.includes("线缆/连接器")) return "cable";
+  if (signals.includes("塑料/外壳")) return "plastic-part";
+  if (signals.includes("五金/紧固件")) return "hardware";
+  if (signals.includes("印刷/标签")) return "printed";
   if (signals.includes("包装/纸制品") || /纸箱|纸盒|彩盒|carton|paperboard box|corrugated|packaging box|包装/.test(text)) return "packaging";
   if (signals.includes("显示/指示面板")) return "display-panel";
   if (signals.includes("电池/DG")) return "battery";
@@ -576,6 +855,18 @@ function productSpecificConclusion(profile, product, signals) {
   const family = productFamily(product, signals);
   const market = profile.market || "目标市场";
   const name = clean(product) || "该产品";
+  if (family === "cable") {
+    return `${market}：${name}按线缆/连接器方向核对，重点是是否带接头、额定电压、导体材质、用途设备和是否为汽车/机器线束；不要因为写了 USB-C 就自动归到充电器。`;
+  }
+  if (family === "plastic-part") {
+    return `${market}：${name}按塑料件/外壳方向核对，先确认材质、用途主机、是否专用零件和是否单独销售；若确认为整机专用零件，可能需要回到对应整机零件项复核。`;
+  }
+  if (family === "hardware") {
+    return `${market}：${name}按五金紧固件方向核对，重点是材质、是否自攻、尺寸、表面处理和是否带垫圈/螺母。`;
+  }
+  if (family === "printed") {
+    return `${market}：${name}按印刷品/标签方向核对，重点是材质、是否印制、是否自粘、内容用途和是否随整机附带。`;
+  }
   if (family === "packaging") {
     return `${market}：${name}按纸制包装/纸箱方向准备资料，重点是材质、瓦楞/非瓦楞、成型状态、用途、尺寸/规格和是否印刷；没有命中电池、无线或电源词，不生成电池、DG、FCC/CE RED 等电子类要求。`;
   }
@@ -598,6 +889,18 @@ function productSpecificConclusion(profile, product, signals) {
 function requiredMaterials(profile, product, signals) {
   const family = productFamily(product, signals);
   const base = ["完整中文/英文品名", "品牌", "型号", "材质", "用途", "规格参数", "原产地", "商业发票", "装箱单", "提单/运单"];
+  if (family === "cable") {
+    return ["两端接头类型", "额定电压", "导体材质", "线长", "用途设备", "是否汽车/机器线束", "原产地", "商业发票", "装箱单"];
+  }
+  if (family === "plastic-part") {
+    return ["塑料材质", "用途主机", "是否专用零件", "图纸/图片", "成型方式", "是否单独销售", "原产地", "商业发票", "装箱单"];
+  }
+  if (family === "hardware") {
+    return ["材质", "尺寸", "是否自攻", "表面处理", "是否带螺母/垫圈", "用途", "原产地", "商业发票", "装箱单"];
+  }
+  if (family === "printed") {
+    return ["材质", "是否印制", "印刷内容", "是否自粘", "尺寸", "成卷或裁切", "是否随整机附带", "原产地", "商业发票", "装箱单"];
+  }
   if (family === "packaging") {
     return ["纸张/纸板材质说明", "瓦楞或非瓦楞说明", "尺寸/规格", "是否印刷/是否成型", "用途：运输包装、销售包装或内包装", "原产地", "商业发票", "装箱单"];
   }
@@ -636,7 +939,7 @@ function countryBaseConclusion(profile, product, signals) {
 
 function relevantCompliance(profile, product, signals) {
   const family = productFamily(product, signals);
-  if (family === "packaging") return [];
+  if (["packaging", "printed", "plastic-part", "hardware", "cable"].includes(family) && !signals.includes("无线/蓝牙") && !signals.includes("电池/DG") && !signals.includes("电源/适配器")) return [];
   return (profile.compliance || []).filter((item) => {
     const text = String(item || "");
     const wireless = /无线|蓝牙|FCC|RED|Radio|NBTC|TELEC|MIC|ANATEL|ICASA|ISED|WPC|SDPPI|NTC|BTK|TDRA|RRA|MCMC/i.test(text);
@@ -797,6 +1100,12 @@ exports.handler = async (event) => {
     confidenceScore: chinaDirect?.reliability?.score || nonChinaReliability.score,
     confidenceLabel: chinaDirect?.reliability?.label || nonChinaReliability.label,
     evidence: chinaDirect?.evidence || profile.sources.map(([title, url]) => makeEvidence({ title, url, usedFor: "目的国规则和人工核验来源", match: profile.market, authority: liveSource ? "medium" : "reference" })),
+    independentOpinion: chinaDirect?.independentOpinion || "",
+    declarationElements: chinaDirect?.declarationElements || [],
+    regulatoryNotes: chinaDirect?.regulatoryNotes || [],
+    redFlags: chinaDirect?.redFlags || [],
+    nextQuestions: chinaDirect?.nextQuestions || [],
+    originAssessment: chinaDirect?.originAssessment || null,
     gaps: chinaDirect?.gaps || nonChinaGaps,
     actionItems: chinaDirect?.actionItems || requiredMaterials(profile, product, signals).slice(0, 8),
     apiStatus: [
