@@ -7455,6 +7455,17 @@ function renderShipmentJudgement(brief = {}) {
   const evidence = Array.isArray(brief.evidence) ? brief.evidence : [];
   const actions = Array.isArray(brief.actions) ? brief.actions : [];
   target.innerHTML = `
+    ${renderResultBrief({
+      className: `shipment-result-brief ${["bad", "danger", "warn"].includes(brief.tone) ? "warning" : ""}`,
+      kicker: "Shipment Decision Brief",
+      title: "船期/船位判断",
+      updatedLabel: brief.dataAge || "按当前船期证据",
+      conclusion: brief.viewpoint || "等待船期证据。",
+      risk: brief.label || "待判断",
+      cost: "船期风险主要影响改配、拖车等待、港杂/堆存、客户交付承诺和可能的空运替代成本。",
+      action: actions[0] || "补 MMSI、IMO、箱号或提单号，并用船司/码头事件核验。",
+      source: brief.sourceName ? `${brief.sourceName}；数据时间 ${brief.dataAge || "待确认"}` : "自动接口/网页核验结果。"
+    })}
     <article class="shipment-judgement-card ${escapeHtml(brief.tone || "neutral")}">
       <div class="shipment-judgement-head">
         <span>${escapeHtml(brief.label || "待判断")}</span>
@@ -7592,6 +7603,59 @@ function renderResultBrief(options = {}) {
         `).join("")}
       </div>
       ${links.length ? `<div class="result-brief-links">${links.map((item) => `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a>`).join("")}</div>` : ""}
+    </article>
+  `;
+}
+
+function globalSearchActionForModule(moduleId = "") {
+  const actions = {
+    trends: "进入趋势模块并直接搜索公开来源；若实时源较慢，会先给本地业务判断。",
+    policy: "进入政策模块并直接查询政策来源、实施日期、适用产品和业务影响。",
+    matrix: "进入进口国要求模块并直接生成税号、认证、标签、单证和资料缺口判断。",
+    hs: "进入税号/申报要素模块；有 HS 直接核税率，没有 HS 先做归类初判。",
+    shipment: "进入船期模块并尝试查询船舶/航次；接口失败时给人工核验入口和下一步。",
+    customs: "进入通关/箱货模块并按箱号、提单或放行线索判断。",
+    air: "进入空运/快件模块并尝试识别承运商、官网状态和电池/DG 风险。",
+    "port-risk": "进入港口风险模块并直接判断拥堵、DG、天气、码头和下一步核验。",
+    "sea-fees": "进入海运费用模块并按港口/货型给费用口径。",
+    "air-fees": "进入空运费用模块并按机场/货型给货站和附加费口径。",
+    "docs-invoice": "进入箱单发票模块并生成草稿，同时提示品名、金额和箱规风险。",
+    "docs-declaration": "进入报关单模块并生成申报草稿，同时提示缺失字段。",
+    codes: "进入代码查询模块并直接检索港口/机场代码。",
+    decision: "进入综合决策助手，先把输入拆成产品、国家、物流和合规问题。"
+  };
+  return actions[moduleId] || "进入最可能的模块并带入关键词。";
+}
+
+function buildGlobalSearchVerdict(query = "", candidates = []) {
+  const value = String(query || "").trim();
+  const target = candidates[0];
+  if (!value || !target || target.module === "dashboard") return "";
+  const score = Number(target.score || 0);
+  const confidence = score >= 130 ? "高" : score >= 100 ? "中高" : score >= 75 ? "中" : "低";
+  const confidenceText = `${confidence}可信 · ${score || "待评分"}分`;
+  const autoAction = globalSearchActionForModule(target.module);
+  return `
+    <article class="global-search-verdict">
+      <div class="global-verdict-head">
+        <span>直接判断</span>
+        <strong>${escapeHtml(value)} → ${escapeHtml(target.title)}</strong>
+        <small>${escapeHtml(confidenceText)}</small>
+      </div>
+      <div class="global-verdict-grid">
+        <section>
+          <b>结论</b>
+          <p>${escapeHtml(`我会优先进入「${target.title}」，并自动生成该模块结果。`)}</p>
+        </section>
+        <section>
+          <b>为什么</b>
+          <p>${escapeHtml(target.reason || "系统根据关键词、编号格式、国家/产品/政策信号判断。")}</p>
+        </section>
+        <section>
+          <b>下一步</b>
+          <p>${escapeHtml(autoAction)}</p>
+        </section>
+      </div>
     </article>
   `;
 }
@@ -7882,16 +7946,19 @@ function renderGlobalSearchResult(query = "") {
   const target = $("globalSearchResult");
   if (!target) return;
   const candidates = classifyGlobalSearch(query);
-  target.innerHTML = candidates
+  target.innerHTML = `
+    ${buildGlobalSearchVerdict(query, candidates)}
+    ${candidates
     .map((item, index) => `
       <article class="global-search-card ${index === 0 ? "primary" : ""}">
         <span>${index === 0 ? "推荐入口" : "备选入口"}</span>
         <strong>${escapeHtml(item.title)}</strong>
         <p>${escapeHtml(item.reason)}</p>
-        <button type="button" data-global-module="${escapeHtml(item.module)}" data-global-query="${escapeHtml(query)}">${index === 0 ? "进入并带入关键词" : "打开这个模块"}</button>
+        <button type="button" data-global-module="${escapeHtml(item.module)}" data-global-query="${escapeHtml(query)}">${index === 0 ? "直接查询" : "换到这里查"}</button>
       </article>
     `)
-    .join("");
+    .join("")}
+  `;
 }
 
 function applyGlobalSearchFill(moduleId = "", query = "") {
@@ -10545,6 +10612,18 @@ function renderAirTrackingCards(data = {}, product = "", destination = "") {
   const riskRows = buildAirRiskChecklist(product, destination).slice(0, 4);
   const judgement = data.judgement && typeof data.judgement === "object" ? data.judgement : null;
   $("airTrackingResult").innerHTML = `
+    ${renderResultBrief({
+      className: `air-result-brief ${data.ok ? "primary" : "warning"}`,
+      kicker: "Air Decision Brief",
+      title: `${data.carrier?.name || "空运/快件"} · ${data.trackingNo || "待输入"}`,
+      updatedAt: data.queriedAt || new Date().toISOString(),
+      conclusion: judgement?.opinion || (data.ok ? data.status || "已取得承运商官网状态，请同步核验更新时间。" : data.message || "未取得实时轨迹，不代表货物异常。"),
+      risk: data.statusLevel || judgement?.label || "待判断",
+      cost: "空运/快件风险主要体现在清关延误、改派、仓储、燃油/偏远附加费和重新派送成本。",
+      action: judgement?.actions?.[0] || (data.ok ? "保存官网状态截图；若出现清关/异常/Hold，立刻确认缺少的进口资料。" : "打开官方链接核验状态，并保存截图、运单号、查询时间。"),
+      source: data.ok ? "承运商官网/接口返回 + 产品风险规则。" : "官方追踪入口 + 本地空运风险规则；自动接口未返回可解析状态。",
+      links
+    })}
     <article class="air-result-card primary ${data.ok ? "success" : ""}">
       <span>${data.ok ? "当前状态" : "未取得实时状态"}</span>
       <strong>${escapeHtml(data.ok ? data.status || "官网返回状态" : data.statusLevel || "需要官网人工核验")}</strong>
@@ -12346,7 +12425,20 @@ function renderRequirementResult(data = {}) {
   const nextQuestions = Array.isArray(data.nextQuestions) ? data.nextQuestions : [];
   const originAssessment = data.originAssessment && typeof data.originAssessment === "object" ? data.originAssessment : null;
   const confidenceText = [data.confidenceScore ? `${data.confidenceScore}/100` : "", data.confidenceLabel || ""].filter(Boolean).join(" · ") || "待复核";
+  const primaryCandidate = tariffCandidates[0];
   $("requirementResult").innerHTML = `
+    ${renderResultBrief({
+      className: `requirement-result-brief ${redFlags.length ? "warning" : ""}`,
+      kicker: "Country Requirement Brief",
+      title: `${data.market || "目的国"} · ${data.product || "产品"}`,
+      updatedAt: data.updatedAt || new Date().toISOString(),
+      conclusion: data.independentOpinion || data.conclusion || data.customsConclusion || "请先确认海关编码、税率、监管证件和产品合规要求。",
+      risk: redFlags[0] || gaps[0] || data.level || "常规关注",
+      cost: primaryCandidate ? `${primaryCandidate.codeDisplay || primaryCandidate.code || "候选税号"}：${primaryCandidate.appliedRateType || "适用税率"} ${primaryCandidate.appliedRate || "待确认"}；正式税费仍按申报日和原产国复核。` : "未形成可核算税号时，不建议直接承诺税费、认证费用或清关时效。",
+      action: actionItems[0] || nextQuestions[0] || "补齐品名、用途、材质、规格、品牌型号、原产国、图片/规格书后再定案。",
+      source: data.source || (apiStatus.length ? apiStatus.map((item) => `${item.name || item.source}: ${item.status || item.message || ""}`).join("；") : "本地规则库 + 官方入口核验。"),
+      links: sources
+    })}
     <article class="requirement-card">
       <div class="requirement-summary-grid">
         <div>

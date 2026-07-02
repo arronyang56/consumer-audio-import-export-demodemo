@@ -362,6 +362,24 @@ const chinaProductRules = [
     required: ["有线/无线", "Wi-Fi/蜂窝通信制式", "端口数量", "是否带电源适配器", "品牌型号", "无线电资料"]
   },
   {
+    id: "wireless-module",
+    hs: "85176299",
+    alternatives: ["85176295"],
+    score: 78,
+    patterns: [/蓝牙模块|无线模块|wi-?fi模块|通信模块|bluetooth module|wireless module|wi-?fi module|communication module/i],
+    rationale: "产品描述命中蓝牙/Wi-Fi/通信模块。模块类要确认是否完整通信设备、是否只为整机零件，以及是否涉及无线电型号核准。",
+    required: ["通信制式", "频段/功率", "是否带天线", "用途主机", "是否单独销售", "无线电资料"]
+  },
+  {
+    id: "remote-controller",
+    hs: "85437099",
+    alternatives: ["85371090"],
+    score: 76,
+    patterns: [/遥控器|遥控|remote control|remote controller|controller handset/i],
+    rationale: "产品描述命中遥控器/控制器。若具备红外、蓝牙或无线发射，要同步判断无线资料；若为控制柜/控制面板，需复核 8537 边界。",
+    required: ["控制方式：红外/蓝牙/有线", "是否带无线发射", "用途主机", "是否带电池", "按键/电路功能", "品牌型号"]
+  },
+  {
     id: "plastic-parts",
     hs: "39269090",
     alternatives: ["39269010"],
@@ -371,6 +389,24 @@ const chinaProductRules = [
     required: ["材质树脂", "用途主机", "是否专用零件", "是否单独销售", "成型方式", "图片/图纸"]
   },
   {
+    id: "plastic-packaging-bag",
+    hs: "39232100",
+    alternatives: ["39232900"],
+    score: 74,
+    patterns: [/塑料袋|pe袋|opp袋|包装袋|自封袋|poly bag|plastic bag|packaging bag/i],
+    rationale: "产品描述命中乙烯聚合物塑料袋/包装袋。材质不明时需在 3923 项下按 PE/PP/其他塑料继续分流。",
+    required: ["材质：PE/PP/OPP/其他", "是否成袋", "用途：包装/零售/运输", "尺寸厚度", "是否印刷", "是否自封"]
+  },
+  {
+    id: "metal-bracket",
+    hs: "73269090",
+    alternatives: ["76169990"],
+    score: 68,
+    patterns: [/五金支架|金属支架|铁支架|钢支架|铝支架|钣金件|bracket|metal bracket|sheet metal part/i],
+    rationale: "产品描述命中金属支架/钣金件。材质是钢铁还是铝会改变章别；是否专用于整机也会影响零件归类边界。",
+    required: ["材质：钢铁/铝/其他", "用途主机", "是否专用零件", "成型工艺", "尺寸图纸", "表面处理"]
+  },
+  {
     id: "steel-screws",
     hs: "73181590",
     alternatives: ["73181400"],
@@ -378,6 +414,15 @@ const chinaProductRules = [
     patterns: [/螺丝|螺钉|螺栓|螺母|自攻螺丝|screw|bolt|nut/i],
     rationale: "产品描述命中钢铁螺钉/螺栓/紧固件。是否自攻、材质和是否带垫圈会影响 7318 项下子目。",
     required: ["材质", "是否自攻", "直径/长度", "是否带螺母或垫圈", "用途", "表面处理"]
+  },
+  {
+    id: "connector-terminal",
+    hs: "85369090",
+    alternatives: ["85366900"],
+    score: 72,
+    patterns: [/连接器|接插件|端子|插座|插头|connector|terminal|socket|plug/i],
+    rationale: "产品描述命中连接器/端子/插头插座。需确认额定电压、电流、是否用于同轴/印刷电路或线束后再定子目。",
+    required: ["连接器类型", "额定电压/电流", "针脚数", "用途设备", "是否带线束", "材质和图片"]
   },
   {
     id: "paper-label",
@@ -463,7 +508,9 @@ function extractChinaSearchTerms(product = "") {
   [
     "蓝牙", "无线", "耳机", "耳塞", "音箱", "扬声器", "喇叭", "麦克风", "话筒", "功放", "适配器", "充电器",
     "电源", "锂电池", "电池", "移动电源", "充电宝", "纸箱", "纸盒", "标签", "说明书", "塑料", "塑胶",
-    "外壳", "螺丝", "螺钉", "路由器", "数据线", "电缆", "线束", "显示屏", "显示板", "摄像头"
+    "外壳", "螺丝", "螺钉", "路由器", "数据线", "电缆", "线束", "显示屏", "显示板", "摄像头",
+    "遥控器", "控制器", "模块", "蓝牙模块", "无线模块", "连接器", "端子", "插头", "插座", "塑料袋",
+    "包装袋", "五金", "支架", "钣金"
   ].forEach((term) => {
     if (text.includes(term)) terms.add(term);
   });
@@ -627,6 +674,7 @@ function buildChinaDeclarationElements(product = "", signals = [], candidate = n
   if (signals.includes("电池/DG")) ["电池类型", "容量/Wh", "是否单独电池", "UN38.3", "MSDS/SDS", "包装方式"].forEach((item) => elements.add(item));
   if (signals.includes("电源/适配器")) ["输入电压电流", "输出电压电流", "额定功率", "插头形式", "是否随整机"].forEach((item) => elements.add(item));
   if (signals.includes("线缆/连接器")) ["接头类型", "额定电压", "导体材质", "线长", "用途设备"].forEach((item) => elements.add(item));
+  if (signals.includes("塑料包装袋")) ["塑料材质", "是否成袋", "尺寸/厚度", "是否印刷", "用途：运输/零售包装", "是否自封"].forEach((item) => elements.add(item));
   if (signals.includes("塑料/外壳")) ["塑料材质", "成型方式", "用途主机", "是否专用零件", "图纸/图片"].forEach((item) => elements.add(item));
   if (signals.includes("五金/紧固件")) ["材质", "是否自攻", "尺寸", "表面处理", "是否带垫圈/螺母"].forEach((item) => elements.add(item));
   if (signals.includes("印刷/标签")) ["材质", "是否印制", "内容用途", "尺寸", "成卷或裁切"].forEach((item) => elements.add(item));
@@ -640,6 +688,7 @@ function buildChinaRegulatoryNotes(signals = [], candidate = null) {
   if (signals.includes("电源/适配器")) notes.push("电源/适配器、电源线、带电产品要判断 CCC 目录边界，不要只看税号。");
   if (signals.includes("电池/DG")) notes.push("电池或含电设备同时影响运输：空运/快递/海运 DG 文件、包装、SOC 和承运限制要提前确认。");
   if (signals.includes("维修件/配件")) notes.push("维修件/零件要确认是否专用于整机、是否成套进口，以及是否可按零件或整机归类。");
+  if (signals.includes("塑料包装袋")) notes.push("塑料包装袋要先按材质分 PE/PP/其他塑料，再确认是否印刷、自封、零售包装或运输包装。");
   if (signals.includes("包装/纸制品")) notes.push("包装物要区分运输包装、零售包装、标签/说明书，不能和整机自动合并。");
   return notes.length ? notes : ["当前未命中无线、电池、电源等专项监管词，先按一般商品归类、估价、原产地和单证完整性复核。"];
 }
@@ -663,6 +712,7 @@ function buildChinaNextQuestions(signals = [], candidate = null) {
   if (signals.includes("电池/DG")) questions.push("电池是单独进口还是装在设备内？Wh、UN38.3、MSDS/SDS 是否齐？");
   if (signals.includes("电源/适配器")) questions.push("适配器输入输出、功率、插头和 CCC 证书状态是什么？");
   if (signals.includes("线缆/连接器")) questions.push("线缆两端接头、额定电压和用途设备是什么？");
+  if (signals.includes("塑料包装袋")) questions.push("包装袋材质是 PE、PP、OPP 还是其他塑料？是否印刷、自封、零售包装？");
   return questions.slice(0, 6);
 }
 
@@ -682,6 +732,7 @@ function buildChinaIndependentOpinion({ product = "", signals = [], candidates =
       signals.includes("无线/蓝牙") && "无线认证/频段功率",
       signals.includes("电源/适配器") && "电气参数/CCC边界",
       signals.includes("线缆/连接器") && "接头/额定电压/用途",
+      signals.includes("塑料包装袋") && "材质/成袋状态/包装用途",
       signals.includes("塑料/外壳") && "材质/用途主机",
       signals.includes("印刷/标签") && "材质/印刷内容"
     ].filter(Boolean).join("、");
@@ -811,15 +862,17 @@ function findMarket(country = "") {
 function detectSignals(product = "") {
   const text = clean(product).toLowerCase();
   const signals = [];
+  const plasticBagHit = /塑料袋|pe袋|opp袋|包装袋|自封袋|poly bag|plastic bag|packaging bag/.test(text);
   if (/纸箱|纸盒|彩盒|carton|paperboard box|corrugated|packaging box|包装/.test(text)) signals.push("包装/纸制品");
   if (/标签|贴纸|说明书|宣传册|保修卡|label|sticker|manual|leaflet|brochure|warranty/.test(text)) signals.push("印刷/标签");
   if (/lcd|液晶|显示屏|显示板|显示面板|指示板|indicator panel|display panel|display module/.test(text)) signals.push("显示/指示面板");
   if (/蓝牙|无线|wifi|wi-fi|bluetooth|wireless|radio|tws/.test(text)) signals.push("无线/蓝牙");
   if (/电池|锂|battery|li-ion|charging case|充电盒|power bank/.test(text)) signals.push("电池/DG");
   if (/适配器|电源|插头|adapter|charger|power supply|usb-c|type-c/.test(text)) signals.push("电源/适配器");
-  if (/数据线|连接线|线束|电缆|cable|wire harness/.test(text)) signals.push("线缆/连接器");
-  if (/塑料|塑胶|外壳|注塑|plastic|housing|injection molded/.test(text)) signals.push("塑料/外壳");
-  if (/螺丝|螺钉|螺栓|螺母|紧固件|screw|bolt|nut|fastener/.test(text)) signals.push("五金/紧固件");
+  if (/数据线|连接线|线束|电缆|连接器|接插件|端子|插座|插头|cable|wire harness|connector|terminal|socket|plug/.test(text)) signals.push("线缆/连接器");
+  if (plasticBagHit) signals.push("塑料包装袋");
+  if (!plasticBagHit && /塑料|塑胶|外壳|注塑|plastic|housing|injection molded/.test(text)) signals.push("塑料/外壳");
+  if (/螺丝|螺钉|螺栓|螺母|紧固件|五金|支架|钣金|screw|bolt|nut|fastener|bracket|sheet metal/.test(text)) signals.push("五金/紧固件");
   if (/耳机|音箱|soundbar|speaker|headphone|earbuds|audio|cd player|播放|麦克风|话筒|microphone/.test(text)) signals.push("音频整机");
   if (/维修|配件|零件|spare|repair|part/.test(text)) signals.push("维修件/配件");
   return signals;
@@ -839,11 +892,12 @@ function productQuery(product = "") {
 
 function productFamily(product = "", signals = []) {
   const text = clean(product).toLowerCase();
+  if (signals.includes("塑料包装袋")) return "plastic-packaging";
+  if (signals.includes("包装/纸制品") || /纸箱|纸盒|彩盒|carton|paperboard box|corrugated|packaging box|包装/.test(text)) return "packaging";
   if (signals.includes("线缆/连接器")) return "cable";
   if (signals.includes("塑料/外壳")) return "plastic-part";
   if (signals.includes("五金/紧固件")) return "hardware";
   if (signals.includes("印刷/标签")) return "printed";
-  if (signals.includes("包装/纸制品") || /纸箱|纸盒|彩盒|carton|paperboard box|corrugated|packaging box|包装/.test(text)) return "packaging";
   if (signals.includes("显示/指示面板")) return "display-panel";
   if (signals.includes("电池/DG")) return "battery";
   if (signals.includes("电源/适配器")) return "power";
@@ -866,6 +920,9 @@ function productSpecificConclusion(profile, product, signals) {
   }
   if (family === "printed") {
     return `${market}：${name}按印刷品/标签方向核对，重点是材质、是否印制、是否自粘、内容用途和是否随整机附带。`;
+  }
+  if (family === "plastic-packaging") {
+    return `${market}：${name}按塑料包装袋方向准备资料，重点是材质 PE/PP/其他、是否成袋、尺寸厚度、是否印刷、自封方式和包装用途；不要按塑料外壳或整机零件口径处理。`;
   }
   if (family === "packaging") {
     return `${market}：${name}按纸制包装/纸箱方向准备资料，重点是材质、瓦楞/非瓦楞、成型状态、用途、尺寸/规格和是否印刷；没有命中电池、无线或电源词，不生成电池、DG、FCC/CE RED 等电子类要求。`;

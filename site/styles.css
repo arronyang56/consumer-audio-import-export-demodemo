@@ -527,7 +527,7 @@ textarea {
   width: 100%;
   min-height: 42px;
   border: 1px solid #cbd5df;
-  border-radius: 12px;
+  border-radius: 8px;
   background: #fff;
   color: var(--ink);
   outline: none;
@@ -771,7 +771,7 @@ textarea:focus {
 .module-tab {
   min-height: 34px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 8px;
   background: transparent;
   color: #526174;
   padding: 6px 12px;
@@ -6034,6 +6034,76 @@ nav a[href="#learn"]::before {
   gap: 10px;
 }
 
+.global-search-verdict {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(147, 197, 253, 0.9);
+  border-left: 4px solid #2563eb;
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(239, 246, 255, 0.95), rgba(255, 255, 255, 0.94)),
+    #FFFFFF;
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.08);
+}
+
+.global-verdict-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.global-verdict-head span {
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.global-verdict-head strong {
+  flex: 1 1 260px;
+  color: #0f172a;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.global-verdict-head small {
+  color: #53657c;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.global-verdict-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.global-verdict-grid section {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(191, 219, 254, 0.88);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.global-verdict-grid b {
+  display: block;
+  color: #0f172a;
+  font-size: 12px;
+}
+
+.global-verdict-grid p {
+  margin: 6px 0 0;
+  color: #53657c;
+  font-size: 12.5px;
+  line-height: 1.48;
+}
+
 .global-search-card {
   display: grid;
   gap: 7px;
@@ -6081,6 +6151,12 @@ nav a[href="#learn"]::before {
   background: #2563eb;
   color: #fff;
   font-weight: 900;
+}
+
+.air-result-brief,
+.requirement-result-brief,
+.shipment-result-brief {
+  margin-bottom: 10px;
 }
 
 body[data-active-module]:not([data-active-module="dashboard"]) .global-query-panel {
@@ -14920,6 +14996,10 @@ body[data-active-module="hotspots"] .hotspot-column {
   }
 
   .hotspot-pulse-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .global-verdict-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 }
