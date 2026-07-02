@@ -10733,7 +10733,7 @@ async function loadTrends(keyword = "", showOverlay = false) {
     if (cleanedKeyword) params.set("keyword", cleanedKeyword);
     params.set("_t", String(Date.now()));
     const url = `/.netlify/functions/global-trends${params.toString() ? `?${params.toString()}` : ""}`;
-    const data = await fetchJsonOrFallback(url, fallbackTrends("", cleanedKeyword));
+    const data = await fetchJsonOrFallback(url, fallbackTrends("实时趋势接口响应较慢，先显示本地观察结论。", cleanedKeyword), { timeoutMs: 12000 });
     renderTrends(data);
     if (cleanedKeyword) addHistory("趋势查询", cleanedKeyword, data.summary || "已生成趋势摘要");
   } catch (error) {
@@ -11631,10 +11631,30 @@ function applyPortSuggestion(button) {
   queryPortRisk();
 }
 
-async function fetchJsonOrFallback(url, fallback) {
+async function fetchJsonOrFallback(url, fallback, options = {}) {
   if (!location.protocol.startsWith("http")) return fallback;
-  const response = await fetch(url);
-  return response.json();
+  const timeoutMs = Number(options.timeoutMs || 18000);
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timeoutId = controller && Number.isFinite(timeoutMs) && timeoutMs > 0
+    ? window.setTimeout(() => controller.abort(), timeoutMs)
+    : null;
+  try {
+    const response = await fetch(url, controller ? { signal: controller.signal } : undefined);
+    return response.json();
+  } catch (error) {
+    if (fallback !== null && fallback !== undefined) {
+      if (fallback && typeof fallback === "object" && !Array.isArray(fallback)) {
+        return {
+          ...fallback,
+          message: fallback.message || (error.name === "AbortError" ? "接口响应超时，已显示本地兜底结论。" : error.message || "接口请求失败，已显示本地兜底结论。")
+        };
+      }
+      return fallback;
+    }
+    throw error;
+  } finally {
+    if (timeoutId) window.clearTimeout(timeoutId);
+  }
 }
 
 function parsePercentNumber(value = "") {
