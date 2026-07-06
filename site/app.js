@@ -362,6 +362,7 @@ const workspaceModules = {
   trends: { title: "全球趋势观察", selectors: ["trends"] },
   hotspots: { title: "热点快报", selectors: ["hotspots"] },
   codes: { title: "港口/机场代码查询", selectors: ["codes"] },
+  "risk-center": { title: "风险预警中心", selectors: ["risk-center"] },
   "ops-fees": { title: "海运码头费用参考", selectors: ["sea-fees"] },
   "sea-fees": { title: "海运码头费用参考", selectors: ["sea-fees"] },
   shipment: { title: "船期和船舶位置", selectors: ["shipment"] },
@@ -1126,6 +1127,75 @@ const airportCodeData = [
   { iata: "AMS", icao: "EHAM", name: "Amsterdam Schiphol Airport", cn: "阿姆斯特丹史基浦机场", city: "阿姆斯特丹", country: "荷兰", aliases: ["阿姆斯特丹", "史基浦", "ams", "schiphol"], note: "欧洲重要空运枢纽。" },
   { iata: "GRU", icao: "SBGR", name: "Sao Paulo Guarulhos International Airport", cn: "圣保罗瓜鲁柳斯机场", city: "圣保罗", country: "巴西", aliases: ["圣保罗", "瓜鲁柳斯", "gru", "sao paulo"], note: "巴西主要国际空运入口，CNPJ/CPF、ANATEL/INMETRO 和当地清关资料非常关键。" }
 ];
+
+const majorPortRiskProfiles = [
+  { code: "CNSHA", name: "Shanghai", cn: "上海港", region: "china-east", aliases: ["上海", "上海港", "洋山", "外高桥", "shanghai", "cnsha"], baseDelay: 1.4, risk: 46, dwell: 2.2, note: "华东主枢纽，船期和截关稳定性较好，但台风季、查验和改配会放大延误。" },
+  { code: "CNNGB", name: "Ningbo-Zhoushan", cn: "宁波舟山港", region: "china-east", aliases: ["宁波", "舟山", "ningbo", "zhoushan", "cnngb"], baseDelay: 1.2, risk: 43, dwell: 2.0, note: "华东大港，遇台风、大风和危险品窗口时延误会明显上升。" },
+  { code: "CNYTN", name: "Yantian", cn: "盐田港", region: "china-south", aliases: ["盐田", "深圳", "yantian", "shenzhen", "cnytn"], baseDelay: 1.1, risk: 42, dwell: 1.9, note: "华南出口主港，消费电子、跨境货和船司截关要重点核验。" },
+  { code: "CNSZX", name: "Shenzhen", cn: "深圳港", region: "china-south", aliases: ["深圳港", "蛇口", "赤湾", "妈湾", "shekou", "cnszx"], baseDelay: 1.3, risk: 44, dwell: 2.0, note: "城市级口径，必须确认盐田、蛇口、赤湾或大铲湾等具体码头。" },
+  { code: "CNTAO", name: "Qingdao", cn: "青岛港", region: "china-north", aliases: ["青岛", "qingdao", "cntao"], baseDelay: 1.5, risk: 48, dwell: 2.3, note: "北方大港，冬季天气、危险品、查验和内陆拖车会影响稳定性。" },
+  { code: "CNTSN", name: "Tianjin", cn: "天津港", region: "china-north", aliases: ["天津", "新港", "tianjin", "xingang", "cntsn"], baseDelay: 1.8, risk: 52, dwell: 2.6, note: "华北枢纽，危险品、查验、冬季天气和堆场窗口需要提前确认。" },
+  { code: "HKHKG", name: "Hong Kong", cn: "香港", region: "asia-hub", aliases: ["香港", "hong kong", "hkhkg"], baseDelay: 0.9, risk: 38, dwell: 1.5, note: "空海联运和转运能力强，但成本和截单窗口要单独核验。" },
+  { code: "SGSIN", name: "Singapore", cn: "新加坡港", region: "asia-hub", aliases: ["新加坡", "singapore", "sgsin"], baseDelay: 1.1, risk: 41, dwell: 1.8, note: "全球中转枢纽，主要风险来自中转衔接、甩柜和主干线延误。" },
+  { code: "MYPKG", name: "Port Klang", cn: "巴生港", region: "southeast-asia", aliases: ["巴生", "port klang", "klang", "mypkg"], baseDelay: 1.5, risk: 49, dwell: 2.4, note: "东南亚常见中转/目的港，清关和港区拥堵需看当地代理反馈。" },
+  { code: "THLCH", name: "Laem Chabang", cn: "林查班港", region: "southeast-asia", aliases: ["林查班", "莱姆查邦", "laem chabang", "thlch"], baseDelay: 1.6, risk: 50, dwell: 2.5, note: "泰国主要口岸，进口商资料、DG 和本地拖车窗口会影响交付。" },
+  { code: "NLRTM", name: "Rotterdam", cn: "鹿特丹港", region: "europe", aliases: ["鹿特丹", "rotterdam", "nlrtm"], baseDelay: 2.1, risk: 57, dwell: 3.1, note: "欧洲大港，劳工、内河驳船、铁路和海关/认证资料会影响放货。" },
+  { code: "DEHAM", name: "Hamburg", cn: "汉堡港", region: "europe", aliases: ["汉堡", "hamburg", "deham"], baseDelay: 2.2, risk: 58, dwell: 3.2, note: "北欧重要口岸，铁路/内陆转运和港区拥堵要单独看。" },
+  { code: "BEANR", name: "Antwerp-Bruges", cn: "安特卫普-布鲁日港", region: "europe", aliases: ["安特卫普", "antwerp", "bruges", "beanr"], baseDelay: 2.0, risk: 55, dwell: 3.0, note: "欧盟主要入境港，清关资料、VAT/EORI 和内陆派送要同步核验。" },
+  { code: "GBFXT", name: "Felixstowe", cn: "费利克斯托港", region: "uk", aliases: ["费利克斯托", "felixstowe", "gbfxt"], baseDelay: 2.0, risk: 56, dwell: 3.0, note: "英国主要集装箱港，关注 UKCA、EORI、VAT 和内陆拖车能力。" },
+  { code: "USLAX", name: "Los Angeles", cn: "洛杉矶港", region: "us-west", aliases: ["洛杉矶港", "los angeles", "la port", "uslax"], baseDelay: 2.4, risk: 64, dwell: 3.7, note: "美西主港，旺季、铁路、码头预约、CBP 和劳工谈判都会影响提柜。" },
+  { code: "USLGB", name: "Long Beach", cn: "长滩港", region: "us-west", aliases: ["长滩", "long beach", "uslgb"], baseDelay: 2.3, risk: 63, dwell: 3.6, note: "与洛杉矶组成美西港口群，风险常联动。" },
+  { code: "USOAK", name: "Oakland", cn: "奥克兰港", region: "us-west", aliases: ["奥克兰港", "oakland", "usoak"], baseDelay: 2.0, risk: 58, dwell: 3.2, note: "美西补充入口，内陆转运、航线挂靠和码头窗口需确认。" },
+  { code: "USNYC", name: "New York/Newark", cn: "纽约/纽瓦克港", region: "us-east", aliases: ["纽约港", "纽瓦克", "new york", "newark", "usnyc"], baseDelay: 2.6, risk: 66, dwell: 3.9, note: "美东主港，清关、查验、码头预约和内陆派送通常是风险关键。" },
+  { code: "USSAV", name: "Savannah", cn: "萨凡纳港", region: "us-east", aliases: ["萨凡纳", "savannah", "ussav"], baseDelay: 2.2, risk: 60, dwell: 3.3, note: "美东热门港，旺季堆场和内陆铁路衔接需核验。" },
+  { code: "USCHS", name: "Charleston", cn: "查尔斯顿港", region: "us-east", aliases: ["查尔斯顿", "charleston", "uschs"], baseDelay: 2.0, risk: 58, dwell: 3.2, note: "美东常用入口，旺季和内陆派送能力要看货代反馈。" },
+  { code: "CAVAN", name: "Vancouver", cn: "温哥华港", region: "canada-west", aliases: ["温哥华", "vancouver", "cavan"], baseDelay: 2.8, risk: 68, dwell: 4.0, note: "加拿大西岸主港，铁路/劳工/天气对内陆交付影响较大。" },
+  { code: "MXZLO", name: "Manzanillo", cn: "曼萨尼约港", region: "latin-america", aliases: ["曼萨尼约", "manzanillo", "mxzlo"], baseDelay: 2.4, risk: 63, dwell: 3.8, note: "墨西哥主要口岸，目的港清关和内陆派送要提前确认。" },
+  { code: "BRSSZ", name: "Santos", cn: "桑托斯港", region: "latin-america", aliases: ["桑托斯", "santos", "brssz"], baseDelay: 3.1, risk: 72, dwell: 4.8, note: "巴西主港，清关资料、木包装、认证和目的港杂费通常是风险重点。" },
+  { code: "AEJEA", name: "Jebel Ali", cn: "杰贝阿里港", region: "middle-east", aliases: ["杰贝阿里", "迪拜", "jebel ali", "dubai", "aejea"], baseDelay: 1.7, risk: 52, dwell: 2.6, note: "中东枢纽，转运、本地进口和自由区口径要分清。" },
+  { code: "SAJED", name: "Jeddah", cn: "吉达港", region: "middle-east", aliases: ["吉达", "jeddah", "sajed"], baseDelay: 2.6, risk: 68, dwell: 3.8, note: "红海相关航线需额外关注绕航、保险和船公司挂靠调整。" },
+  { code: "AUMEL", name: "Melbourne", cn: "墨尔本港", region: "oceania", aliases: ["墨尔本", "melbourne", "aumel"], baseDelay: 2.1, risk: 57, dwell: 3.2, note: "澳洲主要入口，检疫、木包装和派送窗口要提前确认。" },
+  { code: "AUSYD", name: "Sydney", cn: "悉尼港", region: "oceania", aliases: ["悉尼", "sydney", "ausyd"], baseDelay: 2.0, risk: 56, dwell: 3.1, note: "澳洲主要消费市场入口，AQIS/检疫和码头窗口是关键。" },
+  { code: "ZADUR", name: "Durban", cn: "德班港", region: "africa", aliases: ["德班", "durban", "zadur"], baseDelay: 3.6, risk: 78, dwell: 5.2, note: "南非主港，拥堵、铁路、治安和内陆转运风险通常偏高。" }
+];
+
+const airportRiskProfiles = [
+  { iata: "PVG", cn: "上海浦东国际机场", region: "china-east", aliases: ["浦东", "上海浦东", "pvg", "shanghai pudong"], batteryRate: 18, baseDelay: 7, risk: 48, curve: [12, 14, 15, 17, 19, 20, 18, 21], note: "华东主力空运口岸，含电池/磁性货要先看航空鉴定和承运人接收。" },
+  { iata: "CAN", cn: "广州白云机场", region: "china-south", aliases: ["广州", "白云", "can"], batteryRate: 20, baseDelay: 8, risk: 52, curve: [14, 16, 18, 20, 22, 23, 20, 21], note: "华南电子货密集，电池/磁性/快件查验和安检预审更敏感。" },
+  { iata: "SZX", cn: "深圳宝安机场", region: "china-south", aliases: ["深圳", "宝安", "szx"], batteryRate: 22, baseDelay: 9, risk: 55, curve: [15, 17, 19, 22, 24, 25, 22, 23], note: "消费电子货比例高，含电池设备和磁性货建议先预审。" },
+  { iata: "HKG", cn: "香港国际机场", region: "asia-hub", aliases: ["香港", "hkg", "hong kong"], batteryRate: 16, baseDelay: 6, risk: 44, curve: [11, 12, 14, 15, 16, 17, 16, 15], note: "国际枢纽能力强，电池货限制更多取决于航空公司和渠道。" },
+  { iata: "ICN", cn: "仁川机场", region: "asia-hub", aliases: ["仁川", "首尔", "icn"], batteryRate: 14, baseDelay: 6, risk: 42, curve: [10, 11, 12, 13, 15, 14, 13, 14], note: "东北亚转运枢纽，转运衔接和航空公司限制需确认。" },
+  { iata: "SIN", cn: "新加坡樟宜机场", region: "asia-hub", aliases: ["新加坡", "樟宜", "sin"], batteryRate: 13, baseDelay: 5, risk: 40, curve: [9, 10, 11, 12, 13, 14, 12, 13], note: "东南亚空运枢纽，转运稳定性较好。" },
+  { iata: "LAX", cn: "洛杉矶国际机场", region: "us-west", aliases: ["洛杉矶", "lax"], batteryRate: 24, baseDelay: 11, risk: 64, curve: [18, 20, 22, 23, 25, 27, 24, 26], note: "美国西岸入口，CBP、FCC、电池和进口商资料是核心风险。" },
+  { iata: "JFK", cn: "纽约 JFK 机场", region: "us-east", aliases: ["纽约", "jfk"], batteryRate: 23, baseDelay: 12, risk: 65, curve: [17, 19, 21, 22, 24, 26, 25, 23], note: "美国东岸入口，清关和末端派送不确定性偏高。" },
+  { iata: "ORD", cn: "芝加哥奥黑尔机场", region: "us-central", aliases: ["芝加哥", "ord"], batteryRate: 21, baseDelay: 10, risk: 59, curve: [15, 17, 18, 20, 22, 23, 20, 21], note: "美国中部枢纽，转运和内陆派送要看航班与仓库排队。" },
+  { iata: "FRA", cn: "法兰克福机场", region: "europe", aliases: ["法兰克福", "fra"], batteryRate: 19, baseDelay: 9, risk: 56, curve: [13, 15, 16, 18, 20, 21, 18, 19], note: "欧洲空运枢纽，CE/RED/RoHS、EORI/VAT 和进口商资料要齐。" },
+  { iata: "AMS", cn: "阿姆斯特丹史基浦机场", region: "europe", aliases: ["阿姆斯特丹", "史基浦", "ams"], batteryRate: 18, baseDelay: 8, risk: 54, curve: [12, 14, 16, 17, 19, 20, 17, 18], note: "欧洲空运枢纽，仓储和转运窗口需确认。" },
+  { iata: "LHR", cn: "伦敦希思罗机场", region: "uk", aliases: ["伦敦", "希思罗", "lhr"], batteryRate: 20, baseDelay: 10, risk: 58, curve: [14, 16, 17, 19, 21, 22, 20, 19], note: "英国入口，UKCA、EORI、VAT 和进口商资料要先确认。" },
+  { iata: "GRU", cn: "圣保罗瓜鲁柳斯机场", region: "latin-america", aliases: ["圣保罗", "瓜鲁柳斯", "gru"], batteryRate: 28, baseDelay: 16, risk: 74, curve: [21, 23, 25, 27, 29, 31, 28, 30], note: "巴西清关资料、ANATEL/INMETRO 和进口商能力强烈影响放行。" },
+  { iata: "BKK", cn: "曼谷素万那普机场", region: "southeast-asia", aliases: ["曼谷", "素万那普", "bkk"], batteryRate: 17, baseDelay: 8, risk: 50, curve: [12, 13, 15, 16, 18, 19, 16, 17], note: "东南亚主要机场，NBTC/进口商资料和本地清关要提前确认。" }
+];
+
+const marketSourceLinks = {
+  sea: [
+    ["Maersk Spot", "https://www.maersk.com/transportation-services/maersk-spot"],
+    ["MSC", "https://www.msc.com/"],
+    ["CMA CGM", "https://www.cma-cgm.com/"],
+    ["COSCO Shipping Lines", "https://elines.coscoshipping.com/"],
+    ["Hapag-Lloyd", "https://www.hapag-lloyd.com/"],
+    ["ONE", "https://www.one-line.com/"],
+    ["Evergreen ShipmentLink", "https://www.shipmentlink.com/"]
+  ],
+  air: [
+    ["DHL Global Forwarding", "https://www.dhl.com/"],
+    ["UPS Air Cargo", "https://www.aircargo.ups.com/"],
+    ["FedEx", "https://www.fedex.com/"],
+    ["Cathay Cargo", "https://www.cathaycargo.com/"],
+    ["Lufthansa Cargo", "https://lufthansa-cargo.com/"],
+    ["Emirates SkyCargo", "https://www.skycargo.com/"],
+    ["IATA Cargo", "https://www.iata.org/en/programs/cargo/"]
+  ]
+};
 
 const seaOpsFeeProfiles = [
   {
@@ -7619,6 +7689,7 @@ function globalSearchActionForModule(moduleId = "") {
     "port-risk": "进入港口风险模块并直接判断拥堵、DG、天气、码头和下一步核验。",
     "sea-fees": "进入海运费用模块并按港口/货型给费用口径。",
     "air-fees": "进入空运费用模块并按机场/货型给货站和附加费口径。",
+    "risk-center": "进入风险预警中心，直接判断港口、机场、航线或政策清关风险。",
     "docs-invoice": "进入箱单发票模块并生成草稿，同时提示品名、金额和箱规风险。",
     "docs-declaration": "进入报关单模块并生成申报草稿，同时提示缺失字段。",
     codes: "进入代码查询模块并直接检索港口/机场代码。",
@@ -7846,6 +7917,224 @@ function findOpsFeeProfile(profiles = [], query = "") {
   return profiles.find((profile) => normalize([profile.name, profile.coverage, profile.id].join(" ")).includes(text) || text.includes(normalize(profile.name))) || null;
 }
 
+function textMatchesAliases(text = "", item = {}, keys = []) {
+  const haystack = normalize([
+    item.code,
+    item.iata,
+    item.icao,
+    item.name,
+    item.cn,
+    item.city,
+    item.country,
+    ...(item.aliases || []),
+    ...keys.map((key) => item[key])
+  ].filter(Boolean).join(" "));
+  const needle = normalize(text);
+  if (!needle) return false;
+  return haystack.includes(needle) || needle.includes(haystack) || (item.code && needle.includes(normalize(item.code))) || (item.iata && needle.includes(normalize(item.iata)));
+}
+
+function findAirportCodeProfile(query = "") {
+  const value = String(query || "").trim();
+  if (!value) return null;
+  return matchCodeRows(airportCodeData, value, ["iata", "icao", "name", "cn", "city", "country", "aliases"])[0] || null;
+}
+
+function findAirportRiskProfile(query = "") {
+  const value = String(query || "").trim();
+  if (!value) return null;
+  const direct = airportRiskProfiles.find((item) => textMatchesAliases(value, item));
+  if (direct) return direct;
+  const code = findAirportCodeProfile(value);
+  if (!code) return null;
+  return {
+    iata: code.iata,
+    cn: code.cn,
+    region: "generic-air",
+    aliases: code.aliases || [],
+    batteryRate: 18,
+    baseDelay: 8,
+    risk: 52,
+    curve: [12, 13, 15, 16, 18, 19, 17, 18],
+    note: code.note || "未接入专门机场风险曲线，先按国际空运常规口径估算。"
+  };
+}
+
+function findPortRiskProfile(query = "") {
+  const value = String(query || "").trim();
+  if (!value) return null;
+  const direct = majorPortRiskProfiles.find((item) => textMatchesAliases(value, item));
+  if (direct) return direct;
+  const code = matchCodeRows(seaPortCodeData, value, ["code", "name", "cn", "country", "aliases"])[0];
+  if (!code) return null;
+  return {
+    code: code.code,
+    name: code.name,
+    cn: code.cn,
+    region: "generic-port",
+    aliases: code.aliases || [],
+    baseDelay: 1.8,
+    risk: 54,
+    dwell: 2.8,
+    note: code.note || "未接入专门港口风险模型，先按全球主要集装箱港常规口径估算。"
+  };
+}
+
+function routeDaysForPorts(origin = {}, destination = {}) {
+  const pair = `${origin.region || ""}->${destination.region || ""}`;
+  const table = [
+    [/china-(east|south|north)->us-west/, [13, 19]],
+    [/china-(east|south|north)->us-east/, [28, 38]],
+    [/china-(east|south|north)->europe/, [28, 40]],
+    [/china-(east|south|north)->uk/, [30, 42]],
+    [/china-(east|south|north)->southeast-asia/, [4, 10]],
+    [/china-(east|south|north)->asia-hub/, [3, 8]],
+    [/china-(east|south|north)->middle-east/, [16, 25]],
+    [/china-(east|south|north)->latin-america/, [30, 45]],
+    [/china-(east|south|north)->oceania/, [16, 26]],
+    [/china-(east|south|north)->africa/, [28, 42]],
+    [/europe->us-east|us-east->europe/, [10, 16]],
+    [/europe->us-west|us-west->europe/, [22, 32]],
+    [/southeast-asia->us-west/, [18, 28]],
+    [/asia-hub->europe/, [24, 34]]
+  ];
+  const hit = table.find(([pattern]) => pattern.test(pair));
+  if (hit) return hit[1];
+  if (origin.region && destination.region && origin.region === destination.region) return [3, 7];
+  return [18, 32];
+}
+
+function flightHoursForAirports(origin = {}, destination = {}) {
+  const pair = `${origin.region || ""}->${destination.region || ""}`;
+  if (/china|asia/.test(origin.region || "") && /us-west/.test(destination.region || "")) return [10, 15];
+  if (/china|asia/.test(origin.region || "") && /us-east|us-central/.test(destination.region || "")) return [15, 23];
+  if (/china|asia/.test(origin.region || "") && /europe|uk/.test(destination.region || "")) return [12, 20];
+  if (/china|asia/.test(origin.region || "") && /latin-america/.test(destination.region || "")) return [28, 44];
+  if ((origin.region || "") === (destination.region || "")) return [2, 8];
+  return [10, 24];
+}
+
+function riskLevelFromScore(score = 0) {
+  if (score >= 76) return { label: "高风险", tone: "danger" };
+  if (score >= 62) return { label: "中高风险", tone: "warn" };
+  if (score >= 46) return { label: "中风险", tone: "watch" };
+  return { label: "可控", tone: "ok" };
+}
+
+function routeMarketLane(origin = {}, destination = {}) {
+  const pair = `${origin.region || ""}->${destination.region || ""}`;
+  if (/china-(east|south|north)->us-west/.test(pair)) return "china-us-west";
+  if (/china-(east|south|north)->us-east/.test(pair)) return "china-us-east";
+  if (/china-(east|south|north)->europe|china-(east|south|north)->uk/.test(pair)) return "china-europe";
+  if (/china-(east|south|north)->southeast-asia|china-(east|south|north)->asia-hub/.test(pair)) return "intra-asia";
+  if (/china-(east|south|north)->middle-east/.test(pair)) return "china-middle-east";
+  if (/china-(east|south|north)->latin-america/.test(pair)) return "china-latin-america";
+  if (/china-(east|south|north)->oceania/.test(pair)) return "china-oceania";
+  return "generic";
+}
+
+function formatRange(min, max, unit = "") {
+  return `${Math.round(min).toLocaleString()}-${Math.round(max).toLocaleString()}${unit}`;
+}
+
+function renderMiniCurve(values = [], label = "趋势") {
+  const max = Math.max(1, ...values);
+  return `
+    <div class="mini-curve" aria-label="${escapeHtml(label)}">
+      ${values.map((value) => `<i style="height:${Math.max(10, Math.round((value / max) * 100))}%"><span>${escapeHtml(String(value))}%</span></i>`).join("")}
+    </div>
+  `;
+}
+
+function globalSearchOptionsForQuery(query = "") {
+  const value = String(query || "").trim();
+  if (!value) return [];
+  const airport = findAirportCodeProfile(value);
+  const port = findPortRiskProfile(value);
+  const candidates = classifyGlobalSearch(value);
+  const options = [];
+  const push = (module, label, detail, icon = "✓", tab = "") => {
+    if (!options.some((item) => item.module === module && item.label === label)) options.push({ module, label, detail, icon, tab });
+  };
+  if (airport) {
+    push("codes", "机场代码", `${airport.cn} · ${airport.iata}/${airport.icao}`, "✓");
+    push("air-fees", "空运价格/费用", "查看货站费用和市场空运价参考", "✓");
+    push("risk-center", "机场风险", "锂电池查验率、延误和风险曲线", "✓", "risk-airport-panel");
+    push("air", "空运/快件状态", "输入运单号时自动查承运商轨迹", "✓");
+  }
+  if (port && !airport) {
+    push("risk-center", "港口风险", `${port.cn || port.name} · 船期/延误/风险分`, "✓", "risk-port-panel");
+    push("sea-fees", "海运价格/费用", "市场运价、码头费和特殊货附加费", "✓");
+    push("codes", "港口代码", `${port.cn || port.name} · ${port.code || "UN/LOCODE"}`, "✓");
+  }
+  candidates.slice(0, 3).forEach((candidate) => push(candidate.module, candidate.title, candidate.reason, "→"));
+  return options.slice(0, 6);
+}
+
+function buildGlobalSearchAnswer(query = "", candidates = []) {
+  const value = String(query || "").trim();
+  if (!value) return "";
+  const target = candidates[0];
+  if (!target || target.module === "dashboard") return "";
+  const airport = findAirportCodeProfile(value);
+  const port = findPortRiskProfile(value);
+  const subject = airport ? `${airport.cn}（${airport.iata}）` : port ? `${port.cn || port.name}（${port.code || "港口"}）` : value;
+  const options = globalSearchOptionsForQuery(value).slice(0, 4);
+  const next = globalSearchActionForModule(target.module);
+  return `
+    <article class="global-ai-answer">
+      <div class="global-ai-head">
+        <span>AI 回答</span>
+        <strong>${escapeHtml(subject)}</strong>
+      </div>
+      <p>${escapeHtml(`我的判断：这不是单纯关键词搜索，而是「${target.title}」问题。我会先调用对应模块给结果，再把费用、风险、资料缺口和下一步动作合并成结论。`)}</p>
+      <div class="global-ai-action-grid">
+        ${options.map((item) => `
+          <button type="button" data-live-module="${escapeHtml(item.module)}" data-live-tab="${escapeHtml(item.tab || "")}" data-global-query="${escapeHtml(value)}">
+            <b>${escapeHtml(item.icon)} ${escapeHtml(item.label)}</b>
+            <span>${escapeHtml(item.detail)}</span>
+          </button>
+        `).join("")}
+      </div>
+      <small>${escapeHtml(next)}</small>
+    </article>
+  `;
+}
+
+function renderGlobalSearchLiveAssist(query = "") {
+  const target = $("globalSearchLiveAssist");
+  if (!target) return;
+  const value = String(query || "").trim();
+  if (!value) {
+    target.innerHTML = "";
+    return;
+  }
+  const airport = findAirportCodeProfile(value);
+  const port = findPortRiskProfile(value);
+  const options = globalSearchOptionsForQuery(value);
+  const title = airport
+    ? `你想查询：${airport.cn}`
+    : port
+      ? `你想查询：${port.cn || port.name}`
+      : "我正在理解你的问题";
+  target.innerHTML = `
+    <section class="live-intent-panel">
+      <div class="live-intent-head">
+        <span>实时理解</span>
+        <strong>${escapeHtml(title)}</strong>
+      </div>
+      <div class="live-intent-actions">
+        ${options.map((item) => `
+          <button type="button" data-live-module="${escapeHtml(item.module)}" data-live-tab="${escapeHtml(item.tab || "")}" data-global-query="${escapeHtml(value)}">
+            <b>${escapeHtml(item.icon)} ${escapeHtml(item.label)}</b>
+            <small>${escapeHtml(item.detail)}</small>
+          </button>
+        `).join("")}
+      </div>
+    </section>
+  `;
+}
+
 function classifyGlobalSearch(raw = "") {
   const query = String(raw || "").trim();
   const intentCleanQuery = stripSearchIntentWords(query);
@@ -7862,19 +8151,22 @@ function classifyGlobalSearch(raw = "") {
   const containerLike = /\b[A-Z]{4}\d{7}\b/i.test(query.replace(/\s+/g, ""));
   const trackingLike = /\b1Z[0-9A-Z]{8,}\b/i.test(query) || /\b\d{10,15}\b/.test(query) || /dhl|ups|fedex|sf|顺丰|快递|运单|awb|空运单/i.test(query);
   const hsLike = /\b\d{8,10}\b/.test(query);
+  const airportMatchLike = hasCodeMatch(airportCodeData, query, ["iata", "icao", "name", "cn", "city", "country", "aliases"]);
+  const portMatchLike = hasCodeMatch(seaPortCodeData, query, ["code", "name", "cn", "country", "aliases"]);
   const vesselIntent = /船名|船期|船位|船舶|航次|位置|定位|eta|vessel|voyage|mmsi|imo/.test(text);
-  const vesselNameLike = /^[A-Z][A-Z0-9.' -]{2,40}$/i.test(intentCleanQuery) && /[A-Z]/i.test(intentCleanQuery) && !/\d{8,10}/.test(intentCleanQuery);
+  const vesselNameLike = /^[A-Z][A-Z0-9.' -]{2,40}$/i.test(intentCleanQuery) && /[A-Z]/i.test(intentCleanQuery) && !/\d{8,10}/.test(intentCleanQuery) && !airportMatchLike && !portMatchLike;
   const feeLike = /费用|收费|价格|报价|成本|港杂|堆存|仓储|安检|货站|thc|charge|fee|cost|tariff/.test(text);
-  const airLike = /空运|机场|航空|快件|快递|dhl|ups|fedex|sf|顺丰|awb|iata|货站/.test(text) || hasCodeMatch(airportCodeData, query, ["iata", "icao", "name", "cn", "city", "country", "aliases"]);
-  const seaLike = /海运|港口|码头|船|船期|箱号|提单|港杂|堆存|冷箱|危险品|oog|bbk|reefer|dg|vessel|port|container/.test(text) || hasCodeMatch(seaPortCodeData, query, ["code", "name", "cn", "country", "aliases"]);
+  const airLike = /空运|机场|航空|快件|快递|dhl|ups|fedex|sf|顺丰|awb|iata|货站/.test(text) || airportMatchLike;
+  const seaLike = /海运|港口|码头|船|船期|箱号|提单|港杂|堆存|冷箱|危险品|oog|bbk|reefer|dg|vessel|port|container/.test(text) || portMatchLike;
+  const riskCenterLike = /风险|预警|延误|拥堵|塞港|查验率|查验|delay|risk|congestion|inspection/.test(text);
   const countryLike = /中国|美国|欧盟|英国|日本|泰国|巴西|中东|沙特|阿联酋|印度|越南|印尼|菲律宾|加拿大|墨西哥|澳大利亚|韩国|南非|土耳其|新加坡|马来西亚|country|import|export/.test(text);
   const politicalHotspotLike = /特朗普|川普|trump|拜登|biden|习近平|普京|putin|泽连斯基|zelensky|总统|首相|国会|白宫|共和党|民主党|大选|选举|election|president|congress|white house|geopolitic|地缘|贸易战|trade war/.test(text);
   const policyHardLike = /政策|关税|301|232|cbp|ustr|海关|公告|认证|anatel|inmetro|nbtc|saber|fcc|ce|rohs|reach|制裁|出口管制/.test(text);
   const trendLike = /趋势|新闻|热点|热搜|市场|金融|汇率|利率|突发|实时|最新|影响/.test(text) || politicalHotspotLike;
   const policyLike = policyHardLike || trendLike;
   const documentLike = /单证|箱单|发票|invoice|packing|装箱单|报关单|报关草稿|declaration|申报单/.test(text);
-  const airportCodeOnly = /^[A-Z]{3,4}$/i.test(query) && hasCodeMatch(airportCodeData, query, ["iata", "icao", "name", "cn", "city", "country", "aliases"]);
-  const portCodeOnly = /^[A-Z]{5}$/i.test(query) && hasCodeMatch(seaPortCodeData, query, ["code", "name", "cn", "country", "aliases"]);
+  const airportCodeOnly = /^[A-Z]{3,4}$/i.test(query) && airportMatchLike;
+  const portCodeOnly = /^[A-Z]{5}$/i.test(query) && portMatchLike;
 
   const candidates = [];
   const add = (module, title, reason, score, fill = {}) => candidates.push({ module, title, reason, score, fill });
@@ -7899,22 +8191,27 @@ function classifyGlobalSearch(raw = "") {
     add("air", "空运/快件查询", "看起来是快递单号、空运单号或承运商状态查询。", 108, { tracking: query });
   }
   if (feeLike && airLike) {
-    add("air-fees", "空运机场/货站费用表", "包含机场、货站、快件或空运费用关键词。", 105, { fee: query });
+    add("air-fees", "空运价格/费用", "包含机场、货站、快件或空运费用关键词；进入后可同时看市场价格和货站费用。", 112, { fee: query });
   }
   if (feeLike && (seaLike || !airLike)) {
-    add("sea-fees", "海运码头费用表", "包含港口、码头、DG、冷箱、堆存或海运费用关键词。", 104, { fee: query });
+    add("sea-fees", "海运价格/费用", "包含海运价格、码头、DG、冷箱、堆存或港杂关键词；进入后可同时看市场价格和码头费用。", 111, { fee: query });
+  }
+  if (riskCenterLike && (airLike || seaLike || /航线|海域|红海|巴拿马|台风|suez|panama|route/.test(text))) {
+    add("risk-center", "风险预警中心", "看起来是在问港口、机场、航线、查验率或延误风险；系统会直接给平均时效、平均延误和风险分。", airLike ? 121 : 118, { risk: query });
   }
   if (/船名|船期|船位|eta|vessel|voyage|mmsi|imo/.test(text) || (seaLike && /[a-z]/i.test(query) && /\s/.test(query) && !feeLike)) {
     add("shipment", "船期和船舶位置", "看起来是船名、航次、MMSI/IMO 或 ETA 查询。", 96, { vessel: extractVesselQuery(query) });
   }
   if ((airportCodeOnly || /机场代码|iata|icao/.test(text)) && !feeLike) {
-    add("codes", "港口/机场代码查询", "看起来是机场代码、机场名或城市代码查询。", 92, { airport: query });
+    add("codes", "机场代码 + 空运入口", "看起来是机场代码、机场名或城市代码；同时可以继续查空运价格和机场风险。", 108, { airport: query });
+    add("air-fees", "空运价格/费用", "机场代码已识别，可直接进入空运费用和市场价格参考。", 93, { fee: query });
+    add("risk-center", "机场风险", "机场代码已识别，可继续看锂电池查验率、延误曲线和风险分。", 91, { risk: query });
   }
   if ((portCodeOnly || /港口代码|un\/locode|locode/.test(text)) && !feeLike) {
     add("codes", "港口/机场代码查询", "看起来是海运港口代码或港口名查询。", 90, { port: query });
   }
   if (/港口|塞港|拥堵|码头|危险品|dg|reefer|冷箱|林查班|盐田|宁波|上海港|port risk/.test(text) && !feeLike) {
-    add("port-risk", "港口/物流风险", "看起来是港口拥堵、港区操作或危险品限制查询。", 88, { portRisk: query });
+    add("risk-center", "港口/物流风险", "看起来是港口拥堵、港区操作、延误或危险品限制查询。", 106, { portRisk: query });
   }
   if (hsLike || /税号|hs|hscode|归类|申报|关税核验/.test(text)) {
     add("hs", "税号/申报要素", "看起来是 HS、税费、归类或申报要素查询。", 86, { hs: query });
@@ -7947,6 +8244,7 @@ function renderGlobalSearchResult(query = "") {
   if (!target) return;
   const candidates = classifyGlobalSearch(query);
   target.innerHTML = `
+    ${buildGlobalSearchAnswer(query, candidates)}
     ${buildGlobalSearchVerdict(query, candidates)}
     ${candidates
     .map((item, index) => `
@@ -8002,6 +8300,9 @@ function applyGlobalSearchFill(moduleId = "", query = "") {
     }
   }
   if (moduleId === "sea-fees") {
+    const route = splitRouteQuery(value);
+    if ($("seaMarketOrigin")) $("seaMarketOrigin").value = route.origin || $("seaMarketOrigin").value || "";
+    if ($("seaMarketDestination")) $("seaMarketDestination").value = route.destination || $("seaMarketDestination").value || "";
     const profile = findOpsFeeProfile(allSeaOpsFeeProfiles(), value);
     if (profile) selectSeaOpsFeeProfile(profile);
     if (/危险品|dg|danger/.test(normalize(value))) $("seaOpsFeeType").value = "dg";
@@ -8009,18 +8310,26 @@ function applyGlobalSearchFill(moduleId = "", query = "") {
     else if (/oog|超限/.test(normalize(value))) $("seaOpsFeeType").value = "oog";
     else if (/bbk|件杂/.test(normalize(value))) $("seaOpsFeeType").value = "bbk";
     renderSeaOpsFees();
+    renderSeaMarketRate({ preventDefault() {} });
   }
   if (moduleId === "air-fees") {
+    const route = splitRouteQuery(value);
+    if ($("airMarketOrigin")) $("airMarketOrigin").value = route.origin || value;
+    if ($("airMarketDestination")) $("airMarketDestination").value = route.destination || "";
     const profile = findOpsFeeProfile(airOpsFeeProfiles, value);
     if (profile && $("airOpsFeeNode")) $("airOpsFeeNode").value = profile.id;
     if (/电池|磁性|dg|danger/.test(normalize(value))) $("airOpsFeeType").value = "battery";
     else if (/冷藏|温控|reefer/.test(normalize(value))) $("airOpsFeeType").value = "reefer";
     else if (/特殊|超限|高价值/.test(normalize(value))) $("airOpsFeeType").value = "special";
     renderAirOpsFees();
+    renderAirMarketRate({ preventDefault() {} });
   }
   if (moduleId === "port-risk") {
     $("portName").value = value;
     renderPortSuggestions(value);
+  }
+  if (moduleId === "risk-center") {
+    fillRiskCenterFromQuery(value);
   }
   if (moduleId === "hs") {
     if (/^\d{8,10}$/.test(value)) {
@@ -8074,6 +8383,10 @@ async function executeGlobalSearchModule(moduleId = "", query = "") {
       await queryPortRisk(submitEvent);
       return;
     }
+    if (moduleId === "risk-center") {
+      await renderRiskCenterFromQuery(query);
+      return;
+    }
     if (moduleId === "air") {
       await queryAirTracking(submitEvent);
       return;
@@ -8103,17 +8416,33 @@ async function executeGlobalSearchModule(moduleId = "", query = "") {
   }
 }
 
+async function openGlobalSearchModule(moduleId = "", query = "", tabId = "") {
+  const value = String(query || $("globalSearchInput")?.value || "").trim();
+  if (!value || !moduleId) return;
+  renderGlobalSearchResult(value);
+  renderGlobalSearchLiveAssist(value);
+  if (!requireAccess()) return;
+  if (moduleId === "risk-center") {
+    activateWorkspaceModule("risk-center", true);
+    fillRiskCenterFromQuery(value, tabId);
+    addHistory("全局搜索", value, "已跳转到风险预警中心");
+    return;
+  }
+  applyGlobalSearchFill(moduleId, value);
+  activateWorkspaceModule(moduleId, true);
+  await executeGlobalSearchModule(moduleId, value);
+}
+
 async function runGlobalSearch(event) {
   event?.preventDefault();
   const query = $("globalSearchInput")?.value || "";
   const candidates = classifyGlobalSearch(query);
   const target = candidates[0];
   renderGlobalSearchResult(query);
+  renderGlobalSearchLiveAssist(query);
   if (!requireAccess()) return;
   if (!target || target.module === "dashboard") return;
-  applyGlobalSearchFill(target.module, query);
-  activateWorkspaceModule(target.module, true);
-  await executeGlobalSearchModule(target.module, query);
+  await openGlobalSearchModule(target.module, query);
 }
 
 function populateOpsFeeSelects() {
@@ -8265,6 +8594,341 @@ function renderAirOpsFees(event) {
   const type = $("airOpsFeeType")?.value || "general";
   const target = $("airOpsFeeResult");
   if (target) target.innerHTML = renderOpsFeeCard(profile, type, "air");
+}
+
+function splitRouteQuery(query = "") {
+  const cleaned = String(query || "").replace(/查询|价格|费用|风险|预警|海运|空运|港口|机场|market|rate|fee|risk/gi, " ").replace(/\s+/g, " ").trim();
+  const parts = cleaned.split(/\s*(?:到|至|->|→|--|—|,|，|\/)\s*/).map((item) => item.trim()).filter(Boolean);
+  if (parts.length >= 2) return { origin: parts[0], destination: parts.slice(1).join(" ") };
+  const tokens = cleaned.split(/\s+/).filter(Boolean);
+  if (tokens.length >= 2) return { origin: tokens[0], destination: tokens.slice(1).join(" ") };
+  return { origin: cleaned, destination: "" };
+}
+
+function seaMarketRateEstimate(origin = {}, destination = {}, box = "40HQ", cargo = "general") {
+  const lane = routeMarketLane(origin, destination);
+  const base = {
+    "china-us-west": [1500, 2800],
+    "china-us-east": [2800, 5200],
+    "china-europe": [2400, 4600],
+    "intra-asia": [260, 850],
+    "china-middle-east": [900, 2100],
+    "china-latin-america": [3600, 6800],
+    "china-oceania": [1200, 2600],
+    generic: [1200, 3600]
+  }[lane] || [1200, 3600];
+  const boxFactor = { "20GP": 0.62, "40GP": 0.92, "40HQ": 1, LCL: 0.08 }[box] || 1;
+  const cargoFactor = { general: 1, battery: 1.08, dg: 1.28, reefer: 1.38, oog: 1.65 }[cargo] || 1;
+  const min = base[0] * boxFactor * cargoFactor;
+  const max = base[1] * boxFactor * cargoFactor;
+  const unit = box === "LCL" ? "/CBM or W/M" : `/${box}`;
+  return {
+    lane,
+    min,
+    max,
+    unit,
+    label: `USD ${formatRange(min, max, unit)}`,
+    basis: box === "LCL" ? "拼箱按 W/M、最低收费和目的港费用差异很大。" : "整柜按箱型、船司、有效期、旺季附加费和目的港费用变化。"
+  };
+}
+
+function airMarketRateEstimate(origin = {}, destination = {}, weight = 300, cargo = "general") {
+  const pair = `${origin.region || ""}->${destination.region || ""}`;
+  let base = [3.2, 6.2];
+  if (/china|asia/.test(origin.region || "") && /us-west|us-east|us-central/.test(destination.region || "")) base = [4.2, 8.8];
+  else if (/china|asia/.test(origin.region || "") && /europe|uk/.test(destination.region || "")) base = [3.6, 7.2];
+  else if (/china|asia/.test(origin.region || "") && /southeast-asia|asia-hub/.test(destination.region || "")) base = [1.8, 4.2];
+  else if (/latin-america/.test(destination.region || "")) base = [6.5, 12.5];
+  const cargoFactor = { general: 1, "battery-contained": 1.18, "battery-alone": 1.55, magnetic: 1.22, express: 1.75 }[cargo] || 1;
+  const weightFactor = weight >= 1000 ? 0.88 : weight >= 500 ? 0.95 : weight <= 100 ? 1.25 : 1;
+  const min = base[0] * cargoFactor * weightFactor;
+  const max = base[1] * cargoFactor * weightFactor;
+  return {
+    pair,
+    min,
+    max,
+    label: `USD ${min.toFixed(2)}-${max.toFixed(2)}/kg`,
+    total: `USD ${formatRange(min * weight, max * weight)}`,
+    basis: "按计费重、航司/货代渠道、燃油安检、货站和目的港清关费用变化。"
+  };
+}
+
+function renderMarketSourceLinks(mode = "sea") {
+  return `<div class="source-chip-grid">${(marketSourceLinks[mode] || []).map(([title, url]) => `<a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${escapeHtml(title)}</a>`).join("")}</div>`;
+}
+
+function renderSeaMarketRate(event) {
+  event?.preventDefault();
+  const target = $("seaMarketRateResult");
+  if (!target) return;
+  const originQuery = $("seaMarketOrigin")?.value || "上海";
+  const destinationQuery = $("seaMarketDestination")?.value || "Los Angeles";
+  const box = $("seaMarketBox")?.value || "40HQ";
+  const cargo = $("seaMarketCargo")?.value || "general";
+  const origin = findPortRiskProfile(originQuery) || findPortRiskProfile("上海");
+  const destination = findPortRiskProfile(destinationQuery) || findPortRiskProfile("Los Angeles");
+  const days = routeDaysForPorts(origin, destination);
+  const rate = seaMarketRateEstimate(origin, destination, box, cargo);
+  const delay = ((origin.baseDelay || 1.8) + (destination.baseDelay || 1.8)) / 2;
+  const extra = cargo === "dg" ? "危险品要逐票确认船司接收、危申、港区进港窗口和 DG surcharge。" : cargo === "reefer" ? "冷箱要确认插电、温控、PTI、目的港冷箱费和超期堆存。" : cargo === "oog" ? "OOG/特种箱必须先拿船司和码头确认，市场价只能作方向参考。" : "普通货仍需确认旺季附加费、BAF、PSS、目的港费用和免堆免箱。";
+  target.innerHTML = `
+    ${renderResultBrief({
+      className: "market-rate-brief primary",
+      kicker: "Sea Market Price",
+      title: `${origin.cn || origin.name} → ${destination.cn || destination.name} · ${box}`,
+      updatedLabel: "市场参考区间",
+      conclusion: `当前可先按 ${rate.label} 做预算区间；正式报价要拿船司/货代有效期和附加费明细。`,
+      risk: `平均船期 ${days[0]}-${days[1]} 天；平均延误约 ${delay.toFixed(1)} 天。`,
+      cost: rate.basis,
+      action: "至少向 2-3 家船司/货代核价，要求列明海运费、BAF/PSS、文件费、目的港费、免堆免箱和有效期。",
+      source: "市场区间模型 + 主流船司/货代公开报价入口；不是合约价或保证价。",
+      links: marketSourceLinks.sea
+    })}
+    <article class="market-rate-card primary"><span>参考海运价</span><strong>${escapeHtml(rate.label)}</strong><p>${escapeHtml(rate.basis)}</p></article>
+    <article class="market-rate-card"><span>平均船期</span><strong>${days[0]}-${days[1]} 天</strong><p>按起运港/目的港区域估算，直航、转运和船司挂靠会改变时效。</p></article>
+    <article class="market-rate-card warning"><span>费用风险</span><strong>${escapeHtml(extra)}</strong><p>报价单必须拆明细，不建议只看一个 all-in 数字。</p></article>
+    <article class="market-rate-card wide"><span>主要参考入口</span>${renderMarketSourceLinks("sea")}</article>
+  `;
+}
+
+function renderAirMarketRate(event) {
+  event?.preventDefault();
+  const target = $("airMarketRateResult");
+  if (!target) return;
+  const originQuery = $("airMarketOrigin")?.value || "PVG";
+  const destinationQuery = $("airMarketDestination")?.value || "LAX";
+  const weight = Math.max(1, Number($("airMarketWeight")?.value || 300));
+  const cargo = $("airMarketCargo")?.value || "general";
+  const origin = findAirportRiskProfile(originQuery) || findAirportRiskProfile("PVG");
+  const destination = findAirportRiskProfile(destinationQuery) || findAirportRiskProfile("LAX");
+  const hours = flightHoursForAirports(origin, destination);
+  const rate = airMarketRateEstimate(origin, destination, weight, cargo);
+  const batteryRate = Math.round(((origin.batteryRate || 18) + (destination.batteryRate || 18)) / 2 + (cargo.includes("battery") ? 8 : cargo === "magnetic" ? 5 : 0));
+  const action = cargo === "battery-alone"
+    ? "电池单独运输要先确认 PI965、SOC、危包/限量、航司接收和目的国清关资料。"
+    : cargo === "battery-contained"
+      ? "含电池设备要先确认 MSDS/SDS、UN38.3、Wh、包装方式和承运人接收限制。"
+      : cargo === "magnetic"
+        ? "磁性/带喇叭货物要先准备磁检或航空运输鉴定。"
+        : "普货也要确认计费重、燃油、安检、货站、报关和目的港清关费用。";
+  target.innerHTML = `
+    ${renderResultBrief({
+      className: "market-rate-brief primary",
+      kicker: "Air Market Price",
+      title: `${origin.iata || origin.cn} → ${destination.iata || destination.cn} · ${weight} kg`,
+      updatedLabel: "市场参考区间",
+      conclusion: `当前可先按 ${rate.label}、总价 ${rate.total} 做预算区间；正式以航空公司/货代有效报价为准。`,
+      risk: `锂电池/敏感货查验或预审率估算 ${batteryRate}%；航班时效约 ${hours[0]}-${hours[1]} 小时，不含清关和派送。`,
+      cost: rate.basis,
+      action,
+      source: "市场区间模型 + 航空公司/快件/货代公开入口；不是合约价或保证价。",
+      links: marketSourceLinks.air
+    })}
+    <article class="market-rate-card primary"><span>参考空运价</span><strong>${escapeHtml(rate.label)}</strong><p>按 ${escapeHtml(String(weight))} kg 计费重估算，总价约 ${escapeHtml(rate.total)}。</p></article>
+    <article class="market-rate-card"><span>航程时效</span><strong>${hours[0]}-${hours[1]} 小时</strong><p>不含截仓、安检、清关、仓储和末端派送。</p></article>
+    <article class="market-rate-card warning"><span>敏感货风险</span><strong>${batteryRate}% 预审/查验关注</strong><p>${escapeHtml(action)}</p></article>
+    <article class="market-rate-card wide"><span>主要参考入口</span>${renderMarketSourceLinks("air")}</article>
+  `;
+}
+
+function activateRiskCenterTab(tabId = "risk-port-panel") {
+  if (!$(tabId)) return;
+  activateTab(tabId);
+}
+
+function riskToneClass(score = 0) {
+  return riskLevelFromScore(score).tone;
+}
+
+function renderRiskScoreCard(score = 0, label = "风险分") {
+  const safe = clampPercent(score);
+  const level = riskLevelFromScore(score);
+  return `
+    <article class="risk-score-card ${escapeHtml(level.tone)}">
+      <span>${escapeHtml(label)}</span>
+      <strong>${safe}</strong>
+      <p>${escapeHtml(level.label)}</p>
+      <div class="risk-score-meter"><i style="width:${safe}%"></i></div>
+    </article>
+  `;
+}
+
+function renderRiskPortResult(event) {
+  event?.preventDefault();
+  const target = $("riskPortResult");
+  if (!target) return;
+  const origin = findPortRiskProfile($("riskPortOrigin")?.value || "上海") || findPortRiskProfile("上海");
+  const destination = findPortRiskProfile($("riskPortDestination")?.value || "洛杉矶") || findPortRiskProfile("洛杉矶");
+  const cargo = $("riskPortCargo")?.value || "general";
+  const days = routeDaysForPorts(origin, destination);
+  const delay = ((origin.baseDelay || 1.8) + (destination.baseDelay || 1.8)) / 2 + (cargo === "dg" ? 1.2 : cargo === "reefer" ? 0.7 : cargo === "oog" ? 1.5 : cargo === "battery" ? 0.5 : 0);
+  const score = clampPercent(((origin.risk || 50) + (destination.risk || 50)) / 2 + delay * 3 + (cargo === "dg" ? 10 : cargo === "oog" ? 12 : cargo === "reefer" ? 7 : cargo === "battery" ? 5 : 0));
+  const level = riskLevelFromScore(score);
+  const actions = [
+    "先确认是否直航、是否中转、船司挂靠和预计截关/开船/到港日期。",
+    "把目的港免堆免箱、预约提柜、查验、港杂和内陆派送窗口一起核价。",
+    cargo === "dg" ? "危险品要先确认 UN 号、Class、危申、船司接收和港区进港窗口。" : "",
+    cargo === "reefer" ? "冷箱要确认 PTI、设定温度、插电、监控和目的港冷箱费。" : "",
+    cargo === "oog" ? "OOG/大件要先确认尺寸、重量、吊点、绑扎和特殊设备。" : ""
+  ].filter(Boolean);
+  target.innerHTML = `
+    ${renderResultBrief({
+      className: `risk-center-brief ${level.tone}`,
+      kicker: "Port Risk Brief",
+      title: `${origin.cn || origin.name} → ${destination.cn || destination.name}`,
+      updatedLabel: "风险模型估算",
+      conclusion: `我的判断：这条港口路径是 ${level.label}，平均船期约 ${days[0]}-${days[1]} 天，平均延误约 ${delay.toFixed(1)} 天。`,
+      risk: `${score}/100 · ${origin.cn || origin.name}：${origin.note || "待核验"}；${destination.cn || destination.name}：${destination.note || "待核验"}`,
+      cost: "延误会影响改配、堆存、滞箱、拖车等待、客户交付承诺和可能的空运替代成本。",
+      action: actions[0],
+      source: "全球主要港口风险模型 + 港口公开新闻/码头/船司核验入口；正式交期以船司和码头事件为准。"
+    })}
+    ${renderRiskScoreCard(score, "港口路线风险")}
+    <article class="risk-center-card"><span>平均船期</span><strong>${days[0]}-${days[1]} 天</strong><p>按港口区域和常见航线估算，直航/中转会改变结果。</p></article>
+    <article class="risk-center-card"><span>平均延误</span><strong>${delay.toFixed(1)} 天</strong><p>已叠加出发港、目的港和货型敏感度。</p></article>
+    <article class="risk-center-card wide"><span>建议动作</span><ul>${actions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
+  `;
+}
+
+function renderRiskAirportResult(event) {
+  event?.preventDefault();
+  const target = $("riskAirportResult");
+  if (!target) return;
+  const origin = findAirportRiskProfile($("riskAirportOrigin")?.value || "PVG") || findAirportRiskProfile("PVG");
+  const destination = findAirportRiskProfile($("riskAirportDestination")?.value || "LAX") || findAirportRiskProfile("LAX");
+  const cargo = $("riskAirportCargo")?.value || "general";
+  const hours = flightHoursForAirports(origin, destination);
+  const cargoAdd = cargo === "battery-alone" ? 14 : cargo === "battery-contained" ? 8 : cargo === "magnetic" ? 6 : cargo === "express" ? 4 : 0;
+  const batteryRate = clampPercent(((origin.batteryRate || 18) + (destination.batteryRate || 18)) / 2 + cargoAdd);
+  const delay = ((origin.baseDelay || 8) + (destination.baseDelay || 8)) / 2 + (cargoAdd / 3);
+  const score = clampPercent(((origin.risk || 50) + (destination.risk || 50)) / 2 + cargoAdd + delay / 2);
+  const level = riskLevelFromScore(score);
+  const curve = (origin.curve || [12, 14, 16, 18, 20, 18, 17, 19]).map((item) => clampPercent(item + cargoAdd));
+  const action = cargo === "battery-alone"
+    ? "电池单独运输要先确认 PI965、SOC、UN38.3、MSDS/SDS、危包和航空公司接收。"
+    : cargo === "battery-contained"
+      ? "含电池设备要先确认 Wh、UN38.3、MSDS/SDS、包装方式和 PI966/967 边界。"
+      : cargo === "magnetic"
+        ? "磁性货先做磁检/航空鉴定，避免安检后被退仓。"
+        : "普货仍需确认真实品名、品牌、用途、申报价值和目的国清关资料。";
+  target.innerHTML = `
+    ${renderResultBrief({
+      className: `risk-center-brief ${level.tone}`,
+      kicker: "Airport Risk Brief",
+      title: `${origin.iata || origin.cn} → ${destination.iata || destination.cn}`,
+      updatedLabel: "风险模型估算",
+      conclusion: `我的判断：这条机场路径是 ${level.label}，锂电池/敏感货预审或查验关注率约 ${batteryRate}%，航程约 ${hours[0]}-${hours[1]} 小时。`,
+      risk: `${score}/100 · 出发机场：${origin.note || "待核验"}；目的机场：${destination.note || "待核验"}`,
+      cost: "机场风险会影响退仓、重贴标签、重新订舱、仓储、安检、燃油和客户交期。",
+      action,
+      source: "机场风险模型 + 航空公司/货站/快件规则入口；真实查验率以承运人和机场货站反馈为准。"
+    })}
+    ${renderRiskScoreCard(score, "机场路线风险")}
+    <article class="risk-center-card"><span>锂电池关注率</span><strong>${batteryRate}%</strong><p>这是业务预审模型，不是官方统计查验率。</p></article>
+    <article class="risk-center-card"><span>航程时效</span><strong>${hours[0]}-${hours[1]} 小时</strong><p>不含截仓、安检、清关、仓储和派送。</p></article>
+    <article class="risk-center-card wide"><span>查验/预审曲线</span>${renderMiniCurve(curve, "锂电池关注率趋势")}<p>${escapeHtml(action)}</p></article>
+  `;
+}
+
+function renderRiskRouteResult(event) {
+  event?.preventDefault();
+  const target = $("riskRouteResult");
+  if (!target) return;
+  const query = $("riskRouteQuery")?.value || "中国到欧洲";
+  const mode = $("riskRouteMode")?.value || "sea";
+  const text = normalize(query);
+  const redSea = /红海|suez|苏伊士|中东|jeddah|吉达|europe|欧洲/.test(text);
+  const panama = /巴拿马|panama|美东|us east|new york|savannah/.test(text);
+  const typhoon = /中国|华南|上海|宁波|深圳|台湾|日本|韩国|台风|typhoon/.test(text);
+  const score = clampPercent(42 + (redSea ? 18 : 0) + (panama ? 10 : 0) + (typhoon ? 8 : 0) + (mode === "air" ? -6 : 0));
+  const level = riskLevelFromScore(score);
+  const points = [
+    redSea ? "红海/苏伊士相关航线要确认是否绕航、保险、船司挂靠和中转港变化。" : "",
+    panama ? "经巴拿马或美东路线要确认运河/铁路/内陆转运能力。" : "",
+    typhoon ? "台风季或东亚港口路线要关注停航、封港、截关提前和改港。" : "",
+    mode === "air" ? "空运路线重点看航班密度、舱位、安检和中转衔接。" : "海运路线重点看直航/中转、甩柜、跳港和目的港堆场。"
+  ].filter(Boolean);
+  target.innerHTML = `
+    ${renderResultBrief({
+      className: `risk-center-brief ${level.tone}`,
+      kicker: "Route Risk Brief",
+      title: query,
+      updatedLabel: "航线判断",
+      conclusion: `我的判断：当前航线为 ${level.label}，风险分 ${score}/100。`,
+      risk: points[0] || "未见明显特殊航线风险，但仍需确认承运人时效和中转安排。",
+      cost: "航线风险会影响绕航费、燃油、舱位、改配、仓储、客户交付承诺。",
+      action: "向承运人/货代确认最新航线、是否中转、是否跳港、预计 ETD/ETA 和费用有效期。",
+      source: "航线风险规则 + 公开趋势/承运人核验入口。"
+    })}
+    ${renderRiskScoreCard(score, "航线风险")}
+    <article class="risk-center-card wide"><span>风险点</span><ul>${points.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
+  `;
+}
+
+function renderRiskPolicyResult(event) {
+  event?.preventDefault();
+  const target = $("riskPolicyResult");
+  if (!target) return;
+  const query = $("riskPolicyQuery")?.value || "美国 蓝牙耳机关税";
+  const text = normalize(query);
+  const tariff = /关税|tariff|301|232|duty/.test(text);
+  const cert = /认证|fcc|ce|red|anatel|inmetro|nbtc|saber|ccc|rohs|reach/.test(text);
+  const battery = /电池|battery|锂/.test(text);
+  const score = clampPercent(38 + (tariff ? 18 : 0) + (cert ? 16 : 0) + (battery ? 12 : 0) + (/美国|欧盟|巴西|沙特|印度|us|eu|brazil|india/.test(text) ? 8 : 0));
+  const level = riskLevelFromScore(score);
+  const actions = [
+    tariff ? "先确认 HS、原产国、额外关税、贸易救济和实施日期。" : "",
+    cert ? "先确认强制认证、证书覆盖型号、标签语言、说明书和测试报告。" : "",
+    battery ? "同步确认 UN38.3、MSDS/SDS、Wh、包装和承运限制。" : "",
+    "把官方公告、进口商确认、报关行意见和报价假设保存到同一票记录。"
+  ].filter(Boolean);
+  target.innerHTML = `
+    ${renderResultBrief({
+      className: `risk-center-brief ${level.tone}`,
+      kicker: "Policy Risk Brief",
+      title: query,
+      updatedLabel: "政策/清关判断",
+      conclusion: `我的判断：这是 ${level.label} 的政策/清关问题，风险分 ${score}/100。`,
+      risk: actions[0] || "目前问题描述较泛，需要补国家、产品、HS、原产国和用途。",
+      cost: "政策风险会影响关税、认证费用、标签整改、查验、仓储和客户报价有效期。",
+      action: actions[0] || "补充国家、产品、用途、HS、原产国和是否含电池/无线功能。",
+      source: "政策/清关规则 + 官方入口核验；可继续进入政策变化模块做公开来源搜索。"
+    })}
+    ${renderRiskScoreCard(score, "政策清关风险")}
+    <article class="risk-center-card wide"><span>建议动作</span><ul>${actions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
+  `;
+}
+
+function fillRiskCenterFromQuery(query = "", tabId = "") {
+  const value = String(query || "").trim();
+  const route = splitRouteQuery(value);
+  const airport = findAirportCodeProfile(value) || findAirportRiskProfile(route.origin || value);
+  const port = findPortRiskProfile(value) || findPortRiskProfile(route.origin || value);
+  if (airport || /机场|空运|航空|查验率|battery|锂电池/.test(normalize(value))) {
+    activateRiskCenterTab(tabId || "risk-airport-panel");
+    if ($("riskAirportOrigin")) $("riskAirportOrigin").value = route.origin || value;
+    if ($("riskAirportDestination")) $("riskAirportDestination").value = route.destination || "";
+    if (/电池单独|battery alone|un3480|pi965/i.test(value) && $("riskAirportCargo")) $("riskAirportCargo").value = "battery-alone";
+    else if (/电池|battery|un3481|pi966|pi967/i.test(value) && $("riskAirportCargo")) $("riskAirportCargo").value = "battery-contained";
+    renderRiskAirportResult({ preventDefault() {} });
+    return;
+  }
+  if (port || /港|海运|船|拥堵|塞港|delay|congestion/.test(normalize(value))) {
+    activateRiskCenterTab(tabId || "risk-port-panel");
+    if ($("riskPortOrigin")) $("riskPortOrigin").value = route.origin || value;
+    if ($("riskPortDestination")) $("riskPortDestination").value = route.destination || "";
+    if (/危险品|dg|class|un\d+/i.test(value) && $("riskPortCargo")) $("riskPortCargo").value = "dg";
+    else if (/冷箱|reefer/i.test(value) && $("riskPortCargo")) $("riskPortCargo").value = "reefer";
+    renderRiskPortResult({ preventDefault() {} });
+    return;
+  }
+  activateRiskCenterTab(tabId || "risk-policy-panel");
+  if ($("riskPolicyQuery")) $("riskPolicyQuery").value = value;
+  renderRiskPolicyResult({ preventDefault() {} });
+}
+
+async function renderRiskCenterFromQuery(query = "") {
+  fillRiskCenterFromQuery(query);
 }
 
 function buildSeaLoadInquiryText() {
@@ -12993,9 +13657,11 @@ function activateTab(targetId = "") {
     ? $("shipment")
     : targetId.startsWith("policy-")
       ? $("policy")
-      : targetId.startsWith("hs-")
-        ? $("hs")
-        : target.closest("section") || document;
+      : targetId.startsWith("risk-")
+        ? $("risk-center")
+        : targetId.startsWith("hs-")
+          ? $("hs")
+          : target.closest("section") || document;
   scope.querySelectorAll(".tab-panel").forEach((panel) => {
     panel.classList.toggle("active", panel.id === targetId);
   });
@@ -13043,7 +13709,9 @@ function bindEvents() {
   updateHsSmartAssist();
   $("globalSearchForm")?.addEventListener("submit", runGlobalSearch);
   $("globalSearchInput")?.addEventListener("input", () => {
-    renderGlobalSearchResult($("globalSearchInput")?.value || "");
+    const value = $("globalSearchInput")?.value || "";
+    renderGlobalSearchLiveAssist(value);
+    renderGlobalSearchResult(value);
   });
   $("globalSearchChips")?.addEventListener("click", (event) => {
     const button = event.target.closest("[data-global-query]");
@@ -13052,14 +13720,18 @@ function bindEvents() {
     runGlobalSearch(new Event("submit"));
   });
   $("globalSearchResult")?.addEventListener("click", async (event) => {
-    const button = event.target.closest("[data-global-module]");
+    const button = event.target.closest("[data-global-module], [data-live-module]");
     if (!button) return;
-    if (!requireAccess()) return;
     const query = button.dataset.globalQuery || $("globalSearchInput")?.value || "";
-    const moduleId = button.dataset.globalModule || "";
-    applyGlobalSearchFill(moduleId, query);
-    activateWorkspaceModule(moduleId, true);
-    await executeGlobalSearchModule(moduleId, query);
+    const moduleId = button.dataset.globalModule || button.dataset.liveModule || "";
+    await openGlobalSearchModule(moduleId, query, button.dataset.liveTab || "");
+  });
+  $("globalSearchLiveAssist")?.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-live-module]");
+    if (!button) return;
+    const query = button.dataset.globalQuery || $("globalSearchInput")?.value || "";
+    if ($("globalSearchInput")) $("globalSearchInput").value = query;
+    await openGlobalSearchModule(button.dataset.liveModule || "", query, button.dataset.liveTab || "");
   });
   document.addEventListener("click", (event) => {
     const button = event.target.closest("[data-copy-inquiry]");
@@ -13176,6 +13848,16 @@ function bindEvents() {
   $("airOpsFeeForm")?.addEventListener("submit", renderAirOpsFees);
   $("airOpsFeeNode")?.addEventListener("change", renderAirOpsFees);
   $("airOpsFeeType")?.addEventListener("change", renderAirOpsFees);
+  $("seaMarketRateForm")?.addEventListener("submit", renderSeaMarketRate);
+  $("airMarketRateForm")?.addEventListener("submit", renderAirMarketRate);
+  ["seaMarketOrigin", "seaMarketDestination", "seaMarketBox", "seaMarketCargo"].forEach((id) => {
+    $(id)?.addEventListener("input", () => renderSeaMarketRate({ preventDefault() {} }));
+    $(id)?.addEventListener("change", () => renderSeaMarketRate({ preventDefault() {} }));
+  });
+  ["airMarketOrigin", "airMarketDestination", "airMarketWeight", "airMarketCargo"].forEach((id) => {
+    $(id)?.addEventListener("input", () => renderAirMarketRate({ preventDefault() {} }));
+    $(id)?.addEventListener("change", () => renderAirMarketRate({ preventDefault() {} }));
+  });
 	  $("loadAirExample")?.addEventListener("click", loadAirExample);
 	  $("airGuideForm")?.addEventListener("submit", evaluateAirGuide);
 	  $("loadAirGuideExample")?.addEventListener("click", loadAirGuideExample);
@@ -13260,6 +13942,18 @@ function bindEvents() {
     if (button) applyPortSuggestion(button);
   });
   $("portRiskForm").addEventListener("submit", queryPortRisk);
+  $("riskPortForm")?.addEventListener("submit", renderRiskPortResult);
+  $("riskAirportForm")?.addEventListener("submit", renderRiskAirportResult);
+  $("riskRouteForm")?.addEventListener("submit", renderRiskRouteResult);
+  $("riskPolicyForm")?.addEventListener("submit", renderRiskPolicyResult);
+  ["riskPortOrigin", "riskPortDestination", "riskPortCargo"].forEach((id) => {
+    $(id)?.addEventListener("input", () => renderRiskPortResult({ preventDefault() {} }));
+    $(id)?.addEventListener("change", () => renderRiskPortResult({ preventDefault() {} }));
+  });
+  ["riskAirportOrigin", "riskAirportDestination", "riskAirportCargo"].forEach((id) => {
+    $(id)?.addEventListener("input", () => renderRiskAirportResult({ preventDefault() {} }));
+    $(id)?.addEventListener("change", () => renderRiskAirportResult({ preventDefault() {} }));
+  });
   $("batteryForm").addEventListener("submit", evaluateBattery);
   $("loadBatteryExample").addEventListener("click", loadBatteryExample);
   $("resetBattery").addEventListener("click", resetBattery);
@@ -13356,7 +14050,14 @@ renderAirportLookup("PVG");
 populateOpsFeeSelects();
 renderSeaOpsFees();
 renderAirOpsFees();
+renderSeaMarketRate({ preventDefault() {} });
+renderAirMarketRate({ preventDefault() {} });
 renderSeaSpecialGuide();
+renderGlobalSearchLiveAssist($("globalSearchInput")?.value || "");
+renderRiskPortResult({ preventDefault() {} });
+renderRiskAirportResult({ preventDefault() {} });
+renderRiskRouteResult({ preventDefault() {} });
+renderRiskPolicyResult({ preventDefault() {} });
 queryAirTracking({ preventDefault() {} });
 renderIssues();
 renderFeedbacks();

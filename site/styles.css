@@ -6017,6 +6017,107 @@ nav a[href="#learn"]::before {
   gap: 8px;
 }
 
+.global-search-live-assist {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 10px;
+}
+
+.live-intent-panel,
+.global-ai-answer {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(14, 165, 233, 0.28);
+  border-radius: 8px;
+  background: #f8fcff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.live-intent-head,
+.global-ai-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.live-intent-head span,
+.global-ai-head span {
+  color: #0369a1;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.live-intent-head strong,
+.global-ai-head strong {
+  color: #0f172a;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.live-intent-actions,
+.global-ai-action-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.live-intent-actions button,
+.global-ai-action-grid button {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  min-height: 74px;
+  padding: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0f172a;
+  text-align: left;
+  cursor: pointer;
+}
+
+.live-intent-actions button:hover,
+.global-ai-action-grid button:hover {
+  border-color: rgba(37, 99, 235, 0.55);
+  background: #eef6ff;
+}
+
+.live-intent-actions b,
+.global-ai-action-grid b {
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.live-intent-actions small,
+.global-ai-action-grid span {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.global-ai-answer {
+  grid-column: 1 / -1;
+  border-color: rgba(34, 197, 94, 0.28);
+  background: #f7fff9;
+}
+
+.global-ai-answer p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.55;
+}
+
+.global-ai-answer > small {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .global-search-chips button {
   min-height: 32px;
   padding: 6px 10px;
@@ -6157,6 +6258,204 @@ nav a[href="#learn"]::before {
 .requirement-result-brief,
 .shipment-result-brief {
   margin-bottom: 10px;
+}
+
+.market-rate-panel,
+.risk-center-panel {
+  margin-top: 16px;
+}
+
+.market-rate-form,
+.risk-center-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.market-rate-result-grid,
+.risk-center-result-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.market-rate-card,
+.risk-center-card,
+.risk-score-card {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.market-rate-card.wide,
+.risk-center-card.wide {
+  grid-column: 1 / -1;
+}
+
+.market-rate-card.primary,
+.risk-center-card.primary {
+  border-color: rgba(37, 99, 235, 0.34);
+  background: #f8fbff;
+}
+
+.market-rate-card.warning,
+.risk-center-card.warning {
+  border-color: rgba(217, 119, 6, 0.36);
+  background: #fffaf2;
+}
+
+.market-rate-card span,
+.risk-center-card span,
+.risk-score-card span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.market-rate-card strong,
+.risk-center-card strong,
+.risk-score-card strong {
+  color: #0f172a;
+  font-size: 22px;
+  line-height: 1.18;
+}
+
+.market-rate-card p,
+.risk-center-card p,
+.risk-center-card li,
+.risk-score-card p {
+  margin: 0;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.risk-center-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
+  gap: 16px;
+  align-items: stretch;
+  margin-bottom: 14px;
+}
+
+.risk-center-hero > div {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.risk-center-hero h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.risk-center-hero p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.55;
+}
+
+.risk-center-stats {
+  align-content: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.risk-center-stats span {
+  padding: 10px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.risk-center-tabs {
+  margin-bottom: 12px;
+}
+
+.risk-page-panel {
+  display: none;
+}
+
+.risk-page-panel.active {
+  display: block;
+}
+
+.risk-score-card {
+  border-color: rgba(14, 165, 233, 0.34);
+  background: #f8fcff;
+}
+
+.risk-score-card.warn,
+.risk-score-card.danger,
+.risk-center-brief.warn,
+.risk-center-brief.danger {
+  border-color: rgba(217, 119, 6, 0.45);
+  background: #fffaf2;
+}
+
+.risk-score-card.danger,
+.risk-center-brief.danger {
+  border-color: rgba(220, 38, 38, 0.42);
+  background: #fff7f7;
+}
+
+.risk-score-meter {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.risk-score-meter i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22c55e, #f59e0b, #ef4444);
+}
+
+.mini-curve {
+  display: flex;
+  align-items: end;
+  gap: 7px;
+  min-height: 110px;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.mini-curve i {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 12px;
+  border-radius: 6px 6px 2px 2px;
+  background: #2563eb;
+}
+
+.mini-curve span {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 4px;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 850;
 }
 
 body[data-active-module]:not([data-active-module="dashboard"]) .global-query-panel {
@@ -15680,5 +15979,48 @@ body[data-active-module="air-fees"] .ops-fee-hero::after {
 
   .declaration-paper-actions small {
     line-height: 1.5;
+  }
+}
+
+/* v73 final mobile overrides. */
+@media (max-width: 900px) {
+  .live-intent-actions,
+  .global-ai-action-grid,
+  .market-rate-form,
+  .risk-center-form,
+  .market-rate-result-grid,
+  .risk-center-result-grid,
+  .risk-center-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .global-search-form,
+  .global-search-result,
+  .live-intent-actions,
+  .global-ai-action-grid,
+  .market-rate-form,
+  .risk-center-form,
+  .market-rate-result-grid,
+  .risk-center-result-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .global-search-form button {
+    width: 100%;
+  }
+
+  .global-search-chips,
+  .mobile-quick-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+
+  .global-search-chips button,
+  .mobile-quick-nav a {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
   }
 }

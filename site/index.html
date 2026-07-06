@@ -15,7 +15,7 @@
         display: none !important;
       }
     </style>
-    <link rel="stylesheet" href="./styles.css?v=20260702-decision-v64" />
+    <link rel="stylesheet" href="./styles.css?v=20260706-ai-risk-v66" />
   </head>
   <body class="auth-pending is-public-home">
     <button type="button" class="login-trigger" id="openLoginDialog">登录</button>
@@ -73,15 +73,15 @@
             <a href="#shipment"><span class="nav-icon nav-icon-shipment" aria-hidden="true"></span><span>船期和船舶位置</span></a>
             <a href="#sea-load"><span class="nav-icon nav-icon-shipment" aria-hidden="true"></span><span>海运装载计算</span></a>
             <a href="#sea-special"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>特种箱/BBK/OOG/Reefer</span></a>
-            <a href="#sea-fees"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>海运码头费用</span></a>
-            <a href="#port-risk"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>港口/物流风险</span></a>
+            <a href="#sea-fees"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>海运价格/费用</span></a>
+            <a href="#risk-center"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>风险预警中心</span></a>
           </details>
 
           <details class="nav-group">
             <summary>空运</summary>
             <a href="#air"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运/快件查询</span></a>
             <a href="#air-calc"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>非快件空运计算</span></a>
-            <a href="#air-fees"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运机场费用</span></a>
+            <a href="#air-fees"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运价格/费用</span></a>
             <a href="#air-guide"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运出运/到达注意</span></a>
           </details>
 
@@ -122,11 +122,11 @@
         <a href="#shipment"><span class="nav-icon nav-icon-shipment" aria-hidden="true"></span><span>海运</span></a>
         <a href="#sea-load"><span class="nav-icon nav-icon-shipment" aria-hidden="true"></span><span>海算</span></a>
         <a href="#sea-special"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>特箱</span></a>
-        <a href="#sea-fees"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>海费</span></a>
-        <a href="#port-risk"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>港口</span></a>
+        <a href="#sea-fees"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>海价</span></a>
+        <a href="#risk-center"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>风险</span></a>
         <a href="#air"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运</span></a>
         <a href="#air-calc"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空算</span></a>
-        <a href="#air-fees"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空费</span></a>
+        <a href="#air-fees"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空价</span></a>
         <a href="#customs"><span class="nav-icon nav-icon-customs" aria-hidden="true"></span><span>通关</span></a>
         <a href="#docs-invoice"><span class="nav-icon nav-icon-docs" aria-hidden="true"></span><span>单证</span></a>
         <a href="#docs-declaration"><span class="nav-icon nav-icon-declaration" aria-hidden="true"></span><span>报关</span></a>
@@ -160,22 +160,25 @@
         <section class="global-query-panel" id="globalQueryPanel" aria-label="全局查询入口">
           <div class="global-query-copy">
               <p class="eyebrow">Global Logistics Search</p>
-              <h2>输入一个线索，进入正确查询</h2>
-              <p>船名、箱号、港口、机场、费用、产品国家要求或政策关键词，都先从这里分流。</p>
+              <h2>问任何物流、关务、贸易问题</h2>
+              <p>像和顾问对话一样输入：机场代码、船期、价格、风险、政策、单证、税号，系统会先判断意图，再自动调用对应模块。</p>
           </div>
           <form id="globalSearchForm" class="global-search-form">
             <label>
-              全局搜索
-              <input id="globalSearchInput" type="search" inputmode="search" lang="zh-CN" placeholder="问点什么，例如：CAIU9615034、XIN ZHANJIANG、巴西蓝牙耳机、上海港费用、PVG、85182100" />
+              问 LogisMaster
+              <input id="globalSearchInput" type="search" inputmode="search" lang="zh-CN" autocomplete="off" placeholder="问点什么，例如：PVG、上海到洛杉矶海运价格、锂电池空运风险、特朗普关税影响、85182100" />
             </label>
-            <button type="submit" class="primary-button">搜索</button>
+            <button type="submit" class="primary-button">直接回答</button>
           </form>
+          <div id="globalSearchLiveAssist" class="global-search-live-assist" aria-live="polite"></div>
           <div class="global-search-chips" id="globalSearchChips">
+            <button type="button" data-global-query="PVG">PVG 机场</button>
             <button type="button" data-global-query="XIN ZHANJIANG">船名查询</button>
             <button type="button" data-global-query="CAIU9615034">箱号查询</button>
-            <button type="button" data-global-query="上海港 港口风险">港口风险</button>
+            <button type="button" data-global-query="上海港 到 洛杉矶港 风险">港口风险</button>
             <button type="button" data-global-query="空运计费 重量 体积">空运计费</button>
-            <button type="button" data-global-query="PVG 机场费用">机场费用</button>
+            <button type="button" data-global-query="上海到洛杉矶海运价格">海运价格</button>
+            <button type="button" data-global-query="PVG 到 LAX 锂电池空运风险">机场风险</button>
             <button type="button" data-global-query="巴西 蓝牙耳机 政策影响">政策影响</button>
           </div>
           <div class="home-helper-grid" aria-label="首页查询提示">
@@ -1084,6 +1087,47 @@
             <div id="seaOpsFeeResult" class="ops-fee-result-grid"></div>
           </section>
 
+          <section class="freight-tool-panel market-rate-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Sea Market Rate</p>
+                <h2>海运市场价格参考</h2>
+              </div>
+              <span class="quiet-tag">主流船司/货代报价口径</span>
+            </div>
+            <form id="seaMarketRateForm" class="query-card market-rate-form">
+              <label>
+                出发港
+                <input id="seaMarketOrigin" lang="zh-CN" placeholder="如 上海 / 宁波 / Shenzhen / CNSHA" />
+              </label>
+              <label>
+                到达港
+                <input id="seaMarketDestination" lang="zh-CN" placeholder="如 Los Angeles / Rotterdam / Jebel Ali" />
+              </label>
+              <label>
+                箱型/运输方式
+                <select id="seaMarketBox">
+                  <option value="40HQ">40HQ 整柜</option>
+                  <option value="40GP">40GP 整柜</option>
+                  <option value="20GP">20GP 整柜</option>
+                  <option value="LCL">LCL 拼箱 / W-M</option>
+                </select>
+              </label>
+              <label>
+                货型
+                <select id="seaMarketCargo">
+                  <option value="general">普通货</option>
+                  <option value="battery">含电池设备</option>
+                  <option value="dg">危险品/DG</option>
+                  <option value="reefer">冷箱/温控</option>
+                  <option value="oog">OOG/特种箱</option>
+                </select>
+              </label>
+              <button type="submit" class="primary-button">查询海运价格</button>
+            </form>
+            <div id="seaMarketRateResult" class="market-rate-result-grid"></div>
+          </section>
+
           <section class="ops-fee-note">
             <strong>使用口径</strong>
             <p>海运费用表把“公开目录能核验的项目”和“参考区间/逐票报价项目”分开。涉及危险品、冷箱、OOG、BBK、查验、超期堆存、夜间作业或改配，必须让货代按具体码头和船司账单核价。</p>
@@ -1144,6 +1188,42 @@
               <button type="submit" class="primary-button">查看空运费用表</button>
             </form>
             <div id="airOpsFeeResult" class="ops-fee-result-grid"></div>
+          </section>
+
+          <section class="freight-tool-panel market-rate-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Air Market Rate</p>
+                <h2>空运市场价格参考</h2>
+              </div>
+              <span class="quiet-tag">航空公司/快件/货代报价口径</span>
+            </div>
+            <form id="airMarketRateForm" class="query-card market-rate-form">
+              <label>
+                出发机场
+                <input id="airMarketOrigin" lang="zh-CN" placeholder="如 PVG / 上海浦东 / HKG" />
+              </label>
+              <label>
+                到达机场
+                <input id="airMarketDestination" lang="zh-CN" placeholder="如 LAX / JFK / FRA / GRU" />
+              </label>
+              <label>
+                计费重量
+                <input id="airMarketWeight" type="number" min="1" step="1" placeholder="如 300 kg" />
+              </label>
+              <label>
+                货型
+                <select id="airMarketCargo">
+                  <option value="general">普货</option>
+                  <option value="battery-contained">含电池设备</option>
+                  <option value="battery-alone">电池单独运输</option>
+                  <option value="magnetic">磁性/带喇叭</option>
+                  <option value="express">快件/门到门</option>
+                </select>
+              </label>
+              <button type="submit" class="primary-button">查询空运价格</button>
+            </form>
+            <div id="airMarketRateResult" class="market-rate-result-grid"></div>
           </section>
 
           <section class="ops-fee-note">
@@ -2099,6 +2179,143 @@
           </div>
         </section>
 
+        <section id="risk-center" class="panel risk-center-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Risk Warning Center</p>
+              <h2>风险预警中心</h2>
+            </div>
+            <span>港口 · 机场 · 航线 · 政策清关</span>
+          </div>
+          <div class="risk-center-hero">
+            <div>
+              <p class="eyebrow">Logistics Risk Answer Engine</p>
+              <h2>输入出发地和目的地，直接给风险结论</h2>
+              <p>风险中心不只列新闻。它会把平均运输天数、常见延误、查验率、资料缺口和下一步动作拆开，让业务能判断能不能承诺交期。</p>
+            </div>
+            <div class="risk-center-stats" aria-label="风险中心覆盖">
+              <span>全球主要港口</span>
+              <span>全球主要机场</span>
+              <span>锂电池/DG</span>
+              <span>政策/清关</span>
+            </div>
+          </div>
+          <div class="module-tabs risk-center-tabs" role="tablist" aria-label="风险预警页面">
+            <button type="button" class="module-tab active" data-tab-target="risk-port-panel">港口风险</button>
+            <button type="button" class="module-tab" data-tab-target="risk-airport-panel">机场风险</button>
+            <button type="button" class="module-tab" data-tab-target="risk-route-panel">航线/海域风险</button>
+            <button type="button" class="module-tab" data-tab-target="risk-policy-panel">政策/清关风险</button>
+          </div>
+
+          <section class="tab-panel active risk-page-panel" id="risk-port-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Port Risk</p>
+                <h2>港口风险</h2>
+              </div>
+              <span class="quiet-tag">平均船期 / 平均延误 / 风险分</span>
+            </div>
+            <form id="riskPortForm" class="query-card risk-center-form">
+              <label>
+                出发港
+                <input id="riskPortOrigin" lang="zh-CN" placeholder="如 上海 / 宁波 / Shenzhen / CNSHA" />
+              </label>
+              <label>
+                到达港
+                <input id="riskPortDestination" lang="zh-CN" placeholder="如 洛杉矶 / Rotterdam / Santos" />
+              </label>
+              <label>
+                货型
+                <select id="riskPortCargo">
+                  <option value="general">普通货</option>
+                  <option value="battery">含电池设备</option>
+                  <option value="dg">危险品/DG</option>
+                  <option value="reefer">冷箱/温控</option>
+                  <option value="oog">OOG/大件</option>
+                </select>
+              </label>
+              <button type="submit" class="primary-button">生成港口风险结论</button>
+            </form>
+            <div id="riskPortResult" class="risk-center-result-grid"></div>
+          </section>
+
+          <section class="tab-panel risk-page-panel" id="risk-airport-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Airport Risk</p>
+                <h2>机场风险</h2>
+              </div>
+              <span class="quiet-tag">锂电池查验率 / 曲线 / 风险分</span>
+            </div>
+            <form id="riskAirportForm" class="query-card risk-center-form">
+              <label>
+                出发机场
+                <input id="riskAirportOrigin" lang="zh-CN" placeholder="如 PVG / HKG / CAN" />
+              </label>
+              <label>
+                到达机场
+                <input id="riskAirportDestination" lang="zh-CN" placeholder="如 LAX / JFK / FRA" />
+              </label>
+              <label>
+                货型
+                <select id="riskAirportCargo">
+                  <option value="general">普货</option>
+                  <option value="battery-contained">含锂电池设备</option>
+                  <option value="battery-alone">锂电池单独运输</option>
+                  <option value="magnetic">磁性/带喇叭</option>
+                  <option value="express">快件/电商件</option>
+                </select>
+              </label>
+              <button type="submit" class="primary-button">生成机场风险结论</button>
+            </form>
+            <div id="riskAirportResult" class="risk-center-result-grid"></div>
+          </section>
+
+          <section class="tab-panel risk-page-panel" id="risk-route-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Route Risk</p>
+                <h2>航线/海域风险</h2>
+              </div>
+              <span class="quiet-tag">红海/巴拿马/台风季/绕航</span>
+            </div>
+            <form id="riskRouteForm" class="query-card risk-center-form">
+              <label>
+                航线或国家
+                <input id="riskRouteQuery" lang="zh-CN" placeholder="如 中国到欧洲 / 上海到鹿特丹 / 红海绕航" />
+              </label>
+              <label>
+                运输方式
+                <select id="riskRouteMode">
+                  <option value="sea">海运</option>
+                  <option value="air">空运</option>
+                  <option value="multimodal">多式联运</option>
+                </select>
+              </label>
+              <button type="submit" class="primary-button">生成航线风险结论</button>
+            </form>
+            <div id="riskRouteResult" class="risk-center-result-grid"></div>
+          </section>
+
+          <section class="tab-panel risk-page-panel" id="risk-policy-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Policy & Customs Risk</p>
+                <h2>政策/清关风险</h2>
+              </div>
+              <span class="quiet-tag">关税 / 认证 / 单证 / 原产地</span>
+            </div>
+            <form id="riskPolicyForm" class="query-card risk-center-form">
+              <label>
+                问题
+                <input id="riskPolicyQuery" lang="zh-CN" placeholder="如 美国 蓝牙耳机关税 / 巴西 ANATEL / 欧盟 CE RED" />
+              </label>
+              <button type="submit" class="primary-button">生成政策风险结论</button>
+            </form>
+            <div id="riskPolicyResult" class="risk-center-result-grid"></div>
+          </section>
+        </section>
+
         <section id="port-risk" class="panel">
           <div class="workspace-title">
             <div>
@@ -2324,6 +2541,6 @@
     <script src="./china-tariff-2026.js?v=20260610-logistics-intel-v12"></script>
     <script src="./trade-measures-data.js?v=20260610-logistics-intel-v12"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="./app.js?v=20260702-decision-v72"></script>
+    <script src="./app.js?v=20260706-ai-risk-v74"></script>
   </body>
 </html>
