@@ -6059,6 +6059,90 @@ nav a[href="#learn"]::before {
   line-height: 1.25;
 }
 
+.global-ai-head small {
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.live-intent-meta,
+.global-ai-signal-row,
+.global-ai-gap-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.live-intent-meta span,
+.global-ai-signal-row span,
+.global-ai-gap-row span {
+  display: inline-flex;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid rgba(125, 211, 252, 0.45);
+  border-radius: 999px;
+  background: rgba(240, 249, 255, 0.92);
+  color: #075985;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.global-ai-gap-row span {
+  border-color: rgba(251, 191, 36, 0.48);
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.global-ai-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.global-ai-metric-grid section {
+  min-width: 0;
+  padding: 9px 10px;
+  border-top: 2px solid rgba(34, 197, 94, 0.35);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.global-ai-metric-grid b {
+  display: block;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.global-ai-metric-grid strong {
+  display: block;
+  margin-top: 3px;
+  color: #0f172a;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.global-ai-judgement {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-left: 3px solid #16a34a;
+  background: rgba(240, 253, 244, 0.72);
+}
+
+.global-ai-judgement b {
+  color: #166534;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.global-ai-judgement p {
+  margin: 0;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .live-intent-actions,
 .global-ai-action-grid {
   display: grid;
@@ -15986,6 +16070,7 @@ body[data-active-module="air-fees"] .ops-fee-hero::after {
 @media (max-width: 900px) {
   .live-intent-actions,
   .global-ai-action-grid,
+  .global-ai-metric-grid,
   .market-rate-form,
   .risk-center-form,
   .market-rate-result-grid,
@@ -16000,6 +16085,7 @@ body[data-active-module="air-fees"] .ops-fee-hero::after {
   .global-search-result,
   .live-intent-actions,
   .global-ai-action-grid,
+  .global-ai-metric-grid,
   .market-rate-form,
   .risk-center-form,
   .market-rate-result-grid,

@@ -15,7 +15,7 @@
         display: none !important;
       }
     </style>
-    <link rel="stylesheet" href="./styles.css?v=20260706-ai-risk-v66" />
+    <link rel="stylesheet" href="./styles.css?v=20260706-ai-judge-v68" />
   </head>
   <body class="auth-pending is-public-home">
     <button type="button" class="login-trigger" id="openLoginDialog">登录</button>
@@ -161,12 +161,12 @@
           <div class="global-query-copy">
               <p class="eyebrow">Global Logistics Search</p>
               <h2>问任何物流、关务、贸易问题</h2>
-              <p>像和顾问对话一样输入：机场代码、船期、价格、风险、政策、单证、税号，系统会先判断意图，再自动调用对应模块。</p>
+              <p>像和顾问对话一样输入一句完整问题：系统先拆解货物、路线、价格、风险、单证和政策，再自动调用对应模块给结论。</p>
           </div>
           <form id="globalSearchForm" class="global-search-form">
             <label>
               问 LogisMaster
-              <input id="globalSearchInput" type="search" inputmode="search" lang="zh-CN" autocomplete="off" placeholder="问点什么，例如：PVG、上海到洛杉矶海运价格、锂电池空运风险、特朗普关税影响、85182100" />
+              <input id="globalSearchInput" type="search" inputmode="search" lang="zh-CN" autocomplete="off" placeholder="问点什么，例如：上海到洛杉矶锂电池空运多少钱，有什么风险？" />
             </label>
             <button type="submit" class="primary-button">直接回答</button>
           </form>
@@ -179,6 +179,7 @@
             <button type="button" data-global-query="空运计费 重量 体积">空运计费</button>
             <button type="button" data-global-query="上海到洛杉矶海运价格">海运价格</button>
             <button type="button" data-global-query="PVG 到 LAX 锂电池空运风险">机场风险</button>
+            <button type="button" data-global-query="上海到洛杉矶锂电池空运多少钱，有什么风险？">AI 综合结论</button>
             <button type="button" data-global-query="巴西 蓝牙耳机 政策影响">政策影响</button>
           </div>
           <div class="home-helper-grid" aria-label="首页查询提示">
@@ -2541,6 +2542,6 @@
     <script src="./china-tariff-2026.js?v=20260610-logistics-intel-v12"></script>
     <script src="./trade-measures-data.js?v=20260610-logistics-intel-v12"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="./app.js?v=20260706-ai-risk-v74"></script>
+    <script src="./app.js?v=20260707-ai-judge-v78"></script>
   </body>
 </html>

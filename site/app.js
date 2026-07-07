@@ -1096,6 +1096,11 @@ const seaPortCodeData = [
   { code: "CNTAO", name: "Qingdao", cn: "青岛港", country: "中国", aliases: ["青岛", "qingdao", "cntao", "cnqdg"], note: "华北/山东常用口岸，危险品和特殊箱需提前确认港区接收窗口。" },
   { code: "CNTSN", name: "Tianjin", cn: "天津港", country: "中国", aliases: ["天津", "tianjin", "cntsn", "新港", "xingang"], note: "北方常用口岸；船司系统可能显示 Tianjin/Xingang。" },
   { code: "CNXMN", name: "Xiamen", cn: "厦门港", country: "中国", aliases: ["厦门", "xiamen", "cnxmn"], note: "华南/福建常用口岸，注意截关截港和特殊箱操作要求。" },
+  { code: "CNGZG", name: "Guangzhou", cn: "广州港/南沙港", country: "中国", aliases: ["广州", "南沙", "广州港", "nansha", "guangzhou", "cngzg"], note: "华南重要出口港，南沙、黄埔等口径要分清；电商货、汽车零部件和冷箱较常见。" },
+  { code: "CNDLC", name: "Dalian", cn: "大连港", country: "中国", aliases: ["大连", "dalian", "cndlc"], note: "东北主要海运口岸，冬季天气、冷链和日韩/远东航线窗口要提前确认。" },
+  { code: "CNLYG", name: "Lianyungang", cn: "连云港", country: "中国", aliases: ["连云港", "lianyungang", "cnlyg"], note: "华东/陇海线重要口岸，适合部分内陆腹地出运，需确认铁路/拖车衔接。" },
+  { code: "CNFOC", name: "Fuzhou", cn: "福州港", country: "中国", aliases: ["福州", "fuzhou", "cnfoc"], note: "福建口岸之一，订舱时要确认具体港区和船司挂靠。" },
+  { code: "CNTXG", name: "Taicang", cn: "太仓港", country: "中国", aliases: ["太仓", "taicang", "苏州港", "cntxg"], note: "长三角近洋和内支线常用口岸，国际干线需确认驳船或中转安排。" },
   { code: "HKHKG", name: "Hong Kong", cn: "香港", country: "中国香港", aliases: ["香港", "hong kong", "hkhkg"], note: "转运、空海联运和快件场景常见，正式口径看承运人。" },
   { code: "SGSIN", name: "Singapore", cn: "新加坡港", country: "新加坡", aliases: ["新加坡", "singapore", "sgsin"], note: "全球重要中转港，船期判断要看是否在此中转。" },
   { code: "MYPKG", name: "Port Klang", cn: "巴生港", country: "马来西亚", aliases: ["巴生", "port klang", "klang", "mypkg"], note: "东南亚常见中转和目的港。" },
@@ -1115,6 +1120,14 @@ const airportCodeData = [
   { iata: "CAN", icao: "ZGGG", name: "Guangzhou Baiyun International Airport", cn: "广州白云国际机场", city: "广州", country: "中国", aliases: ["广州", "白云", "can", "guangzhou"], note: "华南重要国际货运机场。" },
   { iata: "SZX", icao: "ZGSZ", name: "Shenzhen Bao'an International Airport", cn: "深圳宝安国际机场", city: "深圳", country: "中国", aliases: ["深圳", "宝安", "szx", "shenzhen"], note: "华南消费电子空运/快件常用机场。" },
   { iata: "HKG", icao: "VHHH", name: "Hong Kong International Airport", cn: "香港国际机场", city: "香港", country: "中国香港", aliases: ["香港机场", "hkg", "hong kong"], note: "全球重要空运枢纽，适合高频快件和空运中转。" },
+  { iata: "PEK", icao: "ZBAA", name: "Beijing Capital International Airport", cn: "北京首都国际机场", city: "北京", country: "中国", aliases: ["北京首都", "首都机场", "pek", "beijing capital"], note: "华北国际客货运枢纽，正式出运需确认货站、航司和清关口径。" },
+  { iata: "PKX", icao: "ZBAD", name: "Beijing Daxing International Airport", cn: "北京大兴国际机场", city: "北京", country: "中国", aliases: ["北京大兴", "大兴", "pkx", "beijing daxing"], note: "华北新枢纽，适合部分国际货运和快件渠道，需确认航班密度。" },
+  { iata: "CGO", icao: "ZHCC", name: "Zhengzhou Xinzheng International Airport", cn: "郑州新郑国际机场", city: "郑州", country: "中国", aliases: ["郑州", "新郑", "cgo", "zhengzhou"], note: "中部空运和跨境电商枢纽，电子货和快件较常见。" },
+  { iata: "HGH", icao: "ZSHC", name: "Hangzhou Xiaoshan International Airport", cn: "杭州萧山国际机场", city: "杭州", country: "中国", aliases: ["杭州", "萧山", "hgh", "hangzhou"], note: "华东电商和快件空运常用机场，跨境货需确认渠道规则。" },
+  { iata: "TAO", icao: "ZSQD", name: "Qingdao Jiaodong International Airport", cn: "青岛胶东国际机场", city: "青岛", country: "中国", aliases: ["青岛机场", "胶东", "tao", "qingdao"], note: "山东国际空运口岸，日韩/欧美航线和海空联动需确认。" },
+  { iata: "XMN", icao: "ZSAM", name: "Xiamen Gaoqi International Airport", cn: "厦门高崎国际机场", city: "厦门", country: "中国", aliases: ["厦门机场", "高崎", "xmn", "xiamen"], note: "福建空运口岸，电子货、样品和快件需确认承运限制。" },
+  { iata: "TFU", icao: "ZUTF", name: "Chengdu Tianfu International Airport", cn: "成都天府国际机场", city: "成都", country: "中国", aliases: ["成都", "天府", "tfu", "chengdu"], note: "西南国际空运枢纽，欧洲/中亚/东南亚航线和转运能力需确认。" },
+  { iata: "WUH", icao: "ZHHH", name: "Wuhan Tianhe International Airport", cn: "武汉天河国际机场", city: "武汉", country: "中国", aliases: ["武汉", "天河", "wuh", "wuhan"], note: "华中空运口岸，适合中部货源集散，航班密度需逐票确认。" },
   { iata: "NRT", icao: "RJAA", name: "Narita International Airport", cn: "东京成田机场", city: "东京", country: "日本", aliases: ["成田", "东京成田", "nrt", "narita"], note: "日本国际货运常用机场。" },
   { iata: "ICN", icao: "RKSI", name: "Incheon International Airport", cn: "仁川机场", city: "首尔", country: "韩国", aliases: ["仁川", "首尔", "icn", "incheon"], note: "东北亚空运中转常用机场。" },
   { iata: "SIN", icao: "WSSS", name: "Singapore Changi Airport", cn: "新加坡樟宜机场", city: "新加坡", country: "新加坡", aliases: ["新加坡机场", "樟宜", "sin", "changi"], note: "东南亚空运枢纽。" },
@@ -1135,6 +1148,10 @@ const majorPortRiskProfiles = [
   { code: "CNSZX", name: "Shenzhen", cn: "深圳港", region: "china-south", aliases: ["深圳港", "蛇口", "赤湾", "妈湾", "shekou", "cnszx"], baseDelay: 1.3, risk: 44, dwell: 2.0, note: "城市级口径，必须确认盐田、蛇口、赤湾或大铲湾等具体码头。" },
   { code: "CNTAO", name: "Qingdao", cn: "青岛港", region: "china-north", aliases: ["青岛", "qingdao", "cntao"], baseDelay: 1.5, risk: 48, dwell: 2.3, note: "北方大港，冬季天气、危险品、查验和内陆拖车会影响稳定性。" },
   { code: "CNTSN", name: "Tianjin", cn: "天津港", region: "china-north", aliases: ["天津", "新港", "tianjin", "xingang", "cntsn"], baseDelay: 1.8, risk: 52, dwell: 2.6, note: "华北枢纽，危险品、查验、冬季天气和堆场窗口需要提前确认。" },
+  { code: "CNGZG", name: "Guangzhou", cn: "广州港/南沙港", region: "china-south", aliases: ["广州港", "广州", "南沙", "nansha", "cngzg"], baseDelay: 1.3, risk: 45, dwell: 2.1, note: "华南主力口岸之一，跨境电商、汽配和冷箱要看南沙具体码头窗口。" },
+  { code: "CNDLC", name: "Dalian", cn: "大连港", region: "china-north", aliases: ["大连", "dalian", "cndlc"], baseDelay: 1.6, risk: 49, dwell: 2.4, note: "东北口岸，冬季天气、冷链和日韩/远东航线计划要提前核验。" },
+  { code: "CNLYG", name: "Lianyungang", cn: "连云港", region: "china-east", aliases: ["连云港", "lianyungang", "cnlyg"], baseDelay: 1.7, risk: 50, dwell: 2.5, note: "腹地货源和铁路衔接较重要，需确认内陆段和船期是否同票承诺。" },
+  { code: "CNTXG", name: "Taicang", cn: "太仓港", region: "china-east", aliases: ["太仓", "taicang", "苏州港", "cntxg"], baseDelay: 1.2, risk: 42, dwell: 1.9, note: "长三角近洋/内支线口岸，主干线中转和驳船衔接需单独确认。" },
   { code: "HKHKG", name: "Hong Kong", cn: "香港", region: "asia-hub", aliases: ["香港", "hong kong", "hkhkg"], baseDelay: 0.9, risk: 38, dwell: 1.5, note: "空海联运和转运能力强，但成本和截单窗口要单独核验。" },
   { code: "SGSIN", name: "Singapore", cn: "新加坡港", region: "asia-hub", aliases: ["新加坡", "singapore", "sgsin"], baseDelay: 1.1, risk: 41, dwell: 1.8, note: "全球中转枢纽，主要风险来自中转衔接、甩柜和主干线延误。" },
   { code: "MYPKG", name: "Port Klang", cn: "巴生港", region: "southeast-asia", aliases: ["巴生", "port klang", "klang", "mypkg"], baseDelay: 1.5, risk: 49, dwell: 2.4, note: "东南亚常见中转/目的港，清关和港区拥堵需看当地代理反馈。" },
@@ -1164,6 +1181,14 @@ const airportRiskProfiles = [
   { iata: "CAN", cn: "广州白云机场", region: "china-south", aliases: ["广州", "白云", "can"], batteryRate: 20, baseDelay: 8, risk: 52, curve: [14, 16, 18, 20, 22, 23, 20, 21], note: "华南电子货密集，电池/磁性/快件查验和安检预审更敏感。" },
   { iata: "SZX", cn: "深圳宝安机场", region: "china-south", aliases: ["深圳", "宝安", "szx"], batteryRate: 22, baseDelay: 9, risk: 55, curve: [15, 17, 19, 22, 24, 25, 22, 23], note: "消费电子货比例高，含电池设备和磁性货建议先预审。" },
   { iata: "HKG", cn: "香港国际机场", region: "asia-hub", aliases: ["香港", "hkg", "hong kong"], batteryRate: 16, baseDelay: 6, risk: 44, curve: [11, 12, 14, 15, 16, 17, 16, 15], note: "国际枢纽能力强，电池货限制更多取决于航空公司和渠道。" },
+  { iata: "PEK", cn: "北京首都国际机场", region: "china-north", aliases: ["北京首都", "首都机场", "pek"], batteryRate: 17, baseDelay: 8, risk: 49, curve: [12, 13, 15, 16, 18, 19, 17, 18], note: "华北枢纽，航司/货站口径和敏感货文件要逐票确认。" },
+  { iata: "PKX", cn: "北京大兴国际机场", region: "china-north", aliases: ["北京大兴", "大兴", "pkx"], batteryRate: 17, baseDelay: 8, risk: 48, curve: [11, 13, 14, 16, 17, 18, 17, 18], note: "新枢纽航线增长快，需确认实际货运航班和货站接收。" },
+  { iata: "CGO", cn: "郑州新郑国际机场", region: "china-central", aliases: ["郑州", "新郑", "cgo"], batteryRate: 21, baseDelay: 9, risk: 55, curve: [15, 16, 18, 21, 22, 24, 21, 22], note: "中部跨境电商和电子货枢纽，含电池/快件预审更敏感。" },
+  { iata: "HGH", cn: "杭州萧山国际机场", region: "china-east", aliases: ["杭州", "萧山", "hgh"], batteryRate: 20, baseDelay: 8, risk: 53, curve: [14, 15, 17, 19, 21, 22, 20, 21], note: "华东电商货集中，渠道规则、真实品名和电池资料要先确认。" },
+  { iata: "TAO", cn: "青岛胶东国际机场", region: "china-north", aliases: ["青岛机场", "胶东", "tao"], batteryRate: 18, baseDelay: 8, risk: 50, curve: [13, 14, 15, 17, 19, 20, 18, 19], note: "山东空运口岸，日韩/欧美航线需确认航班密度和中转。" },
+  { iata: "XMN", cn: "厦门高崎国际机场", region: "china-south", aliases: ["厦门机场", "高崎", "xmn"], batteryRate: 19, baseDelay: 8, risk: 51, curve: [13, 15, 16, 18, 20, 21, 19, 20], note: "福建空运口岸，电子货、样品和快件需确认承运限制。" },
+  { iata: "TFU", cn: "成都天府国际机场", region: "china-west", aliases: ["成都", "天府", "tfu"], batteryRate: 18, baseDelay: 9, risk: 52, curve: [12, 14, 16, 18, 20, 21, 19, 20], note: "西南空运枢纽，欧洲/中亚/东南亚航线和中转能力需逐票确认。" },
+  { iata: "WUH", cn: "武汉天河国际机场", region: "china-central", aliases: ["武汉", "天河", "wuh"], batteryRate: 18, baseDelay: 8, risk: 50, curve: [12, 14, 15, 17, 19, 20, 18, 19], note: "华中货源集散口岸，航班密度和货站接收窗口需核验。" },
   { iata: "ICN", cn: "仁川机场", region: "asia-hub", aliases: ["仁川", "首尔", "icn"], batteryRate: 14, baseDelay: 6, risk: 42, curve: [10, 11, 12, 13, 15, 14, 13, 14], note: "东北亚转运枢纽，转运衔接和航空公司限制需确认。" },
   { iata: "SIN", cn: "新加坡樟宜机场", region: "asia-hub", aliases: ["新加坡", "樟宜", "sin"], batteryRate: 13, baseDelay: 5, risk: 40, curve: [9, 10, 11, 12, 13, 14, 12, 13], note: "东南亚空运枢纽，转运稳定性较好。" },
   { iata: "LAX", cn: "洛杉矶国际机场", region: "us-west", aliases: ["洛杉矶", "lax"], batteryRate: 24, baseDelay: 11, risk: 64, curve: [18, 20, 22, 23, 25, 27, 24, 26], note: "美国西岸入口，CBP、FCC、电池和进口商资料是核心风险。" },
@@ -1196,6 +1221,79 @@ const marketSourceLinks = {
     ["IATA Cargo", "https://www.iata.org/en/programs/cargo/"]
   ]
 };
+
+const chinaLogisticsKnowledgeBase = [
+  {
+    id: "lithium-battery",
+    label: "锂电池/移动电源",
+    match: /锂电池|电芯|电池组|移动电源|充电宝|battery|lithium|li-ion|un3480|un3481|pi965|pi966|pi967/i,
+    summary: "核心不是能不能出，而是电池类型、Wh、包装方式和承运人是否接收。",
+    likelyHs: ["85076000 锂离子蓄电池需结合形态复核", "850780/850790 其他电池或零件需谨慎区分"],
+    chinaDocs: ["MSDS/SDS", "UN38.3", "运输条件鉴定/航空鉴定", "Wh 或 mAh/V", "包装方式和 PI965/966/967 口径"],
+    logistics: "空运比海运更敏感；电池单独运输风险高于装在设备中。",
+    compliance: "中国出口侧先看危险品/电池文件，目的国再看电池法规、回收责任和进口商资料。",
+    riskAdd: 18,
+    airCargo: "battery-contained",
+    seaCargo: "battery",
+    modules: ["battery", "air-fees", "risk-center", "docs-invoice"]
+  },
+  {
+    id: "wireless-audio",
+    label: "蓝牙/无线音频产品",
+    match: /蓝牙|无线|耳机|音箱|喇叭|扬声器|麦克风|功放|audio|speaker|headphone|earbud|bluetooth|wireless/i,
+    summary: "要同时看 HS、无线认证、标签说明书、内置电池和目的国进口商能力。",
+    likelyHs: ["851830 耳机/耳塞需按形态复核", "851821/851822/851829 扬声器需看单体/组合", "851762/854370 仅在通信或独立功能边界明确时考虑"],
+    chinaDocs: ["规格书/图片", "BOM 或功能说明", "品牌型号", "无线频段/蓝牙版本", "电池资料如适用"],
+    logistics: "含磁性喇叭或电池时，空运前要做磁检/航空鉴定或承运人预审。",
+    compliance: "美国重点 FCC/CBP，欧盟重点 CE/RED/RoHS/WEEE，巴西重点 ANATEL/INMETRO。",
+    riskAdd: 14,
+    airCargo: "magnetic",
+    seaCargo: "general",
+    modules: ["hs", "matrix", "risk-center", "docs-invoice"]
+  },
+  {
+    id: "power-adapter",
+    label: "电源适配器/充电器",
+    match: /适配器|充电器|电源|开关电源|adapter|charger|power supply|usb-c|pd charger/i,
+    summary: "重点是电气安全、能效、插头制式、标签和目的国强制认证。",
+    likelyHs: ["850440 变流器/电源适配器需结合参数复核"],
+    chinaDocs: ["额定输入输出", "插头/线材规格", "安全认证证书", "标签样稿", "说明书"],
+    logistics: "通常按普货处理，但品牌、高价值或带电池套装会提高查验关注。",
+    compliance: "中国出口无论是否法检，都建议保留测试报告和标签一致性资料。",
+    riskAdd: 10,
+    airCargo: "general",
+    seaCargo: "general",
+    modules: ["hs", "matrix", "docs-invoice"]
+  },
+  {
+    id: "pcb-board",
+    label: "电路板/功能板/配件",
+    match: /电路板|线路板|pcb|pcba|主板|功能板|控制板|模块|零件|配件|board|module|spare part/i,
+    summary: "先判断是整机核心部件、通用零件还是未完成品，避免按成品误归类。",
+    likelyHs: ["853400 印刷电路", "851890/852990/854390 等零件税号需按用途复核"],
+    chinaDocs: ["用途说明", "对应整机", "是否带元器件", "是否可独立工作", "图片和型号"],
+    logistics: "样品/维修件要说明用途；含电池、磁性或品牌件时另行预审。",
+    compliance: "申报品名不能只写 accessories，需要说明具体功能和适用设备。",
+    riskAdd: 8,
+    airCargo: "general",
+    seaCargo: "general",
+    modules: ["hs", "docs-declaration", "matrix"]
+  },
+  {
+    id: "magnetic-speaker",
+    label: "磁性货/喇叭单元",
+    match: /磁性|磁铁|喇叭单元|扬声器单元|speaker driver|magnet|magnetic/i,
+    summary: "空运风险主要在磁检/航空鉴定；海运则看包装、重量和目的港资料。",
+    likelyHs: ["851829 扬声器零件或其他扬声器需按形态复核"],
+    chinaDocs: ["磁检报告或航空运输鉴定", "产品图片", "材质/用途", "包装方式"],
+    logistics: "没有磁检或鉴定，空运退仓概率会明显提高。",
+    compliance: "目的国认证通常取决于是否为整机、是否带无线/电源功能。",
+    riskAdd: 12,
+    airCargo: "magnetic",
+    seaCargo: "general",
+    modules: ["air-fees", "risk-center", "hs"]
+  }
+];
 
 const seaOpsFeeProfiles = [
   {
@@ -8046,23 +8144,214 @@ function renderMiniCurve(values = [], label = "趋势") {
   `;
 }
 
+function cleanRouteEndpoint(value = "") {
+  return String(value || "")
+    .replace(/查询|价格|费用|风险|预警|海运|空运|港口|机场|market|rate|fee|risk|多少钱|多少|怎么走|有什么|如何|能不能|需要|报价|成本/gi, " ")
+    .replace(/锂电池|电池组|电芯|移动电源|充电宝|蓝牙|无线|耳机|音箱|喇叭|扬声器|磁性|危险品|普货|样品|整柜|拼箱|快件/gi, " ")
+    .replace(/\b(battery|lithium|bluetooth|wireless|speaker|headphone|earbud|magnetic|dangerous|general|cargo|lcl|fcl)\b/gi, " ")
+    .replace(/[？?。.!！]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function findChinaKnowledgeProfiles(query = "") {
+  const value = String(query || "");
+  return chinaLogisticsKnowledgeBase.filter((profile) => profile.match.test(value)).slice(0, 4);
+}
+
+function detectGlobalConcerns(query = "") {
+  const text = normalize(query);
+  const concerns = [];
+  const push = (id, label) => {
+    if (!concerns.some((item) => item.id === id)) concerns.push({ id, label });
+  };
+  if (/价格|报价|费用|成本|运费|多少钱|rate|fee|cost|price/.test(text)) push("price", "价格/成本");
+  if (/风险|预警|查验|延误|拥堵|退仓|塞港|delay|risk|inspection|congestion/.test(text)) push("risk", "风险/时效");
+  if (/税号|hs|hscode|归类|关税|税率|申报|监管条件|tariff|duty|customs/.test(text)) push("customs", "关务/税则");
+  if (/单证|发票|箱单|报关单|产地证|msds|un38|鉴定|invoice|packing|declaration|certificate/.test(text)) push("docs", "单证/文件");
+  if (/政策|热点|特朗普|川普|301|232|制裁|出口管制|认证|fcc|ce|rohs|reach|anatel|inmetro|saber|policy|sanction/.test(text)) push("policy", "政策/准入");
+  if (!concerns.length) push("lookup", "代码/状态查询");
+  return concerns;
+}
+
+function inferTransportMode(query = "", airport = null, port = null) {
+  const text = normalize(query);
+  if (/快件|快递|dhl|ups|fedex|sf|顺丰|courier|express/.test(text)) return "Courier";
+  if (/空运|机场|航空|航班|awb|air|iata|icao/.test(text) || airport) return "Air";
+  if (/海运|港口|码头|船|船期|箱号|提单|container|vessel|sea|ocean|port/.test(text) || port) return "Sea";
+  return "Mixed";
+}
+
+function modeLabel(mode = "Mixed") {
+  return { Air: "空运", Sea: "海运", Courier: "快件", Mixed: "综合物流/关务" }[mode] || "综合物流/关务";
+}
+
+function countryFromLocation(location = {}) {
+  return location.country || (/us-|美国|洛杉矶|纽约|芝加哥/i.test(`${location.region || ""} ${location.cn || ""}`) ? "美国" : "");
+}
+
+function inferDestinationCountry(query = "", mode = "Mixed", route = {}) {
+  const text = normalize(query);
+  const explicit = [
+    ["美国", /美国|洛杉矶|纽约|芝加哥|lax|jfk|ord|us\b|usa|los angeles|new york|chicago/],
+    ["欧盟", /欧盟|德国|荷兰|法国|西班牙|意大利|鹿特丹|汉堡|法兰克福|阿姆斯特丹|eu|europe|germany|netherlands|france/],
+    ["英国", /英国|伦敦|希思罗|uk|london|lhr|felixstowe/],
+    ["巴西", /巴西|圣保罗|桑托斯|brazil|sao paulo|gru|santos/],
+    ["沙特/中东", /沙特|中东|吉达|迪拜|阿联酋|saudi|jeddah|dubai|uae|middle east/],
+    ["泰国", /泰国|曼谷|林查班|thailand|bangkok|bkk|laem chabang/],
+    ["澳大利亚", /澳大利亚|悉尼|墨尔本|australia|sydney|melbourne/],
+    ["加拿大", /加拿大|温哥华|canada|vancouver/]
+  ].find(([, pattern]) => pattern.test(text));
+  if (explicit) return explicit[0];
+  const destination = mode === "Air" || mode === "Courier"
+    ? findAirportRiskProfile(route.destination || "")
+    : findPortRiskProfile(route.destination || "");
+  return countryFromLocation(destination || {});
+}
+
+function intelligenceRouteLabel(intel = {}) {
+  const origin = intel.originLabel || intel.route.origin || "";
+  const destination = intel.destinationLabel || intel.route.destination || "";
+  if (origin && destination) return `${origin} → ${destination}`;
+  if (origin) return `${origin} → 目的地待补`;
+  if (destination) return `起运地待补 → ${destination}`;
+  return "路线待补";
+}
+
+function buildLogisticsIntelligence(query = "", candidates = []) {
+  const value = String(query || "").trim();
+  const text = normalize(value);
+  const route = splitRouteQuery(value);
+  const airport = findAirportCodeProfile(value);
+  const port = findPortRiskProfile(value);
+  const products = findChinaKnowledgeProfiles(value);
+  const concerns = detectGlobalConcerns(value);
+  const hs = value.match(/\b\d{8,10}\b/)?.[0] || "";
+  const mode = inferTransportMode(value, airport, port);
+  const originAir = findAirportRiskProfile(route.origin || "") || (mode === "Air" || mode === "Courier" ? findAirportRiskProfile(value) : null);
+  const destinationAir = findAirportRiskProfile(route.destination || "");
+  const originPort = findPortRiskProfile(route.origin || "") || (mode === "Sea" ? findPortRiskProfile(value) : null);
+  const destinationPort = findPortRiskProfile(route.destination || "");
+  const originLabel = mode === "Air" || mode === "Courier"
+    ? (originAir ? `${originAir.cn || originAir.iata}` : route.origin)
+    : mode === "Sea"
+      ? (originPort ? `${originPort.cn || originPort.name}` : route.origin)
+      : (airport?.cn || port?.cn || route.origin || "");
+  const destinationLabel = mode === "Air" || mode === "Courier"
+    ? (destinationAir ? `${destinationAir.cn || destinationAir.iata}` : route.destination)
+    : mode === "Sea"
+      ? (destinationPort ? `${destinationPort.cn || destinationPort.name}` : route.destination)
+      : route.destination;
+  const primaryProduct = products[0];
+  const country = inferDestinationCountry(value, mode, route);
+  const moduleSet = new Set([
+    ...(primaryProduct?.modules || []),
+    ...candidates.map((item) => item.module),
+    concerns.some((item) => item.id === "price") ? (mode === "Sea" ? "sea-fees" : "air-fees") : "",
+    concerns.some((item) => item.id === "risk") ? "risk-center" : "",
+    concerns.some((item) => item.id === "docs") ? "docs-invoice" : "",
+    concerns.some((item) => item.id === "customs") ? "hs" : ""
+  ].filter(Boolean));
+  const missing = [];
+  if (!primaryProduct && !hs && !/pvg|lax|cnsha|uslax/i.test(value)) missing.push("补真实品名、用途、材质、是否整机/配件。");
+  if (!route.origin || !route.destination) missing.push("补起运地和目的地，价格/风险会更准。");
+  if (primaryProduct?.id === "lithium-battery") missing.push("补 Wh/mAh、UN 编号、包装方式、MSDS 和 UN38.3。");
+  if (primaryProduct?.id === "wireless-audio") missing.push("补蓝牙/无线频段、型号、是否含电池和目的国认证状态。");
+  if (concerns.some((item) => item.id === "price")) missing.push(mode === "Sea" ? "补箱型、柜量、货型和预计出运周。" : "补计费重、体积、件数、货物性质和期望航班。");
+  if (concerns.some((item) => item.id === "policy") && !country) missing.push("补目的国/进口地区、原产国和 HS。");
+
+  const metrics = [];
+  const hasRoutePair = Boolean(route.origin && route.destination);
+  if ((mode === "Air" || mode === "Courier") && hasRoutePair && (originAir || destinationAir)) {
+    const origin = originAir || findAirportRiskProfile("PVG");
+    const destination = destinationAir || findAirportRiskProfile(route.destination || "LAX");
+    const cargo = primaryProduct?.airCargo || (/电池|battery|锂/.test(text) ? "battery-contained" : "general");
+    const rate = airMarketRateEstimate(origin, destination, 300, cargo);
+    const hours = flightHoursForAirports(origin, destination);
+    const batteryRate = clampPercent(((origin.batteryRate || 18) + (destination.batteryRate || 18)) / 2 + (cargo.includes("battery") ? 8 : cargo === "magnetic" ? 5 : 0));
+    metrics.push(["空运预算", rate.label]);
+    metrics.push(["航程", `${hours[0]}-${hours[1]} 小时`]);
+    metrics.push(["敏感货关注", `${batteryRate}%`]);
+  }
+  if (mode === "Sea" && hasRoutePair && (originPort || destinationPort)) {
+    const origin = originPort || findPortRiskProfile("上海");
+    const destination = destinationPort || findPortRiskProfile(route.destination || "洛杉矶");
+    const cargo = primaryProduct?.seaCargo || (/危险品|dg/.test(text) ? "dg" : "general");
+    const rate = seaMarketRateEstimate(origin, destination, "40HQ", cargo);
+    const days = routeDaysForPorts(origin, destination);
+    const delay = ((origin.baseDelay || 1.8) + (destination.baseDelay || 1.8)) / 2;
+    metrics.push(["海运预算", rate.label]);
+    metrics.push(["平均船期", `${days[0]}-${days[1]} 天`]);
+    metrics.push(["平均延误", `${delay.toFixed(1)} 天`]);
+  }
+
+  const complexity = [
+    products.length > 0,
+    concerns.length >= 2,
+    Boolean(route.origin && route.destination),
+    Boolean(country),
+    Boolean(hs)
+  ].filter(Boolean).length;
+  const confidence = clampPercent(48 + complexity * 9 + Math.min(16, (candidates[0]?.score || 0) / 10));
+  const productLabel = primaryProduct?.label || (hs ? `HS ${hs}` : airport?.cn || port?.cn || "待识别货物");
+  const concernText = concerns.map((item) => item.label).join(" + ");
+  const routeLabel = intelligenceRouteLabel({ originLabel, destinationLabel, route });
+  const conclusion = primaryProduct
+    ? `${routeLabel}，我会按「${modeLabel(mode)} + ${primaryProduct.label} + ${concernText}」处理。${primaryProduct.summary}`
+    : `${routeLabel}，我会先按「${modeLabel(mode)} + ${concernText}」处理；如果补充真实品名、HS 或货型，结论会更可靠。`;
+  const action = primaryProduct
+    ? primaryProduct.logistics
+    : concerns.some((item) => item.id === "price")
+      ? "先用市场区间做预算，再用承运人/货代有效报价复核。"
+      : "先定位模块并给业务判断，再提示需要补充的关键字段。";
+  return {
+    query: value,
+    mode,
+    route,
+    routeLabel,
+    productLabel,
+    products,
+    primaryProduct,
+    concerns,
+    hs,
+    country,
+    originLabel,
+    destinationLabel,
+    modules: Array.from(moduleSet).slice(0, 6),
+    missing: missing.slice(0, 5),
+    metrics,
+    confidence,
+    conclusion,
+    action
+  };
+}
+
 function globalSearchOptionsForQuery(query = "") {
   const value = String(query || "").trim();
   if (!value) return [];
   const airport = findAirportCodeProfile(value);
   const port = findPortRiskProfile(value);
   const candidates = classifyGlobalSearch(value);
+  const intel = buildLogisticsIntelligence(value, candidates);
   const options = [];
   const push = (module, label, detail, icon = "✓", tab = "") => {
     if (!options.some((item) => item.module === module && item.label === label)) options.push({ module, label, detail, icon, tab });
   };
+  if (intel.products.length && intel.concerns.length >= 2) {
+    push("decision", "综合结论", `${modeLabel(intel.mode)} · ${intel.productLabel} · ${intel.concerns.map((item) => item.label).join("/")}`, "✓");
+  }
   if (airport) {
     push("codes", "机场代码", `${airport.cn} · ${airport.iata}/${airport.icao}`, "✓");
     push("air-fees", "空运价格/费用", "查看货站费用和市场空运价参考", "✓");
     push("risk-center", "机场风险", "锂电池查验率、延误和风险曲线", "✓", "risk-airport-panel");
     push("air", "空运/快件状态", "输入运单号时自动查承运商轨迹", "✓");
   }
-  if (port && !airport) {
+  if (!airport && (intel.mode === "Air" || intel.mode === "Courier")) {
+    push("air-fees", "空运价格/费用", `${intel.routeLabel} · 市场价、计费重和敏感货附加费`, "✓");
+    push("risk-center", "机场风险", "锂电池/磁性货预审、延误和风险曲线", "✓", "risk-airport-panel");
+    push("docs-invoice", "空运资料清单", "发票箱单、MSDS、UN38.3、鉴定和品名风险", "✓");
+  }
+  if (port && !airport && intel.mode !== "Air" && intel.mode !== "Courier") {
     push("risk-center", "港口风险", `${port.cn || port.name} · 船期/延误/风险分`, "✓", "risk-port-panel");
     push("sea-fees", "海运价格/费用", "市场运价、码头费和特殊货附加费", "✓");
     push("codes", "港口代码", `${port.cn || port.name} · ${port.code || "UN/LOCODE"}`, "✓");
@@ -8078,7 +8367,14 @@ function buildGlobalSearchAnswer(query = "", candidates = []) {
   if (!target || target.module === "dashboard") return "";
   const airport = findAirportCodeProfile(value);
   const port = findPortRiskProfile(value);
-  const subject = airport ? `${airport.cn}（${airport.iata}）` : port ? `${port.cn || port.name}（${port.code || "港口"}）` : value;
+  const intel = buildLogisticsIntelligence(value, candidates);
+  const subject = intel.products.length
+    ? `${intel.productLabel} · ${intel.routeLabel}`
+    : airport
+      ? `${airport.cn}（${airport.iata}）`
+      : port && intel.mode !== "Air" && intel.mode !== "Courier"
+        ? `${port.cn || port.name}（${port.code || "港口"}）`
+        : intel.productLabel || value;
   const options = globalSearchOptionsForQuery(value).slice(0, 4);
   const next = globalSearchActionForModule(target.module);
   return `
@@ -8086,8 +8382,26 @@ function buildGlobalSearchAnswer(query = "", candidates = []) {
       <div class="global-ai-head">
         <span>AI 回答</span>
         <strong>${escapeHtml(subject)}</strong>
+        <small>${escapeHtml(`${intel.confidence}/100 · ${modeLabel(intel.mode)}`)}</small>
       </div>
-      <p>${escapeHtml(`我的判断：这不是单纯关键词搜索，而是「${target.title}」问题。我会先调用对应模块给结果，再把费用、风险、资料缺口和下一步动作合并成结论。`)}</p>
+      <p>${escapeHtml(intel.conclusion)}</p>
+      <div class="global-ai-signal-row">
+        <span>货物：${escapeHtml(intel.productLabel)}</span>
+        <span>路线：${escapeHtml(intel.routeLabel)}</span>
+        <span>关注：${escapeHtml(intel.concerns.map((item) => item.label).join(" / "))}</span>
+        ${intel.country ? `<span>目的地：${escapeHtml(intel.country)}</span>` : ""}
+      </div>
+      ${intel.metrics.length ? `
+        <div class="global-ai-metric-grid">
+          ${intel.metrics.map(([label, metric]) => `<section><b>${escapeHtml(label)}</b><strong>${escapeHtml(metric)}</strong></section>`).join("")}
+        </div>
+      ` : ""}
+      <div class="global-ai-judgement">
+        <b>独立判断</b>
+        <p>${escapeHtml(intel.action)}</p>
+        ${intel.primaryProduct?.compliance ? `<p>${escapeHtml(intel.primaryProduct.compliance)}</p>` : ""}
+      </div>
+      ${intel.missing.length ? `<div class="global-ai-gap-row">${intel.missing.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>` : ""}
       <div class="global-ai-action-grid">
         ${options.map((item) => `
           <button type="button" data-live-module="${escapeHtml(item.module)}" data-live-tab="${escapeHtml(item.tab || "")}" data-global-query="${escapeHtml(value)}">
@@ -8111,17 +8425,26 @@ function renderGlobalSearchLiveAssist(query = "") {
   }
   const airport = findAirportCodeProfile(value);
   const port = findPortRiskProfile(value);
+  const candidates = classifyGlobalSearch(value);
+  const intel = buildLogisticsIntelligence(value, candidates);
   const options = globalSearchOptionsForQuery(value);
-  const title = airport
+  const title = intel.products.length
+    ? `正在判断：${intel.productLabel}`
+    : airport
     ? `你想查询：${airport.cn}`
-    : port
+    : port && intel.mode !== "Air" && intel.mode !== "Courier"
       ? `你想查询：${port.cn || port.name}`
-      : "我正在理解你的问题";
+      : `正在拆解：${intel.concerns.map((item) => item.label).join(" + ")}`;
   target.innerHTML = `
     <section class="live-intent-panel">
       <div class="live-intent-head">
         <span>实时理解</span>
         <strong>${escapeHtml(title)}</strong>
+      </div>
+      <div class="live-intent-meta">
+        <span>${escapeHtml(modeLabel(intel.mode))}</span>
+        <span>${escapeHtml(intel.routeLabel)}</span>
+        <span>${escapeHtml(intel.productLabel)}</span>
       </div>
       <div class="live-intent-actions">
         ${options.map((item) => `
@@ -8167,10 +8490,20 @@ function classifyGlobalSearch(raw = "") {
   const documentLike = /单证|箱单|发票|invoice|packing|装箱单|报关单|报关草稿|declaration|申报单/.test(text);
   const airportCodeOnly = /^[A-Z]{3,4}$/i.test(query) && airportMatchLike;
   const portCodeOnly = /^[A-Z]{5}$/i.test(query) && portMatchLike;
+  const knowledgeHits = findChinaKnowledgeProfiles(query);
+  const concernHits = detectGlobalConcerns(query);
+  const complexQuestionLike = knowledgeHits.length
+    && concernHits.filter((item) => item.id !== "lookup").length >= 2
+    && !containerLike
+    && !trackingLike
+    && !vesselIntent;
 
   const candidates = [];
   const add = (module, title, reason, score, fill = {}) => candidates.push({ module, title, reason, score, fill });
 
+  if (complexQuestionLike) {
+    add("decision", "AI 综合结论", "这是多意图问题：同时涉及货物、价格/风险/关务/单证。系统会先给业务结论，再自动带入相关模块。", 139, { decision: query });
+  }
   if (politicalHotspotLike && !containerLike && !trackingLike && !feeLike && !documentLike) {
     add("trends", "政策/热点趋势影响", "识别为政治人物、选举、地缘或贸易热点，直接搜索公开趋势并生成物流/关务影响判断。", policyHardLike ? 124 : 136, { trend: query });
     add("policy", "政策变化雷达", "如果它关联关税、制裁、出口管制或海关公告，可继续看政策来源和实施日期。", policyHardLike ? 138 : 98, { policy: query });
@@ -8352,7 +8685,22 @@ function applyGlobalSearchFill(moduleId = "", query = "") {
     $("trendKeyword").value = value;
   }
   if (moduleId === "decision") {
-    if ($("decisionProduct")) $("decisionProduct").value = $("decisionProduct").value || value;
+    const intel = buildLogisticsIntelligence(value, candidates);
+    if ($("decisionProduct")) $("decisionProduct").value = intel.primaryProduct ? `${intel.primaryProduct.label}；原问题：${value}` : value;
+    if ($("decisionCountry") && intel.country) $("decisionCountry").value = intel.country;
+    if ($("decisionOrigin")) {
+      const originText = normalize(`${intel.route.origin || ""} ${intel.originLabel || ""} ${value}`);
+      if (/中国|上海|深圳|广州|宁波|青岛|天津|厦门|郑州|杭州|北京|成都|武汉|china|pvg|can|szx|cgo|hgh|pek|pkx|tfu|wuh|cnsha|cnytn|cnn?gb|cntsn|cntao|cngzg/.test(originText)) {
+        $("decisionOrigin").value = "中国";
+      }
+    }
+    if ($("decisionMode") && ["Sea", "Air", "Courier"].includes(intel.mode)) $("decisionMode").value = intel.mode;
+    if ($("decisionIncoterm") && (intel.mode === "Air" || intel.mode === "Courier") && (!$("decisionIncoterm").value || $("decisionIncoterm").value === "FOB")) {
+      $("decisionIncoterm").value = "FCA";
+    }
+    if ($("decisionHs") && intel.hs) $("decisionHs").value = intel.hs;
+    if ($("decisionParty") && value && !$("decisionParty").value) $("decisionParty").value = intel.country ? `${intel.country} 进口商/收货人待确认` : "";
+    evaluateDecisionSupport({ preventDefault() {} });
   }
   renderGlobalSearchResult(value);
   Array.from($("globalSearchResult")?.querySelectorAll("[data-global-module]") || [])
@@ -8385,6 +8733,10 @@ async function executeGlobalSearchModule(moduleId = "", query = "") {
     }
     if (moduleId === "risk-center") {
       await renderRiskCenterFromQuery(query);
+      return;
+    }
+    if (moduleId === "decision") {
+      evaluateDecisionSupport(submitEvent);
       return;
     }
     if (moduleId === "air") {
@@ -8597,12 +8949,12 @@ function renderAirOpsFees(event) {
 }
 
 function splitRouteQuery(query = "") {
-  const cleaned = String(query || "").replace(/查询|价格|费用|风险|预警|海运|空运|港口|机场|market|rate|fee|risk/gi, " ").replace(/\s+/g, " ").trim();
-  const parts = cleaned.split(/\s*(?:到|至|->|→|--|—|,|，|\/)\s*/).map((item) => item.trim()).filter(Boolean);
+  const cleaned = String(query || "").replace(/\s+/g, " ").trim();
+  const parts = cleaned.split(/\s*(?:到|至|->|→|--|—|,|，|\/)\s*/).map(cleanRouteEndpoint).filter(Boolean);
   if (parts.length >= 2) return { origin: parts[0], destination: parts.slice(1).join(" ") };
-  const tokens = cleaned.split(/\s+/).filter(Boolean);
+  const tokens = cleanRouteEndpoint(cleaned).split(/\s+/).filter(Boolean);
   if (tokens.length >= 2) return { origin: tokens[0], destination: tokens.slice(1).join(" ") };
-  return { origin: cleaned, destination: "" };
+  return { origin: cleanRouteEndpoint(cleaned), destination: "" };
 }
 
 function seaMarketRateEstimate(origin = {}, destination = {}, box = "40HQ", cargo = "general") {
