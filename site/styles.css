@@ -6422,6 +6422,51 @@ nav a[href="#learn"]::before {
   line-height: 1.5;
 }
 
+.market-quote-card {
+  overflow: hidden;
+}
+
+.market-quote-table-wrap {
+  min-width: 0;
+  overflow-x: auto;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.market-quote-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  color: #334155;
+  font-size: 12px;
+}
+
+.market-quote-table th,
+.market-quote-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  text-align: left;
+  vertical-align: top;
+}
+
+.market-quote-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.market-quote-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.market-quote-table b,
+.market-quote-table strong {
+  color: #0f172a;
+  font-size: 12px;
+}
+
 .risk-center-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
@@ -6523,6 +6568,33 @@ nav a[href="#learn"]::before {
   background: #f8fafc;
 }
 
+.mini-curve-wrap {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: stretch;
+}
+
+.mini-curve-y {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.mini-curve-x {
+  grid-column: 2;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .mini-curve i {
   position: relative;
   flex: 1 1 0;
@@ -6540,6 +6612,122 @@ nav a[href="#learn"]::before {
   color: #475569;
   font-size: 10px;
   font-weight: 850;
+}
+
+.weather-risk-layer {
+  grid-column: 1 / -1;
+  display: block;
+  margin-top: 0;
+}
+
+.weather-risk-card {
+  border-color: rgba(14, 165, 233, 0.28);
+  background: #f8fcff;
+}
+
+.weather-risk-card.is-loading {
+  border-style: dashed;
+}
+
+.weather-risk-danger {
+  border-color: rgba(220, 38, 38, 0.36);
+  background: #fff7f7;
+}
+
+.weather-risk-warn {
+  border-color: rgba(217, 119, 6, 0.38);
+  background: #fffaf2;
+}
+
+.weather-risk-watch {
+  border-color: rgba(14, 165, 233, 0.28);
+  background: #f8fcff;
+}
+
+.weather-risk-muted {
+  border-color: rgba(148, 163, 184, 0.32);
+  background: #f8fafc;
+}
+
+.weather-risk-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 10px;
+  align-items: start;
+}
+
+.weather-risk-head span {
+  grid-column: 1 / -1;
+}
+
+.weather-risk-head b {
+  align-self: start;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  color: #475569;
+  font-size: 10px;
+}
+
+.weather-risk-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.weather-risk-actions p {
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.weather-risk-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.weather-risk-columns > div {
+  min-width: 0;
+}
+
+.weather-source-grid {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.weather-source-grid a {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.76);
+  color: inherit;
+  text-decoration: none;
+}
+
+.weather-source-grid a span {
+  width: max-content;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 10px;
+}
+
+.weather-source-grid a strong {
+  font-size: 13px;
+}
+
+.weather-source-grid a small,
+.weather-risk-note {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 body[data-active-module]:not([data-active-module="dashboard"]) .global-query-panel {
@@ -16075,7 +16263,9 @@ body[data-active-module="air-fees"] .ops-fee-hero::after {
   .risk-center-form,
   .market-rate-result-grid,
   .risk-center-result-grid,
-  .risk-center-hero {
+  .risk-center-hero,
+  .weather-risk-actions,
+  .weather-risk-columns {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -16089,8 +16279,26 @@ body[data-active-module="air-fees"] .ops-fee-hero::after {
   .market-rate-form,
   .risk-center-form,
   .market-rate-result-grid,
-  .risk-center-result-grid {
+  .risk-center-result-grid,
+  .weather-risk-actions,
+  .weather-risk-columns {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mini-curve-wrap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mini-curve-y,
+  .mini-curve-x {
+    grid-column: 1;
+    writing-mode: horizontal-tb;
+    transform: none;
+    text-align: left;
+  }
+
+  .market-quote-table {
+    min-width: 660px;
   }
 
   .global-search-form button {

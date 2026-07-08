@@ -15,7 +15,7 @@
         display: none !important;
       }
     </style>
-    <link rel="stylesheet" href="./styles.css?v=20260706-ai-judge-v68" />
+    <link rel="stylesheet" href="./styles.css?v=20260708-risk-weather-v69" />
   </head>
   <body class="auth-pending is-public-home">
     <button type="button" class="login-trigger" id="openLoginDialog">登录</button>
@@ -74,7 +74,6 @@
             <a href="#sea-load"><span class="nav-icon nav-icon-shipment" aria-hidden="true"></span><span>海运装载计算</span></a>
             <a href="#sea-special"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>特种箱/BBK/OOG/Reefer</span></a>
             <a href="#sea-fees"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>海运价格/费用</span></a>
-            <a href="#risk-center"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>风险预警中心</span></a>
           </details>
 
           <details class="nav-group">
@@ -83,6 +82,11 @@
             <a href="#air-calc"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>非快件空运计算</span></a>
             <a href="#air-fees"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运价格/费用</span></a>
             <a href="#air-guide"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运出运/到达注意</span></a>
+          </details>
+
+          <details class="nav-group">
+            <summary>风险预警</summary>
+            <a href="#risk-center"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>风险预警中心</span></a>
           </details>
 
           <details class="nav-group">
@@ -123,10 +127,10 @@
         <a href="#sea-load"><span class="nav-icon nav-icon-shipment" aria-hidden="true"></span><span>海算</span></a>
         <a href="#sea-special"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>特箱</span></a>
         <a href="#sea-fees"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>海价</span></a>
-        <a href="#risk-center"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>风险</span></a>
         <a href="#air"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运</span></a>
         <a href="#air-calc"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空算</span></a>
         <a href="#air-fees"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空价</span></a>
+        <a href="#risk-center"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>风险</span></a>
         <a href="#customs"><span class="nav-icon nav-icon-customs" aria-hidden="true"></span><span>通关</span></a>
         <a href="#docs-invoice"><span class="nav-icon nav-icon-docs" aria-hidden="true"></span><span>单证</span></a>
         <a href="#docs-declaration"><span class="nav-icon nav-icon-declaration" aria-hidden="true"></span><span>报关</span></a>
@@ -2186,26 +2190,24 @@
               <p class="eyebrow">Risk Warning Center</p>
               <h2>风险预警中心</h2>
             </div>
-            <span>港口 · 机场 · 航线 · 政策清关</span>
+            <span>港口 · 机场</span>
           </div>
           <div class="risk-center-hero">
             <div>
               <p class="eyebrow">Logistics Risk Answer Engine</p>
               <h2>输入出发地和目的地，直接给风险结论</h2>
-              <p>风险中心不只列新闻。它会把平均运输天数、常见延误、查验率、资料缺口和下一步动作拆开，让业务能判断能不能承诺交期。</p>
+              <p>风险中心只做港口和机场两类可结构化判断。覆盖不足时不输出平均时效，避免把默认值说成结论。</p>
             </div>
             <div class="risk-center-stats" aria-label="风险中心覆盖">
               <span>全球主要港口</span>
               <span>全球主要机场</span>
               <span>锂电池/DG</span>
-              <span>政策/清关</span>
+              <span>覆盖不足会提示核验</span>
             </div>
           </div>
           <div class="module-tabs risk-center-tabs" role="tablist" aria-label="风险预警页面">
             <button type="button" class="module-tab active" data-tab-target="risk-port-panel">港口风险</button>
             <button type="button" class="module-tab" data-tab-target="risk-airport-panel">机场风险</button>
-            <button type="button" class="module-tab" data-tab-target="risk-route-panel">航线/海域风险</button>
-            <button type="button" class="module-tab" data-tab-target="risk-policy-panel">政策/清关风险</button>
           </div>
 
           <section class="tab-panel active risk-page-panel" id="risk-port-panel">
@@ -2272,49 +2274,6 @@
             <div id="riskAirportResult" class="risk-center-result-grid"></div>
           </section>
 
-          <section class="tab-panel risk-page-panel" id="risk-route-panel">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow">Route Risk</p>
-                <h2>航线/海域风险</h2>
-              </div>
-              <span class="quiet-tag">红海/巴拿马/台风季/绕航</span>
-            </div>
-            <form id="riskRouteForm" class="query-card risk-center-form">
-              <label>
-                航线或国家
-                <input id="riskRouteQuery" lang="zh-CN" placeholder="如 中国到欧洲 / 上海到鹿特丹 / 红海绕航" />
-              </label>
-              <label>
-                运输方式
-                <select id="riskRouteMode">
-                  <option value="sea">海运</option>
-                  <option value="air">空运</option>
-                  <option value="multimodal">多式联运</option>
-                </select>
-              </label>
-              <button type="submit" class="primary-button">生成航线风险结论</button>
-            </form>
-            <div id="riskRouteResult" class="risk-center-result-grid"></div>
-          </section>
-
-          <section class="tab-panel risk-page-panel" id="risk-policy-panel">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow">Policy & Customs Risk</p>
-                <h2>政策/清关风险</h2>
-              </div>
-              <span class="quiet-tag">关税 / 认证 / 单证 / 原产地</span>
-            </div>
-            <form id="riskPolicyForm" class="query-card risk-center-form">
-              <label>
-                问题
-                <input id="riskPolicyQuery" lang="zh-CN" placeholder="如 美国 蓝牙耳机关税 / 巴西 ANATEL / 欧盟 CE RED" />
-              </label>
-              <button type="submit" class="primary-button">生成政策风险结论</button>
-            </form>
-            <div id="riskPolicyResult" class="risk-center-result-grid"></div>
-          </section>
         </section>
 
         <section id="port-risk" class="panel">
@@ -2542,6 +2501,6 @@
     <script src="./china-tariff-2026.js?v=20260610-logistics-intel-v12"></script>
     <script src="./trade-measures-data.js?v=20260610-logistics-intel-v12"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="./app.js?v=20260707-ai-judge-v78"></script>
+    <script src="./app.js?v=20260708-risk-weather-v79"></script>
   </body>
 </html>
