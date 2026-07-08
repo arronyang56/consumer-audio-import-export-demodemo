@@ -6426,6 +6426,15 @@ nav a[href="#learn"]::before {
   overflow: hidden;
 }
 
+.route-source-card strong {
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.route-source-card .source-chip-grid {
+  margin-top: 2px;
+}
+
 .market-quote-table-wrap {
   min-width: 0;
   overflow-x: auto;

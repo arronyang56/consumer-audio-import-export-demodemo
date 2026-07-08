@@ -1222,6 +1222,30 @@ const marketSourceLinks = {
   ]
 };
 
+const carrierScheduleSources = {
+  standards: [
+    ["DCSA Developer Portal", "https://developer.dcsa.org/"],
+    ["DCSA Standards", "https://dcsa.org/standards/"]
+  ],
+  api: [
+    ["Maersk Developer", "https://developer.maersk.com/"],
+    ["CMA CGM API Portal", "https://api-portal.cma-cgm.com/"]
+  ],
+  schedules: [
+    ["Maersk Point-to-Point Schedules", "https://www.maersk.com/schedules/point-to-point"],
+    ["MSC Search a Schedule", "https://www.msc.com/en/search-a-schedule"],
+    ["COSCO e-Lines", "https://elines.coscoshipping.com/"],
+    ["CMA CGM Schedules", "https://www.cma-cgm.com/ebusiness/schedules"],
+    ["Hapag-Lloyd Interactive Schedule", "https://www.hapag-lloyd.com/en/online-business/schedule/interactive-schedule.html"],
+    ["ONE Point-to-Point Schedule", "https://ecomm.one-line.com/one-ecom/schedule/point-to-point-schedule"],
+    ["Evergreen ShipmentLink", "https://www.shipmentlink.com/"]
+  ],
+  domestic: [
+    ["COSCO e-Lines", "https://elines.coscoshipping.com/"],
+    ["COSCO Shipping Lines", "https://lines.coscoshipping.com/"]
+  ]
+};
+
 function appendUniqueBy(rows = [], additions = [], keyFn = (item) => item.code || item.iata || item.id) {
   const seen = new Set(rows.map((item) => String(keyFn(item) || "").toLowerCase()).filter(Boolean));
   additions.forEach((item) => {
@@ -1234,6 +1258,16 @@ function appendUniqueBy(rows = [], additions = [], keyFn = (item) => item.code |
 }
 
 const supplementalSeaPorts = [
+  { code: "CNYNT", name: "Yantai", cn: "烟台港", country: "中国", aliases: ["烟台", "yantai", "cnynt"], note: "山东沿海重要港口，内贸、滚装和日韩近洋需确认具体码头。" },
+  { code: "CNRZH", name: "Rizhao", cn: "日照港", country: "中国", aliases: ["日照", "rizhao", "cnrzh"], note: "山东沿海港口，散杂、内贸和集装箱服务需按码头确认。" },
+  { code: "CNWEI", name: "Weihai", cn: "威海港", country: "中国", aliases: ["威海", "weihai", "cnwei"], note: "山东半岛港口，日韩近洋、内贸和支线服务需确认班期。" },
+  { code: "CNWNZ", name: "Wenzhou", cn: "温州港", country: "中国", aliases: ["温州", "wenzhou", "cnwnz"], note: "浙南港口，内贸、近洋和支线服务要确认船公司挂靠。" },
+  { code: "CNSWA", name: "Shantou", cn: "汕头港", country: "中国", aliases: ["汕头", "shantou", "cnswa"], note: "粤东港口，内贸和近洋出运需确认具体港区和中转安排。" },
+  { code: "CNZUH", name: "Zhuhai", cn: "珠海港", country: "中国", aliases: ["珠海", "zhuhai", "cnzuh", "高栏"], note: "珠江西岸港口，内贸、驳船和近洋服务需确认港区。" },
+  { code: "CNZHA", name: "Zhanjiang", cn: "湛江港", country: "中国", aliases: ["湛江", "zhanjiang", "cnzha"], note: "粤西港口，内贸、散杂和冷链场景需确认具体码头。" },
+  { code: "CNQZH", name: "Qinzhou", cn: "钦州港", country: "中国", aliases: ["钦州", "qinzhou", "cnqzh", "北部湾"], note: "北部湾主要集装箱港，海铁联运和内贸中转需确认班期。" },
+  { code: "CNHAK", name: "Haikou", cn: "海口港", country: "中国", aliases: ["海口", "haikou", "cnhak"], note: "海南口岸，进出岛运输受天气、滚装/集装箱班期和码头窗口影响。" },
+  { code: "CNYPG", name: "Yangpu", cn: "洋浦港", country: "中国", aliases: ["洋浦", "yangpu", "cnypg", "cnype", "小铲滩"], note: "海南洋浦港，内贸集装箱和区域中转需按船司班期确认。" },
   { code: "KRPUS", name: "Busan", cn: "釜山港", country: "韩国", aliases: ["釜山", "busan", "krpus"], note: "东北亚主要中转港，转运和班轮衔接能力强。" },
   { code: "JPTYO", name: "Tokyo", cn: "东京港", country: "日本", aliases: ["东京港", "tokyo", "jptyo"], note: "日本关东主要港口，需确认具体码头和内陆派送窗口。" },
   { code: "JPYOK", name: "Yokohama", cn: "横滨港", country: "日本", aliases: ["横滨", "yokohama", "jpyok"], note: "日本关东主要集装箱港，常与东京港联动。" },
@@ -1275,7 +1309,11 @@ appendUniqueBy(seaPortCodeData, supplementalSeaPorts, (item) => item.code);
 
 const supplementalPortRiskProfiles = supplementalSeaPorts.map((port) => {
   const text = normalize(`${port.code} ${port.cn} ${port.name} ${port.country}`);
-  const region = /krpus|jptyo|jpyok|twkhh/.test(text) ? "asia-hub"
+  const region = /cndlc|cntsn|cntao|cnynt|cnwei|cnrzh|大连|天津|青岛|烟台|威海|日照/.test(text) ? "china-north"
+    : /cnsha|cnngb|cntxg|cnlyg|cnwnz|上海|宁波|舟山|太仓|连云港|温州/.test(text) ? "china-east"
+      : /cnxmn|cnfoc|cnytn|cnszx|cngzg|cnzuh|cnswa|cnzha|cnqzh|厦门|福州|盐田|深圳|广州|南沙|珠海|汕头|湛江|钦州|北部湾/.test(text) ? "china-south"
+        : /cnhak|cnypg|cnype|海口|洋浦|海南/.test(text) ? "china-hainan"
+          : /krpus|jptyo|jpyok|twkhh/.test(text) ? "asia-hub"
     : /vn|id|ph|thlch|singapore|sgsin|vietnam|indonesia|philippines|越南|印尼|菲律宾/.test(text) ? "southeast-asia"
       : /in|lkcmb|india|印度|科伦坡/.test(text) ? "south-asia"
         : /aejea|sajed|sadmm|middle|沙特|迪拜|达曼|吉达/.test(text) ? "middle-east"
@@ -1292,6 +1330,10 @@ const supplementalPortRiskProfiles = supplementalSeaPorts.map((port) => {
                               : "generic-port";
   const baseByRegion = {
     "asia-hub": [1.0, 40, 1.8],
+    "china-north": [1.6, 49, 2.4],
+    "china-east": [1.4, 46, 2.2],
+    "china-south": [1.4, 46, 2.2],
+    "china-hainan": [1.8, 53, 2.7],
     "southeast-asia": [1.5, 49, 2.4],
     "south-asia": [2.2, 60, 3.3],
     "middle-east": [1.8, 54, 2.7],
@@ -8253,6 +8295,151 @@ function findPortRiskProfile(query = "") {
   };
 }
 
+const domesticCoastalPortGroups = {
+  CNDLC: { group: "dalian", region: "china-north", label: "大连港" },
+  CNTSN: { group: "tianjin", region: "china-north", label: "天津/新港" },
+  CNTAO: { group: "qingdao", region: "china-north", label: "青岛港" },
+  CNYNT: { group: "qingdao", region: "china-north", label: "烟台/山东港群" },
+  CNWEI: { group: "qingdao", region: "china-north", label: "威海/山东港群" },
+  CNRZH: { group: "qingdao", region: "china-north", label: "日照/山东港群" },
+  CNLYG: { group: "lianyungang", region: "china-east", label: "连云港" },
+  CNSHA: { group: "shanghai", region: "china-east", label: "上海港" },
+  CNTXG: { group: "shanghai", region: "china-east", label: "太仓/长三角港群" },
+  CNNGB: { group: "ningbo", region: "china-east", label: "宁波舟山港" },
+  CNWNZ: { group: "wenzhou", region: "china-east", label: "温州港" },
+  CNFOC: { group: "fuzhou", region: "china-fujian", label: "福州港" },
+  CNXMN: { group: "xiamen", region: "china-fujian", label: "厦门港" },
+  CNYTN: { group: "prd", region: "china-south", label: "盐田/深圳港群" },
+  CNSZX: { group: "prd", region: "china-south", label: "深圳港群" },
+  CNGZG: { group: "prd", region: "china-south", label: "广州/南沙港群" },
+  CNZUH: { group: "prd", region: "china-south", label: "珠海/珠江西岸港群" },
+  CNSWA: { group: "prd", region: "china-south", label: "汕头/粤东港群" },
+  CNZHA: { group: "beibu", region: "china-beibu", label: "湛江/粤西港群" },
+  CNQZH: { group: "beibu", region: "china-beibu", label: "钦州/北部湾港群" },
+  CNHAK: { group: "hainan", region: "china-hainan", label: "海口港" },
+  CNYPG: { group: "hainan", region: "china-hainan", label: "洋浦港" }
+};
+
+function domesticCoastalPortProfile(port = {}) {
+  const code = String(port.code || "").toUpperCase();
+  const profile = domesticCoastalPortGroups[code];
+  if (!profile) return null;
+  return {
+    ...profile,
+    code,
+    cn: port.cn || profile.label,
+    name: port.name || profile.label
+  };
+}
+
+function sortedLaneKey(a = "", b = "") {
+  return [a, b].sort().join("<>");
+}
+
+function buildLaneRangeMap(rows = []) {
+  return rows.reduce((acc, [from, to, range]) => {
+    acc[sortedLaneKey(from, to)] = range;
+    return acc;
+  }, {});
+}
+
+const domesticCoastalLaneRanges = buildLaneRangeMap([
+  ["dalian", "tianjin", [1, 3]],
+  ["dalian", "qingdao", [2, 4]],
+  ["tianjin", "qingdao", [2, 4]],
+  ["qingdao", "lianyungang", [1, 3]],
+  ["qingdao", "shanghai", [3, 5]],
+  ["qingdao", "ningbo", [3, 6]],
+  ["tianjin", "shanghai", [4, 7]],
+  ["tianjin", "ningbo", [5, 8]],
+  ["dalian", "shanghai", [4, 7]],
+  ["dalian", "ningbo", [5, 8]],
+  ["lianyungang", "shanghai", [2, 4]],
+  ["lianyungang", "ningbo", [3, 5]],
+  ["shanghai", "ningbo", [1, 3]],
+  ["shanghai", "wenzhou", [1, 3]],
+  ["ningbo", "wenzhou", [1, 2]],
+  ["shanghai", "xiamen", [3, 5]],
+  ["shanghai", "fuzhou", [3, 5]],
+  ["ningbo", "xiamen", [2, 4]],
+  ["ningbo", "fuzhou", [2, 4]],
+  ["wenzhou", "xiamen", [2, 4]],
+  ["wenzhou", "fuzhou", [1, 3]],
+  ["xiamen", "fuzhou", [1, 2]],
+  ["shanghai", "prd", [4, 7]],
+  ["ningbo", "prd", [4, 6]],
+  ["lianyungang", "prd", [5, 8]],
+  ["qingdao", "prd", [5, 8]],
+  ["tianjin", "prd", [6, 10]],
+  ["dalian", "prd", [6, 9]],
+  ["tianjin", "xiamen", [5, 8]],
+  ["qingdao", "xiamen", [4, 7]],
+  ["dalian", "xiamen", [5, 8]],
+  ["tianjin", "fuzhou", [5, 8]],
+  ["qingdao", "fuzhou", [4, 7]],
+  ["dalian", "fuzhou", [5, 8]],
+  ["xiamen", "prd", [2, 4]],
+  ["fuzhou", "prd", [3, 5]],
+  ["prd", "hainan", [2, 4]],
+  ["xiamen", "hainan", [3, 5]],
+  ["fuzhou", "hainan", [4, 6]],
+  ["wenzhou", "hainan", [4, 7]],
+  ["shanghai", "hainan", [5, 8]],
+  ["ningbo", "hainan", [5, 8]],
+  ["lianyungang", "hainan", [6, 9]],
+  ["qingdao", "hainan", [6, 10]],
+  ["tianjin", "hainan", [7, 11]],
+  ["dalian", "hainan", [7, 11]],
+  ["prd", "beibu", [2, 4]],
+  ["hainan", "beibu", [1, 3]],
+  ["xiamen", "beibu", [4, 6]],
+  ["fuzhou", "beibu", [4, 7]],
+  ["wenzhou", "beibu", [5, 7]],
+  ["shanghai", "beibu", [5, 8]],
+  ["ningbo", "beibu", [5, 8]],
+  ["lianyungang", "beibu", [6, 9]],
+  ["qingdao", "beibu", [6, 10]],
+  ["tianjin", "beibu", [7, 11]],
+  ["dalian", "beibu", [7, 11]]
+]);
+
+const domesticCoastalRegionRanges = buildLaneRangeMap([
+  ["china-north", "china-east", [3, 6]],
+  ["china-north", "china-fujian", [5, 8]],
+  ["china-north", "china-south", [6, 10]],
+  ["china-north", "china-hainan", [7, 11]],
+  ["china-north", "china-beibu", [7, 11]],
+  ["china-east", "china-fujian", [2, 5]],
+  ["china-east", "china-south", [4, 7]],
+  ["china-east", "china-hainan", [5, 8]],
+  ["china-east", "china-beibu", [5, 8]],
+  ["china-fujian", "china-south", [2, 5]],
+  ["china-fujian", "china-hainan", [3, 6]],
+  ["china-fujian", "china-beibu", [4, 7]],
+  ["china-south", "china-hainan", [2, 4]],
+  ["china-south", "china-beibu", [2, 4]],
+  ["china-hainan", "china-beibu", [1, 3]]
+]);
+
+function domesticCoastalRouteDays(origin = {}, destination = {}, makeRange = (range) => range) {
+  const originPort = domesticCoastalPortProfile(origin);
+  const destinationPort = domesticCoastalPortProfile(destination);
+  if (!originPort || !destinationPort) return null;
+  if (originPort.group === destinationPort.group) {
+    const sameRange = originPort.region === "china-south" ? [1, 2] : [1, 3];
+    return makeRange(sameRange, "domestic-lane", `${originPort.label} 与 ${destinationPort.label} 属于同一沿海港群，按内贸/驳船短程窗口估算；正式 ETA 仍需看船司开航、截关和中转安排。`);
+  }
+  const laneRange = domesticCoastalLaneRanges[sortedLaneKey(originPort.group, destinationPort.group)];
+  if (laneRange) {
+    return makeRange(laneRange, "domestic-lane", `${originPort.label} 到 ${destinationPort.label} 按国内沿海重点港群航线估算；来源口径为 LogisMaster 内置港群距离 + 公开船期入口校准的经验模型，不等同实时船司班期。`);
+  }
+  const regionRange = domesticCoastalRegionRanges[sortedLaneKey(originPort.region, destinationPort.region)];
+  if (regionRange) {
+    return makeRange(regionRange, "domestic-regional", `${originPort.label} 到 ${destinationPort.label} 属于国内沿海区域估算；覆盖到港群级别，但未细到具体船司/航次，正式交期必须用订舱系统或船期页复核。`);
+  }
+  return null;
+}
+
 function routeDaysForPorts(origin = {}, destination = {}) {
   const pair = `${origin.region || ""}->${destination.region || ""}`;
   const exactPair = `${origin.code || ""}->${destination.code || ""}`.toUpperCase();
@@ -8273,6 +8460,8 @@ function routeDaysForPorts(origin = {}, destination = {}) {
     "CNNGB->THLCH": [[6, 10], "宁波到林查班需按船司直航/转运确认。"]
   };
   if (exactTable[exactPair]) return makeRange(exactTable[exactPair][0], "lane", exactTable[exactPair][1]);
+  const domesticDays = domesticCoastalRouteDays(origin, destination, makeRange);
+  if (domesticDays) return domesticDays;
   if (!origin.region || !destination.region || /generic/.test(pair)) return null;
   const table = [
     [/china-(east|south|north)->us-west/, [13, 19]],
@@ -8312,6 +8501,50 @@ function routeDaysText(days) {
 
 function routeDaysNote(days) {
   return days?.note || "该港口组合暂未纳入平均船期表，不输出默认天数；请以船司/货代班期或历史订单核验。";
+}
+
+function routeScheduleSourceProfile(origin = {}, destination = {}, days = null) {
+  const confidence = days?.confidence || "missing";
+  const route = `${origin.cn || origin.name || origin.code || "起运港"} → ${destination.cn || destination.name || destination.code || "目的港"}`;
+  const apiStatus = "API 可做，但不能靠网页抓取硬凑：DCSA 可作为船期/追踪标准，Maersk、CMA CGM、Hapag-Lloyd 等通常需要账号、应用审批或商业授权；未接入密钥前，页面只输出模型判断和官方船期入口。";
+  if (!days) {
+    return {
+      mode: "coverage-missing",
+      label: "覆盖不足 / 不输出航程",
+      summary: `${route} 暂无可靠港到港航程区间，系统不会用区域默认值硬猜；建议直接查船司点到点船期或让货代提供 ETD/ETA。`,
+      confidenceText: "低",
+      apiStatus,
+      sources: carrierScheduleSources.schedules.slice(0, 5)
+    };
+  }
+  if (/^domestic/.test(confidence)) {
+    return {
+      mode: confidence,
+      label: confidence === "domestic-lane" ? "国内沿海重点航线模型" : "国内沿海港群模型",
+      summary: `${route} 已进入国内沿海运输数据库，区间来自内置港群距离、常见内贸/支线航线和公开船期入口校准；正式交期仍要看承运人开航、截关、中转和天气。`,
+      confidenceText: confidence === "domestic-lane" ? "中高" : "中",
+      apiStatus,
+      sources: [...carrierScheduleSources.domestic, ...carrierScheduleSources.standards.slice(0, 1)]
+    };
+  }
+  if (confidence === "lane") {
+    return {
+      mode: "carrier-schedule-check",
+      label: "重点国际航线模型 / 船司船期复核",
+      summary: `${route} 命中重点国际航线表，适合作为业务预判；下一步应以主流船司点到点船期页或 API 返回的 ETD/ETA、转运港、cut-off 为准。`,
+      confidenceText: "中",
+      apiStatus,
+      sources: [...carrierScheduleSources.schedules.slice(0, 5), ...carrierScheduleSources.standards.slice(0, 1)]
+    };
+  }
+  return {
+    mode: "model-fallback",
+    label: "区域模型 / 必须船司页复核",
+    summary: `${route} 只命中区域级航程模型，能帮助先判断方向，但不代表某一船司真实班期；报价或承诺交期前必须核验船司船期。`,
+    confidenceText: "中低",
+    apiStatus,
+    sources: [...carrierScheduleSources.schedules.slice(0, 5), ...carrierScheduleSources.api.slice(0, 2)]
+  };
 }
 
 function flightHoursForAirports(origin = {}, destination = {}) {
@@ -9228,6 +9461,19 @@ function renderMarketSourceLinks(mode = "sea") {
   return `<div class="source-chip-grid">${(marketSourceLinks[mode] || []).map(([title, url]) => `<a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${escapeHtml(title)}</a>`).join("")}</div>`;
 }
 
+function renderRouteScheduleSourceCard(profile = {}, className = "market-rate-card wide") {
+  const links = normalizeBriefLinks(profile.sources || []).slice(0, 7);
+  return `
+    <article class="${escapeHtml(className)} route-source-card">
+      <span>航程时间来源</span>
+      <strong>${escapeHtml(profile.label || "来源待核验")}</strong>
+      <p>${escapeHtml(profile.summary || "当前航程来源待补充。")}</p>
+      <p>可信度：${escapeHtml(profile.confidenceText || "待判断")}。${escapeHtml(profile.apiStatus || "")}</p>
+      ${links.length ? `<div class="source-chip-grid">${links.map((item) => `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a>`).join("")}</div>` : ""}
+    </article>
+  `;
+}
+
 function renderMarketQuoteTable(mode = "sea", context = {}) {
   const { origin = {}, destination = {}, rate = {}, weight = 300 } = context;
   const route = mode === "air"
@@ -9242,6 +9488,7 @@ function renderMarketQuoteTable(mode = "sea", context = {}) {
       ]
     : [
         ["LogisMaster 海运模型", route, rate.label || "待估算", "模型参考", "按区域、箱型和货型估算，不是船司现舱报价。"],
+        ["DCSA / 船司 API", route, "需账号或密钥", "API 可行性", "适合后续接 Commercial Schedules、Operational Vessel Schedules 或船司商业 API；未授权前不能伪装实时船期。"],
         ["Maersk Spot", route, "需实时询价", "船司入口", "适合核验现舱价、有效期、PSS/BAF 和 free time。"],
         ["COSCO e-Lines / CMA CGM", route, "需实时询价", "船司入口", "适合核验中国起运港官方订舱价和附加费。"],
         ["Hapag-Lloyd / ONE", route, "需实时询价", "船司入口", "适合交叉核验航线服务、转运和船期。"]
@@ -9289,6 +9536,7 @@ function renderSeaMarketRate(event) {
   const origin = findPortRiskProfile(originQuery) || findPortRiskProfile("上海");
   const destination = findPortRiskProfile(destinationQuery) || findPortRiskProfile("Los Angeles");
   const days = routeDaysForPorts(origin, destination);
+  const scheduleSource = routeScheduleSourceProfile(origin, destination, days);
   const rate = seaMarketRateEstimate(origin, destination, box, cargo);
   const delay = ((origin.baseDelay || 1.8) + (destination.baseDelay || 1.8)) / 2;
   const extra = cargo === "dg" ? "危险品要逐票确认船司接收、危申、港区进港窗口和 DG surcharge。" : cargo === "reefer" ? "冷箱要确认插电、温控、PTI、目的港冷箱费和超期堆存。" : cargo === "oog" ? "OOG/特种箱必须先拿船司和码头确认，市场价只能作方向参考。" : "普通货仍需确认旺季附加费、BAF、PSS、目的港费用和免堆免箱。";
@@ -9299,15 +9547,16 @@ function renderSeaMarketRate(event) {
       title: `${origin.cn || origin.name} → ${destination.cn || destination.name} · ${box}`,
       updatedLabel: "市场参考区间",
       conclusion: `当前可先按 ${rate.label} 做预算区间；正式报价要拿船司/货代有效期和附加费明细。`,
-      risk: days ? `平均船期 ${routeDaysText(days)}；平均延误约 ${delay.toFixed(1)} 天。` : `平均船期：覆盖不足。${routeDaysNote(days)}`,
+      risk: days ? `平均船期 ${routeDaysText(days)}；来源：${scheduleSource.label}；平均延误约 ${delay.toFixed(1)} 天。` : `平均船期：覆盖不足。${routeDaysNote(days)}`,
       cost: rate.basis,
       action: "至少向 2-3 家船司/货代核价，要求列明海运费、BAF/PSS、文件费、目的港费、免堆免箱和有效期。",
-      source: "市场区间模型 + 主流船司/货代公开报价入口；不是合约价或保证价。",
+      source: `价格：市场区间模型；航程：${scheduleSource.label}；不是合约价、保证价或实时船司 ETA。`,
       links: marketSourceLinks.sea
     })}
     <article class="market-rate-card primary"><span>参考海运价</span><strong>${escapeHtml(rate.label)}</strong><p>${escapeHtml(rate.basis)}</p></article>
     <article class="market-rate-card"><span>平均船期</span><strong>${escapeHtml(routeDaysText(days))}</strong><p>${escapeHtml(routeDaysNote(days))}</p></article>
     <article class="market-rate-card warning"><span>费用风险</span><strong>${escapeHtml(extra)}</strong><p>报价单必须拆明细，不建议只看一个 all-in 数字。</p></article>
+    ${renderRouteScheduleSourceCard(scheduleSource)}
     ${renderMarketQuoteTable("sea", { origin, destination, rate, unit: rate.unit })}
     <article class="market-rate-card wide"><span>主要参考入口</span>${renderMarketSourceLinks("sea")}</article>
   `;
@@ -9544,6 +9793,7 @@ function renderRiskPortResult(event) {
   }
   const cargo = $("riskPortCargo")?.value || "general";
   const days = routeDaysForPorts(origin, destination);
+  const scheduleSource = routeScheduleSourceProfile(origin, destination, days);
   const delay = ((origin.baseDelay || 1.8) + (destination.baseDelay || 1.8)) / 2 + (cargo === "dg" ? 1.2 : cargo === "reefer" ? 0.7 : cargo === "oog" ? 1.5 : cargo === "battery" ? 0.5 : 0);
   const score = clampPercent(((origin.risk || 50) + (destination.risk || 50)) / 2 + (days ? delay * 3 : 0) + (cargo === "dg" ? 10 : cargo === "oog" ? 12 : cargo === "reefer" ? 7 : cargo === "battery" ? 5 : 0));
   const level = riskLevelFromScore(score);
@@ -9564,11 +9814,12 @@ function renderRiskPortResult(event) {
       risk: `${score}/100 · ${origin.cn || origin.name}：${origin.note || "待核验"}；${destination.cn || destination.name}：${destination.note || "待核验"}`,
       cost: "延误会影响改配、堆存、滞箱、拖车等待、客户交付承诺和可能的空运替代成本。",
       action: actions[0],
-      source: "全球主要港口风险模型 + 港口公开新闻/码头/船司核验入口；正式交期以船司和码头事件为准。"
+      source: `航程：${scheduleSource.label}；天气/海况：官方公开预警；码头事件仍需看港口、码头和船司公告。`
     })}
     ${renderRiskScoreCard(score, days ? "港口路线风险" : "港口单点风险")}
     <article class="risk-center-card"><span>平均船期</span><strong>${escapeHtml(routeDaysText(days))}</strong><p>${escapeHtml(routeDaysNote(days))}</p></article>
     <article class="risk-center-card"><span>平均延误</span><strong>${days ? `${delay.toFixed(1)} 天` : "覆盖不足"}</strong><p>${escapeHtml(days ? "已叠加出发港、目的港和货型敏感度。" : "缺少该港口组合的历史时效表，不输出延误天数。")}</p></article>
+    ${renderRouteScheduleSourceCard(scheduleSource, "risk-center-card wide")}
     <article class="risk-center-card wide"><span>建议动作</span><ul>${actions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
     <div id="riskPortWeatherLayer" class="risk-center-result-grid weather-risk-layer"></div>
   `;
