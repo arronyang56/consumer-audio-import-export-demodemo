@@ -6435,6 +6435,26 @@ nav a[href="#learn"]::before {
   margin-top: 2px;
 }
 
+.table-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.table-link-row a {
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 7px;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 850;
+  text-decoration: none;
+}
+
 .market-quote-table-wrap {
   min-width: 0;
   overflow-x: auto;
@@ -6579,7 +6599,7 @@ nav a[href="#learn"]::before {
 
 .mini-curve-wrap {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   align-items: stretch;
 }
@@ -6587,16 +6607,18 @@ nav a[href="#learn"]::before {
 .mini-curve-y {
   display: flex;
   align-items: center;
-  justify-content: center;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
+  justify-content: flex-start;
+  writing-mode: horizontal-tb;
+  transform: none;
   color: #64748b;
   font-size: 10px;
   font-weight: 850;
+  line-height: 1.4;
+  text-align: left;
 }
 
 .mini-curve-x {
-  grid-column: 2;
+  grid-column: 1;
   color: #64748b;
   font-size: 10px;
   font-weight: 850;
@@ -10131,11 +10153,13 @@ body[data-active-module="hotspots"] { --module-accent: #ea580c; --module-symbol:
 body[data-active-module="shipment"],
 body[data-active-module="sea-load"],
 body[data-active-module="sea-special"],
+body[data-active-module="sea-market"],
 body[data-active-module="sea-fees"],
 body[data-active-module="port-risk"] { --module-accent: #0891b2; --module-symbol: ""; }
 body[data-active-module="customs"] { --module-accent: #16a34a; --module-symbol: ""; }
 body[data-active-module="air"],
 body[data-active-module="air-calc"],
+body[data-active-module="air-market"],
 body[data-active-module="air-fees"],
 body[data-active-module="air-guide"] { --module-accent: #0284c7; --module-symbol: ""; }
 body[data-active-module="codes"] { --module-accent: #0d9488; --module-symbol: ""; }
@@ -10561,11 +10585,13 @@ body[data-active-module="hotspots"].is-authenticated { --module-accent: #d6a58f;
 body[data-active-module="shipment"].is-authenticated,
 body[data-active-module="sea-load"].is-authenticated,
 body[data-active-module="sea-special"].is-authenticated,
+body[data-active-module="sea-market"].is-authenticated,
 body[data-active-module="sea-fees"].is-authenticated,
 body[data-active-module="port-risk"].is-authenticated { --module-accent: #9bbcc7; }
 body[data-active-module="customs"].is-authenticated { --module-accent: #b7d8c5; }
 body[data-active-module="air"].is-authenticated,
 body[data-active-module="air-calc"].is-authenticated,
+body[data-active-module="air-market"].is-authenticated,
 body[data-active-module="air-fees"].is-authenticated,
 body[data-active-module="air-guide"].is-authenticated { --module-accent: #9abfd8; }
 body[data-active-module="codes"].is-authenticated { --module-accent: #9ecdc6; }
@@ -13734,6 +13760,7 @@ body[data-active-module] {
 body[data-active-module="shipment"] { --module-art-color: rgba(23, 140, 150, 0.12); --module-art-text: "VESSEL  ETA  AIS"; }
 body[data-active-module="sea-load"] { --module-art-color: rgba(23, 140, 150, 0.12); --module-art-text: "CBM  W/M  CONTAINER"; }
 body[data-active-module="sea-special"] { --module-art-color: rgba(23, 140, 150, 0.12); --module-art-text: "OOG  REEFER  BBK"; }
+body[data-active-module="sea-market"] { --module-art-color: rgba(23, 140, 150, 0.12); --module-art-text: "FREIGHT  SPOT  SCHEDULE"; }
 body[data-active-module="sea-fees"] { --module-art-color: rgba(23, 140, 150, 0.12); --module-art-text: "PORT  THC  DEMURRAGE"; }
 body[data-active-module="port-risk"] { --module-art-color: rgba(201, 144, 46, 0.12); --module-art-text: "PORT  RISK  ALERT"; }
 body[data-active-module="customs"] { --module-art-color: rgba(15, 95, 168, 0.11); --module-art-text: "CUSTOMS  MANIFEST"; }
@@ -13741,6 +13768,7 @@ body[data-active-module="docs-invoice"] { --module-art-color: rgba(70, 107, 140,
 body[data-active-module="docs-declaration"] { --module-art-color: rgba(70, 107, 140, 0.12); --module-art-text: "DECLARATION  FORM"; }
 body[data-active-module="air"],
 body[data-active-module="air-calc"],
+body[data-active-module="air-market"],
 body[data-active-module="air-fees"],
 body[data-active-module="air-guide"] { --module-art-color: rgba(45, 127, 219, 0.12); --module-art-text: "AWB  RUNWAY  IATA"; }
 body[data-active-module="policy"],
@@ -13765,6 +13793,7 @@ body[data-active-module] {
 body[data-active-module="shipment"],
 body[data-active-module="sea-load"],
 body[data-active-module="sea-special"],
+body[data-active-module="sea-market"],
 body[data-active-module="sea-fees"],
 body[data-active-module="port-risk"] {
   --page-watermark-text: "PORT  CONTAINER  VESSEL";
@@ -13777,6 +13806,7 @@ body[data-active-module="port-risk"] {
 
 body[data-active-module="air"],
 body[data-active-module="air-calc"],
+body[data-active-module="air-market"],
 body[data-active-module="air-fees"],
 body[data-active-module="air-guide"] {
   --page-watermark-text: "AIRCRAFT  TERMINAL  AWB";
@@ -13884,11 +13914,13 @@ body[data-active-module].is-authenticated main > section:not(.workspace-hidden) 
   z-index: 1;
 }
 
+body[data-active-module="sea-market"] #sea-market::after,
 body[data-active-module="sea-fees"] #sea-fees::after,
 body[data-active-module="shipment"] #shipment::after,
 body[data-active-module="customs"] #customs::after,
 body[data-active-module="docs-invoice"] #docs-invoice::after,
 body[data-active-module="docs-declaration"] #docs-declaration::after,
+body[data-active-module="air-market"] #air-market::after,
 body[data-active-module="air-fees"] #air-fees::after,
 body[data-active-module="codes"] #codes::after {
   position: absolute;
@@ -15736,6 +15768,7 @@ body[data-active-module].is-authenticated main > section:not(.workspace-hidden):
 body[data-active-module="shipment"],
 body[data-active-module="sea-load"],
 body[data-active-module="sea-special"],
+body[data-active-module="sea-market"],
 body[data-active-module="sea-fees"],
 body[data-active-module="port-risk"] {
   --module-art-color: rgba(23, 140, 150, 0.2);
@@ -15748,6 +15781,7 @@ body[data-active-module="port-risk"] {
 
 body[data-active-module="air"],
 body[data-active-module="air-calc"],
+body[data-active-module="air-market"],
 body[data-active-module="air-fees"],
 body[data-active-module="air-guide"] {
   --module-art-color: rgba(45, 127, 219, 0.2);
@@ -15800,6 +15834,7 @@ body[data-active-module] {
 body[data-active-module="shipment"],
 body[data-active-module="sea-load"],
 body[data-active-module="sea-special"],
+body[data-active-module="sea-market"],
 body[data-active-module="sea-fees"],
 body[data-active-module="port-risk"],
 body[data-active-module="customs"] {
@@ -15808,6 +15843,7 @@ body[data-active-module="customs"] {
 
 body[data-active-module="air"],
 body[data-active-module="air-calc"],
+body[data-active-module="air-market"],
 body[data-active-module="air-fees"],
 body[data-active-module="air-guide"] {
   --lineart-watermark: var(--wm-air-lineart);
@@ -15869,11 +15905,13 @@ body[data-active-module].is-authenticated main > section:not(.workspace-hidden):
   opacity: 0.34;
 }
 
+body[data-active-module="sea-market"].is-authenticated #sea-market::after,
 body[data-active-module="sea-fees"].is-authenticated #sea-fees::after,
 body[data-active-module="shipment"].is-authenticated #shipment::after,
 body[data-active-module="customs"].is-authenticated #customs::after,
 body[data-active-module="docs-invoice"].is-authenticated #docs-invoice::after,
 body[data-active-module="docs-declaration"].is-authenticated #docs-declaration::after,
+body[data-active-module="air-market"].is-authenticated #air-market::after,
 body[data-active-module="air-fees"].is-authenticated #air-fees::after,
 body[data-active-module="codes"].is-authenticated #codes::after {
   right: 20px;
@@ -15951,6 +15989,7 @@ body[data-active-module] {
 body[data-active-module="shipment"],
 body[data-active-module="sea-load"],
 body[data-active-module="sea-special"],
+body[data-active-module="sea-market"],
 body[data-active-module="sea-fees"],
 body[data-active-module="port-risk"],
 body[data-active-module="customs"] {
@@ -15959,6 +15998,7 @@ body[data-active-module="customs"] {
 
 body[data-active-module="air"],
 body[data-active-module="air-calc"],
+body[data-active-module="air-market"],
 body[data-active-module="air-fees"],
 body[data-active-module="air-guide"] {
   --lineart-watermark: var(--wm-air-lineart);
@@ -16005,6 +16045,7 @@ body[data-active-module].is-authenticated main > section:not(.workspace-hidden):
 
 body[data-active-module="customs"].is-authenticated .workspace-title::after,
 body[data-active-module="shipment"].is-authenticated .workspace-title::after,
+body[data-active-module="sea-market"].is-authenticated .workspace-title::after,
 body[data-active-module="sea-fees"].is-authenticated .workspace-title::after,
 body[data-active-module="sea-load"].is-authenticated .workspace-title::after,
 body[data-active-module="sea-special"].is-authenticated .workspace-title::after {
@@ -16012,11 +16053,13 @@ body[data-active-module="sea-special"].is-authenticated .workspace-title::after 
   opacity: 0.82;
 }
 
+body[data-active-module="sea-market"].is-authenticated #sea-market::after,
 body[data-active-module="sea-fees"].is-authenticated #sea-fees::after,
 body[data-active-module="shipment"].is-authenticated #shipment::after,
 body[data-active-module="customs"].is-authenticated #customs::after,
 body[data-active-module="docs-invoice"].is-authenticated #docs-invoice::after,
 body[data-active-module="docs-declaration"].is-authenticated #docs-declaration::after,
+body[data-active-module="air-market"].is-authenticated #air-market::after,
 body[data-active-module="air-fees"].is-authenticated #air-fees::after,
 body[data-active-module="codes"].is-authenticated #codes::after {
   width: min(500px, 42%);

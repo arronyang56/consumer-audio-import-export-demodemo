@@ -15,7 +15,7 @@
         display: none !important;
       }
     </style>
-    <link rel="stylesheet" href="./styles.css?v=20260708-coastal-schedule-v70" />
+    <link rel="stylesheet" href="./styles.css?v=20260709-market-risk-sources-v71" />
   </head>
   <body class="auth-pending is-public-home">
     <button type="button" class="login-trigger" id="openLoginDialog">登录</button>
@@ -73,14 +73,16 @@
             <a href="#shipment"><span class="nav-icon nav-icon-shipment" aria-hidden="true"></span><span>船期和船舶位置</span></a>
             <a href="#sea-load"><span class="nav-icon nav-icon-shipment" aria-hidden="true"></span><span>海运装载计算</span></a>
             <a href="#sea-special"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>特种箱/BBK/OOG/Reefer</span></a>
-            <a href="#sea-fees"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>海运价格/费用</span></a>
+            <a href="#sea-market"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>海运市场价格</span></a>
+            <a href="#sea-fees"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>海运操作费用</span></a>
           </details>
 
           <details class="nav-group">
             <summary>空运</summary>
             <a href="#air"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运/快件查询</span></a>
             <a href="#air-calc"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>非快件空运计算</span></a>
-            <a href="#air-fees"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运价格/费用</span></a>
+            <a href="#air-market"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运市场价格</span></a>
+            <a href="#air-fees"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运操作费用</span></a>
             <a href="#air-guide"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运出运/到达注意</span></a>
           </details>
 
@@ -126,10 +128,12 @@
         <a href="#shipment"><span class="nav-icon nav-icon-shipment" aria-hidden="true"></span><span>海运</span></a>
         <a href="#sea-load"><span class="nav-icon nav-icon-shipment" aria-hidden="true"></span><span>海算</span></a>
         <a href="#sea-special"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>特箱</span></a>
-        <a href="#sea-fees"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>海价</span></a>
+        <a href="#sea-market"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>海价</span></a>
+        <a href="#sea-fees"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>港杂</span></a>
         <a href="#air"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空运</span></a>
         <a href="#air-calc"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空算</span></a>
-        <a href="#air-fees"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空价</span></a>
+        <a href="#air-market"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空价</span></a>
+        <a href="#air-fees"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>货站</span></a>
         <a href="#risk-center"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>风险</span></a>
         <a href="#customs"><span class="nav-icon nav-icon-customs" aria-hidden="true"></span><span>通关</span></a>
         <a href="#docs-invoice"><span class="nav-icon nav-icon-docs" aria-hidden="true"></span><span>单证</span></a>
@@ -1092,13 +1096,28 @@
             <div id="seaOpsFeeResult" class="ops-fee-result-grid"></div>
           </section>
 
+          <section class="ops-fee-note">
+            <strong>使用口径</strong>
+            <p>海运费用表把“公开目录能核验的项目”和“参考区间/逐票报价项目”分开。涉及危险品、冷箱、OOG、BBK、查验、超期堆存、夜间作业或改配，必须让货代按具体码头和船司账单核价。</p>
+          </section>
+        </section>
+
+        <section id="sea-market" class="panel market-rate-panel sea-market-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Sea Market Rate Desk</p>
+              <h2>海运市场价格参考</h2>
+            </div>
+            <span>船司 API · 船期/报价查询窗口 · 大型货代入口 · 模型预算</span>
+          </div>
+
           <section class="freight-tool-panel market-rate-panel">
             <div class="panel-heading">
               <div>
                 <p class="eyebrow">Sea Market Rate</p>
                 <h2>海运市场价格参考</h2>
               </div>
-              <span class="quiet-tag">主流船司/货代报价口径</span>
+              <span class="quiet-tag">主流船司/大型货代报价口径</span>
             </div>
             <form id="seaMarketRateForm" class="query-card market-rate-form">
               <label>
@@ -1131,11 +1150,6 @@
               <button type="submit" class="primary-button">查询海运价格</button>
             </form>
             <div id="seaMarketRateResult" class="market-rate-result-grid"></div>
-          </section>
-
-          <section class="ops-fee-note">
-            <strong>使用口径</strong>
-            <p>海运费用表把“公开目录能核验的项目”和“参考区间/逐票报价项目”分开。涉及危险品、冷箱、OOG、BBK、查验、超期堆存、夜间作业或改配，必须让货代按具体码头和船司账单核价。</p>
           </section>
         </section>
 
@@ -1195,13 +1209,28 @@
             <div id="airOpsFeeResult" class="ops-fee-result-grid"></div>
           </section>
 
+          <section class="ops-fee-note">
+            <strong>使用口径</strong>
+            <p>空运费用表优先展示机场或货站公开收费。含电池、磁性、液体、粉末、温控、高价值、超限或疑似危险品时，费用和接收条件都要让承运人/货站逐票预审。</p>
+          </section>
+        </section>
+
+        <section id="air-market" class="panel market-rate-panel air-market-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Air Market Rate Desk</p>
+              <h2>空运市场价格参考</h2>
+            </div>
+            <span>大型货代 API · 航司/快件报价入口 · 模型预算 · 敏感货预审</span>
+          </div>
+
           <section class="freight-tool-panel market-rate-panel">
             <div class="panel-heading">
               <div>
                 <p class="eyebrow">Air Market Rate</p>
                 <h2>空运市场价格参考</h2>
               </div>
-              <span class="quiet-tag">航空公司/快件/货代报价口径</span>
+              <span class="quiet-tag">航空公司/快件/大型货代报价口径</span>
             </div>
             <form id="airMarketRateForm" class="query-card market-rate-form">
               <label>
@@ -1229,11 +1258,6 @@
               <button type="submit" class="primary-button">查询空运价格</button>
             </form>
             <div id="airMarketRateResult" class="market-rate-result-grid"></div>
-          </section>
-
-          <section class="ops-fee-note">
-            <strong>使用口径</strong>
-            <p>空运费用表优先展示机场或货站公开收费。含电池、磁性、液体、粉末、温控、高价值、超限或疑似危险品时，费用和接收条件都要让承运人/货站逐票预审。</p>
           </section>
         </section>
 
@@ -2248,7 +2272,7 @@
                 <p class="eyebrow">Airport Risk</p>
                 <h2>机场风险</h2>
               </div>
-              <span class="quiet-tag">锂电池查验率 / 曲线 / 风险分</span>
+              <span class="quiet-tag">锂电池预审关注率 / 曲线 / 风险分</span>
             </div>
             <form id="riskAirportForm" class="query-card risk-center-form">
               <label>
@@ -2501,6 +2525,6 @@
     <script src="./china-tariff-2026.js?v=20260610-logistics-intel-v12"></script>
     <script src="./trade-measures-data.js?v=20260610-logistics-intel-v12"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="./app.js?v=20260708-coastal-schedule-v80"></script>
+    <script src="./app.js?v=20260709-market-risk-sources-v81"></script>
   </body>
 </html>

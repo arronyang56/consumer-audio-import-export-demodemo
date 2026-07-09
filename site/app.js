@@ -365,6 +365,7 @@ const workspaceModules = {
   "risk-center": { title: "风险预警中心", selectors: ["risk-center"] },
   "ops-fees": { title: "海运码头费用参考", selectors: ["sea-fees"] },
   "sea-fees": { title: "海运码头费用参考", selectors: ["sea-fees"] },
+  "sea-market": { title: "海运市场价格参考", selectors: ["sea-market"] },
   shipment: { title: "船期和船舶位置", selectors: ["shipment"] },
   "sea-load": { title: "海运装载计算", selectors: ["sea-load"] },
   "sea-special": { title: "特种箱/非标货预备", selectors: ["sea-special"] },
@@ -374,6 +375,7 @@ const workspaceModules = {
   air: { title: "空运/快件查询", selectors: ["air"] },
   "air-calc": { title: "非快件空运计算", selectors: ["air-calc"] },
   "air-fees": { title: "空运机场费用参考", selectors: ["air-fees"] },
+  "air-market": { title: "空运市场价格参考", selectors: ["air-market"] },
   "air-guide": { title: "空运出运/到达注意", selectors: ["air-guide"] },
   "port-risk": { title: "港口/物流风险", selectors: ["port-risk"] },
   exception: { title: "查询失败/待人工核验", selectors: ["exception"] },
@@ -1204,17 +1206,22 @@ const airportRiskProfiles = [
 const marketSourceLinks = {
   sea: [
     ["Maersk Spot", "https://www.maersk.com/transportation-services/maersk-spot"],
-    ["MSC", "https://www.msc.com/"],
-    ["CMA CGM", "https://www.cma-cgm.com/"],
+    ["MSC Search a Schedule", "https://www.msc.com/en/search-a-schedule"],
+    ["CMA CGM Schedules", "https://www.cma-cgm.com/ebusiness/schedules"],
     ["COSCO Shipping Lines", "https://elines.coscoshipping.com/"],
-    ["Hapag-Lloyd", "https://www.hapag-lloyd.com/"],
-    ["ONE", "https://www.one-line.com/"],
-    ["Evergreen ShipmentLink", "https://www.shipmentlink.com/"]
+    ["Hapag-Lloyd Schedule", "https://www.hapag-lloyd.com/en/online-business/schedule/interactive-schedule.html"],
+    ["ONE Schedule", "https://ecomm.one-line.com/one-ecom/schedule/point-to-point-schedule"],
+    ["Kuehne+Nagel", "https://www.kuehne-nagel.com/"],
+    ["DHL Global Forwarding", "https://www.dhl.com/global-en/home/our-divisions/global-forwarding.html"],
+    ["DSV", "https://www.dsv.com/"]
   ],
   air: [
-    ["DHL Global Forwarding", "https://www.dhl.com/"],
+    ["DHL API Developer Portal", "https://developer.dhl.com/"],
+    ["MyDHL+", "https://mydhl.express.dhl/"],
     ["UPS Air Cargo", "https://www.aircargo.ups.com/"],
-    ["FedEx", "https://www.fedex.com/"],
+    ["FedEx Developer", "https://developer.fedex.com/"],
+    ["Kuehne+Nagel", "https://www.kuehne-nagel.com/"],
+    ["DSV", "https://www.dsv.com/"],
     ["Cathay Cargo", "https://www.cathaycargo.com/"],
     ["Lufthansa Cargo", "https://lufthansa-cargo.com/"],
     ["Emirates SkyCargo", "https://www.skycargo.com/"],
@@ -1228,7 +1235,7 @@ const carrierScheduleSources = {
     ["DCSA Standards", "https://dcsa.org/standards/"]
   ],
   api: [
-    ["Maersk Developer", "https://developer.maersk.com/"],
+    ["Maersk Integration Hub", "https://integration.maersk.com/"],
     ["CMA CGM API Portal", "https://api-portal.cma-cgm.com/"]
   ],
   schedules: [
@@ -1245,6 +1252,105 @@ const carrierScheduleSources = {
     ["COSCO Shipping Lines", "https://lines.coscoshipping.com/"]
   ]
 };
+
+const marketIntegrationSources = {
+  sea: [
+    {
+      name: "DCSA Commercial Schedules / OVS",
+      type: "标准/API",
+      status: "可作为标准层",
+      automation: "适合做船期数据库字段标准，不直接给价格；需要接船司或平台实际 API。",
+      url: "https://developer.dcsa.org/implementing-commercial-schedules"
+    },
+    {
+      name: "Maersk",
+      type: "船司 API/Spot",
+      status: "需账号/商业授权",
+      automation: "开发者页可作为接入候选；现阶段先放 Spot/船期查询入口，不伪装实时价。",
+      url: "https://integration.maersk.com/"
+    },
+    {
+      name: "CMA CGM",
+      type: "船司 API Portal",
+      status: "需注册/授权",
+      automation: "官方 API Portal 存在；价格、订舱、船期能力需账号开通后逐项确认。",
+      url: "https://api-portal.cma-cgm.com/"
+    },
+    {
+      name: "COSCO e-Lines",
+      type: "船司查询窗口",
+      status: "先放查询入口",
+      automation: "中国起运港常用；未拿到开放 API 前只作为人工核价/船期复核入口。",
+      url: "https://elines.coscoshipping.com/"
+    },
+    {
+      name: "MSC / Hapag-Lloyd / ONE / Evergreen",
+      type: "船司船期/报价入口",
+      status: "查询窗口优先",
+      automation: "适合定期抽取点到点船期；遇登录、验证码或反爬时进入人工/授权流程。",
+      url: "https://www.msc.com/en/search-a-schedule"
+    },
+    {
+      name: "Kuehne+Nagel / DHL Global Forwarding / DSV",
+      type: "大型货代入口",
+      status: "账号/企业授权",
+      automation: "适合做企业账号报价与订舱集成；没有授权时只放查询窗口或询价入口。",
+      url: "https://www.kuehne-nagel.com/"
+    }
+  ],
+  air: [
+    {
+      name: "DHL API Developer Portal",
+      type: "快件/物流 API",
+      status: "可申请接入",
+      automation: "适合接快件运价、标签、追踪等；Global Forwarding 空运价通常仍需账号或商务授权。",
+      url: "https://developer.dhl.com/"
+    },
+    {
+      name: "FedEx Developer",
+      type: "快件/运价 API",
+      status: "可申请接入",
+      automation: "适合接 Rate、Track、Ship 等快件/空派能力；航空货运合同价需账号条件。",
+      url: "https://developer.fedex.com/"
+    },
+    {
+      name: "UPS Developer / UPS Air Cargo",
+      type: "快件 API / 空运查询",
+      status: "API + 查询入口",
+      automation: "UPS API 适合快件费率；Air Cargo 舱位/价格需按账号和航线确认。",
+      url: "https://developer.ups.com/"
+    },
+    {
+      name: "Kuehne+Nagel / DSV / DHL Global Forwarding",
+      type: "大型货代报价入口",
+      status: "账号/企业授权",
+      automation: "适合后续用企业账号拉空运报价；当前先放查询窗口，避免假实时价格。",
+      url: "https://www.kuehne-nagel.com/"
+    },
+    {
+      name: "Lufthansa Cargo / Cathay Cargo / Emirates SkyCargo",
+      type: "航司货运入口",
+      status: "查询窗口/账号",
+      automation: "适合核验航班、货型接收、燃油/附加费和舱位；现阶段不作为自动报价源。",
+      url: "https://lufthansa-cargo.com/"
+    },
+    {
+      name: "IATA Cargo / ICAO DG",
+      type: "规则与风险源",
+      status: "公开规则源",
+      automation: "用于敏感货、危险品、锂电池和航空限制模型，不提供市场价格。",
+      url: "https://www.iata.org/en/programs/cargo/"
+    }
+  ]
+};
+
+const airportRiskModelSources = [
+  ["IATA Dangerous Goods Regulations", "https://www.iata.org/en/programs/cargo/dgr/"],
+  ["ICAO Dangerous Goods", "https://www.icao.int/safety/DangerousGoods/"],
+  ["FAA PackSafe Lithium Batteries", "https://www.faa.gov/hazmat/packsafe/lithium-batteries"],
+  ["IATA Cargo", "https://www.iata.org/en/programs/cargo/"],
+  ["CAAC", "https://www.caac.gov.cn/"]
+];
 
 function appendUniqueBy(rows = [], additions = [], keyFn = (item) => item.code || item.iata || item.id) {
   const seen = new Set(rows.map((item) => String(keyFn(item) || "").toLowerCase()).filter(Boolean));
@@ -8002,8 +8108,10 @@ function globalSearchActionForModule(moduleId = "") {
     customs: "进入通关/箱货模块并按箱号、提单或放行线索判断。",
     air: "进入空运/快件模块并尝试识别承运商、官网状态和电池/DG 风险。",
     "port-risk": "进入港口风险模块并直接判断拥堵、DG、天气、码头和下一步核验。",
-    "sea-fees": "进入海运费用模块并按港口/货型给费用口径。",
-    "air-fees": "进入空运费用模块并按机场/货型给货站和附加费口径。",
+    "sea-market": "进入海运市场价格页，按路线、箱型和货型给预算区间、报价入口和 API 接入判断。",
+    "sea-fees": "进入海运操作费用模块，只看码头、港杂、堆存、危险品和特殊箱附加费口径。",
+    "air-market": "进入空运市场价格页，按机场、计费重和货型给预算区间、报价入口和 API 接入判断。",
+    "air-fees": "进入空运操作费用模块，只看货站、安检、仓储和敏感货附加费口径。",
     "risk-center": "进入风险预警中心，直接判断港口或机场风险；政策和清关问题会回到政策/通关模块。",
     "docs-invoice": "进入箱单发票模块并生成草稿，同时提示品名、金额和箱规风险。",
     "docs-declaration": "进入报关单模块并生成申报草稿，同时提示缺失字段。",
@@ -8696,7 +8804,7 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
   const moduleSet = new Set([
     ...(primaryProduct?.modules || []),
     ...candidates.map((item) => item.module),
-    concerns.some((item) => item.id === "price") ? (mode === "Sea" ? "sea-fees" : "air-fees") : "",
+    concerns.some((item) => item.id === "price") ? (mode === "Sea" ? "sea-market" : "air-market") : "",
     concerns.some((item) => item.id === "risk") ? "risk-center" : "",
     concerns.some((item) => item.id === "docs") ? "docs-invoice" : "",
     concerns.some((item) => item.id === "customs") ? "hs" : ""
@@ -8791,18 +8899,21 @@ function globalSearchOptionsForQuery(query = "") {
   }
   if (airport) {
     push("codes", "机场代码", `${airport.cn} · ${airport.iata}/${airport.icao}`, "✓");
-    push("air-fees", "空运价格/费用", "查看货站费用和市场空运价参考", "✓");
-    push("risk-center", "机场风险", "锂电池查验率、延误和风险曲线", "✓", "risk-airport-panel");
+    push("air-market", "空运市场价格", "查看市场空运价、报价入口和 API 接入状态", "✓");
+    push("air-fees", "空运操作费用", "查看货站、安检、仓储和敏感货附加费", "✓");
+    push("risk-center", "机场风险", "锂电池预审关注率、延误和风险曲线", "✓", "risk-airport-panel");
     push("air", "空运/快件状态", "输入运单号时自动查承运商轨迹", "✓");
   }
   if (!airport && (intel.mode === "Air" || intel.mode === "Courier")) {
-    push("air-fees", "空运价格/费用", `${intel.routeLabel} · 市场价、计费重和敏感货附加费`, "✓");
+    push("air-market", "空运市场价格", `${intel.routeLabel} · 市场价、计费重和敏感货风险`, "✓");
+    push("air-fees", "空运操作费用", "货站、安检、仓储和特殊货附加费", "✓");
     push("risk-center", "机场风险", "锂电池/磁性货预审、延误和风险曲线", "✓", "risk-airport-panel");
     push("docs-invoice", "空运资料清单", "发票箱单、MSDS、UN38.3、鉴定和品名风险", "✓");
   }
   if (port && !airport && intel.mode !== "Air" && intel.mode !== "Courier") {
     push("risk-center", "港口风险", `${port.cn || port.name} · 船期/延误/风险分`, "✓", "risk-port-panel");
-    push("sea-fees", "海运价格/费用", "市场运价、码头费和特殊货附加费", "✓");
+    push("sea-market", "海运市场价格", "市场运价、船司/货代入口和船期数据库来源", "✓");
+    push("sea-fees", "海运操作费用", "码头、港杂、堆存和特殊箱附加费", "✓");
     push("codes", "港口代码", `${port.cn || port.name} · ${port.code || "UN/LOCODE"}`, "✓");
   }
   candidates.slice(0, 3).forEach((candidate) => push(candidate.module, candidate.title, candidate.reason, "→"));
@@ -8927,7 +9038,10 @@ function classifyGlobalSearch(raw = "") {
   const portMatchLike = hasCodeMatch(seaPortCodeData, query, ["code", "name", "cn", "country", "aliases"]);
   const vesselIntent = /船名|船期|船位|船舶|航次|位置|定位|eta|vessel|voyage|mmsi|imo/.test(text);
   const vesselNameLike = /^[A-Z][A-Z0-9.' -]{2,40}$/i.test(intentCleanQuery) && /[A-Z]/i.test(intentCleanQuery) && !/\d{8,10}/.test(intentCleanQuery) && !airportMatchLike && !portMatchLike;
-  const feeLike = /费用|收费|价格|报价|成本|港杂|堆存|仓储|安检|货站|thc|charge|fee|cost|tariff/.test(text);
+  const marketPriceLike = /价格|报价|运价|海运费|空运费|运费|多少钱|预算|价目|freight|rate|quote|market/.test(text);
+  const opsFeeLike = /港杂|码头费|码头|操作费|本地费|堆存|滞箱|滞港|仓储|安检|货站|换单|文件费|thc|terminal|handling|storage|demurrage|detention|surcharge|附加费|charge|fee/.test(text);
+  const genericFeeLike = /费用|收费|成本|cost|tariff/.test(text);
+  const feeLike = marketPriceLike || opsFeeLike || genericFeeLike;
   const airLike = /空运|机场|航空|快件|快递|dhl|ups|fedex|sf|顺丰|awb|iata|货站/.test(text) || airportMatchLike;
   const seaLike = /海运|港口|码头|船|船期|箱号|提单|港杂|堆存|冷箱|危险品|oog|bbk|reefer|dg|vessel|port|container/.test(text) || portMatchLike;
   const riskCenterLike = /风险|预警|延误|拥堵|塞港|查验率|查验|delay|risk|congestion|inspection/.test(text);
@@ -8973,10 +9087,20 @@ function classifyGlobalSearch(raw = "") {
     add("air", "空运/快件查询", "看起来是快递单号、空运单号或承运商状态查询。", 108, { tracking: query });
   }
   if (feeLike && airLike) {
-    add("air-fees", "空运价格/费用", "包含机场、货站、快件或空运费用关键词；进入后可同时看市场价格和货站费用。", 112, { fee: query });
+    if (marketPriceLike || !opsFeeLike) {
+      add("air-market", "空运市场价格", "包含空运价格、报价、运费或预算关键词；优先进入市场价和 API/查询入口页。", marketPriceLike && !opsFeeLike ? 116 : 108, { fee: query });
+    }
+    if (opsFeeLike || !marketPriceLike) {
+      add("air-fees", "空运操作费用", "包含货站、安检、仓储、附加费或操作费关键词；进入货站费用口径页。", opsFeeLike && !marketPriceLike ? 115 : 102, { fee: query });
+    }
   }
   if (feeLike && (seaLike || !airLike)) {
-    add("sea-fees", "海运价格/费用", "包含海运价格、码头、DG、冷箱、堆存或港杂关键词；进入后可同时看市场价格和码头费用。", 111, { fee: query });
+    if (marketPriceLike || !opsFeeLike) {
+      add("sea-market", "海运市场价格", "包含海运价格、报价、运费或预算关键词；优先进入市场价和船司/货代入口页。", marketPriceLike && !opsFeeLike ? 116 : 108, { fee: query });
+    }
+    if (opsFeeLike || !marketPriceLike) {
+      add("sea-fees", "海运操作费用", "包含港杂、码头、堆存、DG、冷箱或特殊箱附加费关键词；进入操作费用口径页。", opsFeeLike && !marketPriceLike ? 115 : 102, { fee: query });
+    }
   }
   if (riskCenterLike && (airLike || seaLike)) {
     add("risk-center", "风险预警中心", "看起来是在问港口、机场、查验率或延误风险；系统会直接给可覆盖路线的平均时效、平均延误和风险分。", airLike ? 121 : 118, { risk: query });
@@ -8989,8 +9113,8 @@ function classifyGlobalSearch(raw = "") {
   }
   if ((airportCodeOnly || /机场代码|iata|icao/.test(text)) && !feeLike) {
     add("codes", "机场代码 + 空运入口", "看起来是机场代码、机场名或城市代码；同时可以继续查空运价格和机场风险。", 108, { airport: query });
-    add("air-fees", "空运价格/费用", "机场代码已识别，可直接进入空运费用和市场价格参考。", 93, { fee: query });
-    add("risk-center", "机场风险", "机场代码已识别，可继续看锂电池查验率、延误曲线和风险分。", 91, { risk: query });
+    add("air-market", "空运市场价格", "机场代码已识别，可直接进入空运市场价格参考。", 93, { fee: query });
+    add("risk-center", "机场风险", "机场代码已识别，可继续看锂电池预审关注率、延误曲线和风险分。", 91, { risk: query });
   }
   if ((portCodeOnly || /港口代码|un\/locode|locode/.test(text)) && !feeLike) {
     add("codes", "港口/机场代码查询", "看起来是海运港口代码或港口名查询。", 90, { port: query });
@@ -9084,10 +9208,20 @@ function applyGlobalSearchFill(moduleId = "", query = "") {
       renderSeaPortLookup(value);
     }
   }
-  if (moduleId === "sea-fees") {
+  if (moduleId === "sea-market") {
     const route = splitRouteQuery(value);
     if ($("seaMarketOrigin")) $("seaMarketOrigin").value = route.origin || $("seaMarketOrigin").value || "";
     if ($("seaMarketDestination")) $("seaMarketDestination").value = route.destination || $("seaMarketDestination").value || "";
+    const text = normalize(value);
+    if ($("seaMarketCargo")) {
+      if (/危险品|dg|danger/.test(text)) $("seaMarketCargo").value = "dg";
+      else if (/冷箱|冷藏|reefer/.test(text)) $("seaMarketCargo").value = "reefer";
+      else if (/oog|超限/.test(text)) $("seaMarketCargo").value = "oog";
+      else if (/bbk|件杂/.test(text)) $("seaMarketCargo").value = "bbk";
+    }
+    renderSeaMarketRate({ preventDefault() {} });
+  }
+  if (moduleId === "sea-fees") {
     const profile = findOpsFeeProfile(allSeaOpsFeeProfiles(), value);
     if (profile) selectSeaOpsFeeProfile(profile);
     if (/危险品|dg|danger/.test(normalize(value))) $("seaOpsFeeType").value = "dg";
@@ -9095,19 +9229,27 @@ function applyGlobalSearchFill(moduleId = "", query = "") {
     else if (/oog|超限/.test(normalize(value))) $("seaOpsFeeType").value = "oog";
     else if (/bbk|件杂/.test(normalize(value))) $("seaOpsFeeType").value = "bbk";
     renderSeaOpsFees();
-    renderSeaMarketRate({ preventDefault() {} });
   }
-  if (moduleId === "air-fees") {
+  if (moduleId === "air-market") {
     const route = splitRouteQuery(value);
     if ($("airMarketOrigin")) $("airMarketOrigin").value = route.origin || value;
     if ($("airMarketDestination")) $("airMarketDestination").value = route.destination || "";
+    const text = normalize(value);
+    if ($("airMarketCargo")) {
+      if (/电池单独|纯电池|battery alone|pi965/.test(text)) $("airMarketCargo").value = "battery-alone";
+      else if (/电池|锂|battery|pi966|pi967/.test(text)) $("airMarketCargo").value = "battery-contained";
+      else if (/磁性|magnetic/.test(text)) $("airMarketCargo").value = "magnetic";
+      else if (/快件|快递|express/.test(text)) $("airMarketCargo").value = "express";
+    }
+    renderAirMarketRate({ preventDefault() {} });
+  }
+  if (moduleId === "air-fees") {
     const profile = findOpsFeeProfile(airOpsFeeProfiles, value);
     if (profile && $("airOpsFeeNode")) $("airOpsFeeNode").value = profile.id;
     if (/电池|磁性|dg|danger/.test(normalize(value))) $("airOpsFeeType").value = "battery";
     else if (/冷藏|温控|reefer/.test(normalize(value))) $("airOpsFeeType").value = "reefer";
     else if (/特殊|超限|高价值/.test(normalize(value))) $("airOpsFeeType").value = "special";
     renderAirOpsFees();
-    renderAirMarketRate({ preventDefault() {} });
   }
   if (moduleId === "port-risk") {
     $("portName").value = value;
@@ -9474,6 +9616,136 @@ function renderRouteScheduleSourceCard(profile = {}, className = "market-rate-ca
   `;
 }
 
+function renderMarketIntegrationMatrix(mode = "sea") {
+  const rows = marketIntegrationSources[mode] || [];
+  if (!rows.length) return "";
+  return `
+    <article class="market-rate-card wide market-integration-card">
+      <span>${mode === "air" ? "空运 API/查询入口" : "海运 API/查询入口"}</span>
+      <strong>自动接入判断</strong>
+      <div class="market-quote-table-wrap" role="region" aria-label="${mode === "air" ? "空运" : "海运"}API和查询入口">
+        <table class="market-quote-table market-integration-table">
+          <thead>
+            <tr>
+              <th>来源</th>
+              <th>类型</th>
+              <th>接入状态</th>
+              <th>我的判断</th>
+              <th>入口</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((row) => `
+              <tr>
+                <td><strong>${escapeHtml(row.name)}</strong></td>
+                <td>${escapeHtml(row.type)}</td>
+                <td><b>${escapeHtml(row.status)}</b></td>
+                <td>${escapeHtml(row.automation)}</td>
+                <td><a href="${escapeHtml(row.url)}" target="_blank" rel="noreferrer">打开</a></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+      <p>${mode === "air" ? "空运价格优先接大型货代/快件开发者 API；航司入口主要用于舱位、限制和附加费核验。" : "海运价格优先接船司/大型货代授权 API；没有授权时只放查询窗口，价格仍按模型预算。"}登录、验证码或商业授权未完成前，不把网页查询结果写成自动实时价。</p>
+    </article>
+  `;
+}
+
+function renderScheduleDatabasePlanCard(profile = {}, className = "market-rate-card wide") {
+  const links = normalizeBriefLinks([
+    ...(profile.sources || []),
+    ["DCSA Commercial Schedules", "https://developer.dcsa.org/implementing-commercial-schedules"],
+    ["DCSA Operational Vessel Schedules", "https://developer.dcsa.org/implementing-operational-vessel-schedules"]
+  ]).slice(0, 8);
+  return `
+    <article class="${escapeHtml(className)} schedule-database-card">
+      <span>船期数据库</span>
+      <strong>先数据库，后实时 API</strong>
+      <p>当前港口风险的航程时间先从内置航线数据库读取；后续更新层按 DCSA 字段口径，把船司/大型货代的点到点船期、ETD/ETA、转运港、cut-off 和 transit time 定期入库。</p>
+      <p>如果来源需要登录、验证码或商业授权，只保留查询窗口，不自动抓取；拿到 API 密钥后再切到定时同步。</p>
+      <div class="source-chip-grid">${links.map((item) => `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a>`).join("")}</div>
+    </article>
+  `;
+}
+
+function portDelayImpactRows(origin = {}, destination = {}, cargo = "general", days = null, scheduleSource = {}, delay = 0) {
+  const rows = [];
+  if (days) {
+    rows.push({
+      impact: `交期承诺需按 ${routeDaysText(days)} 作为基础，并预留约 ${delay.toFixed(1)} 天操作缓冲。`,
+      cause: routeDaysNote(days),
+      source: scheduleSource.label || "航程数据库",
+      links: normalizeBriefLinks(scheduleSource.sources || []).slice(0, 3)
+    });
+  }
+  if (cargo === "dg") {
+    rows.push({
+      impact: "危险品可能影响订舱接收、危申、进港窗口和船司 cut-off，不能直接按普货船期承诺。",
+      cause: "危险品运输需按 IMDG/船司/码头接收规则逐票确认，未确认前只作为风险项。",
+      source: "IMO Dangerous Goods / 船司查询入口",
+      links: normalizeBriefLinks([
+        ["IMO Dangerous Goods", "https://www.imo.org/en/OurWork/Safety/Pages/DangerousGoods-default.aspx"],
+        ...(scheduleSource.sources || []).slice(0, 2)
+      ])
+    });
+  }
+  return rows;
+}
+
+function renderPortDelayImpactCard(origin = {}, destination = {}, cargo = "general", days = null, scheduleSource = {}, delay = 0) {
+  const rows = portDelayImpactRows(origin, destination, cargo, days, scheduleSource, delay);
+  const excluded = [
+    cargo !== "dg" ? "货型未命中 DG 官方规则源，冷箱/OOG/电池等不会在没有码头或船司来源时写成确定延误。" : "",
+    "实时天气/码头公告影响只在下方天气层抓到官方正文命中时成立；没有命中时不加入本表。"
+  ].filter(Boolean);
+  return `
+    <article class="risk-center-card wide delay-impact-card">
+      <span>延误影响来源</span>
+      <strong>${rows.length ? "只展示有来源的影响判断" : "暂无可引用影响源"}</strong>
+      ${rows.length ? `
+        <div class="market-quote-table-wrap">
+          <table class="market-quote-table delay-impact-table">
+            <thead>
+              <tr>
+                <th>影响</th>
+                <th>原因</th>
+                <th>数据源</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map((row) => `
+                <tr>
+                  <td><strong>${escapeHtml(row.impact)}</strong></td>
+                  <td>${escapeHtml(row.cause)}</td>
+                  <td>
+                    <b>${escapeHtml(row.source)}</b>
+                    ${row.links?.length ? `<div class="table-link-row">${row.links.map((item) => `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a>`).join("")}</div>` : ""}
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      ` : `<p>当前没有足够的官网来源支撑额外延误判断；系统只保留平均船期和单点风险，不扩大结论。</p>`}
+      ${excluded.length ? `<p>${escapeHtml(excluded.join(" "))}</p>` : ""}
+    </article>
+  `;
+}
+
+function renderAirportRiskSourceCard(origin = {}, destination = {}, cargo = "general", batteryRate = 0) {
+  const links = normalizeBriefLinks(airportRiskModelSources).slice(0, 6);
+  return `
+    <article class="risk-center-card wide airport-model-source-card">
+      <span>曲线来源</span>
+      <strong>业务预审关注率，不是官方查验率</strong>
+      <p>${escapeHtml(`${origin.iata || origin.cn} → ${destination.iata || destination.cn} 当前显示 ${batteryRate}%：这是根据机场区域、敏感货类型、锂电/磁性/DG 规则和承运人接收限制形成的预审模型。`)}</p>
+      <p>我暂时没有找到公开、可按机场定期更新的官方“查验率”数据集；可用官方数据主要是危险品规则、锂电池运输限制、航空公司/机场货站公告和企业内部异常记录。没有官方统计源时，不把曲线称为官方查验率。</p>
+      <div class="source-chip-grid">${links.map((item) => `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a>`).join("")}</div>
+    </article>
+  `;
+}
+
 function renderMarketQuoteTable(mode = "sea", context = {}) {
   const { origin = {}, destination = {}, rate = {}, weight = 300 } = context;
   const route = mode === "air"
@@ -9557,7 +9829,9 @@ function renderSeaMarketRate(event) {
     <article class="market-rate-card"><span>平均船期</span><strong>${escapeHtml(routeDaysText(days))}</strong><p>${escapeHtml(routeDaysNote(days))}</p></article>
     <article class="market-rate-card warning"><span>费用风险</span><strong>${escapeHtml(extra)}</strong><p>报价单必须拆明细，不建议只看一个 all-in 数字。</p></article>
     ${renderRouteScheduleSourceCard(scheduleSource)}
+    ${renderScheduleDatabasePlanCard(scheduleSource)}
     ${renderMarketQuoteTable("sea", { origin, destination, rate, unit: rate.unit })}
+    ${renderMarketIntegrationMatrix("sea")}
     <article class="market-rate-card wide"><span>主要参考入口</span>${renderMarketSourceLinks("sea")}</article>
   `;
 }
@@ -9589,7 +9863,7 @@ function renderAirMarketRate(event) {
       title: `${origin.iata || origin.cn} → ${destination.iata || destination.cn} · ${weight} kg`,
       updatedLabel: "市场参考区间",
       conclusion: `当前可先按 ${rate.label}、总价 ${rate.total} 做预算区间；正式以航空公司/货代有效报价为准。`,
-      risk: `锂电池/敏感货查验或预审率估算 ${batteryRate}%；航班时效约 ${hours[0]}-${hours[1]} 小时，不含清关和派送。`,
+      risk: `锂电池/敏感货预审关注率估算 ${batteryRate}%；航班时效约 ${hours[0]}-${hours[1]} 小时，不含清关和派送。`,
       cost: rate.basis,
       action,
       source: "市场区间模型 + 航空公司/快件/货代公开入口；不是合约价或保证价。",
@@ -9597,8 +9871,9 @@ function renderAirMarketRate(event) {
     })}
     <article class="market-rate-card primary"><span>参考空运价</span><strong>${escapeHtml(rate.label)}</strong><p>按 ${escapeHtml(String(weight))} kg 计费重估算，总价约 ${escapeHtml(rate.total)}。</p></article>
     <article class="market-rate-card"><span>航程时效</span><strong>${hours[0]}-${hours[1]} 小时</strong><p>不含截仓、安检、清关、仓储和末端派送。</p></article>
-    <article class="market-rate-card warning"><span>敏感货风险</span><strong>${batteryRate}% 预审/查验关注</strong><p>${escapeHtml(action)}</p></article>
+    <article class="market-rate-card warning"><span>敏感货风险</span><strong>${batteryRate}% 预审关注</strong><p>${escapeHtml(action)}</p></article>
     ${renderMarketQuoteTable("air", { origin, destination, rate, weight })}
+    ${renderMarketIntegrationMatrix("air")}
     <article class="market-rate-card wide"><span>主要参考入口</span>${renderMarketSourceLinks("air")}</article>
   `;
 }
@@ -9818,8 +10093,10 @@ function renderRiskPortResult(event) {
     })}
     ${renderRiskScoreCard(score, days ? "港口路线风险" : "港口单点风险")}
     <article class="risk-center-card"><span>平均船期</span><strong>${escapeHtml(routeDaysText(days))}</strong><p>${escapeHtml(routeDaysNote(days))}</p></article>
-    <article class="risk-center-card"><span>平均延误</span><strong>${days ? `${delay.toFixed(1)} 天` : "覆盖不足"}</strong><p>${escapeHtml(days ? "已叠加出发港、目的港和货型敏感度。" : "缺少该港口组合的历史时效表，不输出延误天数。")}</p></article>
+    <article class="risk-center-card"><span>平均延误</span><strong>${days ? `${delay.toFixed(1)} 天` : "覆盖不足"}</strong><p>${escapeHtml(days ? "这是港口画像与货型敏感度形成的操作缓冲，不等于官网已公告延误。" : "缺少该港口组合的历史时效表，不输出延误天数。")}</p></article>
     ${renderRouteScheduleSourceCard(scheduleSource, "risk-center-card wide")}
+    ${renderScheduleDatabasePlanCard(scheduleSource, "risk-center-card wide")}
+    ${renderPortDelayImpactCard(origin, destination, cargo, days, scheduleSource, delay)}
     <article class="risk-center-card wide"><span>建议动作</span><ul>${actions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
     <div id="riskPortWeatherLayer" class="risk-center-result-grid weather-risk-layer"></div>
   `;
@@ -9859,16 +10136,17 @@ function renderRiskAirportResult(event) {
       kicker: "Airport Risk Brief",
       title: `${origin.iata || origin.cn} → ${destination.iata || destination.cn}`,
       updatedLabel: "风险模型估算",
-      conclusion: `我的判断：这条机场路径是 ${level.label}，锂电池/敏感货预审或查验关注率约 ${batteryRate}%，航程约 ${hours[0]}-${hours[1]} 小时。`,
+      conclusion: `我的判断：这条机场路径是 ${level.label}，锂电池/敏感货预审关注率约 ${batteryRate}%，航程约 ${hours[0]}-${hours[1]} 小时。`,
       risk: `${score}/100 · 出发机场：${origin.note || "待核验"}；目的机场：${destination.note || "待核验"}`,
       cost: "机场风险会影响退仓、重贴标签、重新订舱、仓储、安检、燃油和客户交期。",
       action,
-      source: "机场风险模型 + 航空公司/货站/快件规则入口；真实查验率以承运人和机场货站反馈为准。"
+      source: "机场风险模型 + 航空公司/货站/快件规则入口；公开页暂不把它称为官方查验率。"
     })}
     ${renderRiskScoreCard(score, "机场路线风险")}
-    <article class="risk-center-card"><span>锂电池关注率</span><strong>${batteryRate}%</strong><p>这是业务预审模型，不是官方统计查验率。</p></article>
+    <article class="risk-center-card"><span>预审关注率</span><strong>${batteryRate}%</strong><p>这是业务预审模型，不是官方统计查验率。</p></article>
     <article class="risk-center-card"><span>航程时效</span><strong>${hours[0]}-${hours[1]} 小时</strong><p>不含截仓、安检、清关、仓储和派送。</p></article>
-    <article class="risk-center-card wide"><span>查验/预审曲线</span>${renderMiniCurve(curve, "锂电池关注率趋势")}<p>横轴：最近 8 个观察周；纵轴：锂电池/敏感货预审关注率（%）。这是业务预审模型，不是官方公布查验率。</p><p>${escapeHtml(action)}</p></article>
+    <article class="risk-center-card wide"><span>预审关注曲线</span>${renderMiniCurve(curve, "锂电池关注率趋势")}<p>横轴：最近 8 个观察周；纵轴：锂电池/敏感货预审关注率（%）。这是业务预审模型，不是官方公布查验率。</p><p>${escapeHtml(action)}</p></article>
+    ${renderAirportRiskSourceCard(origin, destination, cargo, batteryRate)}
   `;
 }
 
