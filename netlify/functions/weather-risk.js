@@ -43,6 +43,33 @@ const weatherSources = [
   }
 ];
 
+const controlSources = [
+  {
+    id: "china-msa-navwarn",
+    name: "中国海事局航行警告",
+    url: "https://www.msa.gov.cn/page/article.do?channelId=94e7e863-8099-444d-a9d5-86725dfc26d8",
+    type: "navigation-warning"
+  },
+  {
+    id: "nga-msi",
+    name: "NGA Maritime Safety Information",
+    url: "https://msi.nga.mil/",
+    type: "navigation-warning"
+  },
+  {
+    id: "mpa-port-marine-notices",
+    name: "MPA Singapore Notices",
+    url: "https://www.mpa.gov.sg/",
+    type: "port-control"
+  },
+  {
+    id: "suez-canal-authority",
+    name: "Suez Canal Authority",
+    url: "https://www.suezcanal.gov.eg/English/Pages/default.aspx",
+    type: "canal-control"
+  }
+];
+
 const weatherHazards = [
   {
     id: "typhoon",
@@ -101,6 +128,30 @@ const weatherHazards = [
 ];
 
 const allWeatherTerms = [...new Set(weatherHazards.flatMap((item) => item.terms))];
+
+const controlHazards = [
+  {
+    id: "military-exercise",
+    label: "军演/实弹射击",
+    terms: ["军演", "军事演习", "实弹射击", "射击训练", "演习区域", "military exercise", "live firing", "firing exercise", "exercise area"],
+    action: "确认航行警告坐标、时间窗和船司是否绕行或调整靠泊/开航。"
+  },
+  {
+    id: "navigation-warning",
+    label: "航行警告/禁航区",
+    terms: ["航行警告", "禁航", "禁航区", "临时交通管制", "交通管制", "警戒区", "navigation warning", "navarea", "exclusion zone", "restricted area", "security zone"],
+    action: "按公告时间和区域判断是否压到常规航线；必要时向船司确认绕航、限速或等待。"
+  },
+  {
+    id: "canal-port-control",
+    label: "运河/港口管制",
+    terms: ["限航", "停航", "封航", "暂停通航", "通航管制", "canal closure", "traffic suspension", "port restriction", "convoy delay", "transit restriction"],
+    action: "确认运河/港口通行窗口和排队计划，更新 ETA、免堆免箱和客户交付承诺。"
+  }
+];
+
+const allControlTerms = [...new Set(controlHazards.flatMap((item) => item.terms))];
+const allRouteImpactTerms = [...new Set([...allWeatherTerms, ...allControlTerms])];
 
 const portProfiles = [
   {
@@ -407,6 +458,126 @@ function uniqueHazards(items = []) {
   });
 }
 
+function detectControlHazards(text = "") {
+  return controlHazards
+    .filter((hazard) => hazard.terms.some((term) => termMatches(text, term)))
+    .map((hazard) => ({
+      id: hazard.id,
+      label: hazard.label,
+      action: hazard.action,
+      hits: hazard.terms.filter((term) => termMatches(text, term)).slice(0, 4)
+    }));
+}
+
+function compactUnique(items = []) {
+  return [...new Set(items.filter(Boolean).map((item) => String(item).trim()).filter(Boolean))];
+}
+
+function profileText(profile = {}) {
+  return normalize([
+    profile.code,
+    profile.cn,
+    profile.name,
+    ...(profile.aliases || []),
+    ...(profile.weatherTerms || [])
+  ].filter(Boolean).join(" "));
+}
+
+function profileMatches(profile = {}, patterns = []) {
+  const text = profileText(profile);
+  return patterns.some((pattern) => pattern.test(text));
+}
+
+function buildRouteProfile(originProfile = {}, destinationProfile = {}) {
+  const terms = [];
+  const areas = [];
+  const addArea = (label, areaTerms = []) => {
+    areas.push(label);
+    terms.push(label, ...areaTerms);
+  };
+  terms.push(
+    ...(originProfile.weatherTerms || []),
+    ...(destinationProfile.weatherTerms || []),
+    originProfile.cn,
+    originProfile.name,
+    destinationProfile.cn,
+    destinationProfile.name
+  );
+
+  const originChina = profileMatches(originProfile, [/中国|上海|宁波|厦门|福州|深圳|盐田|广州|青岛|天津|cnsha|cnngb|cnxmn|cnfoc|cnytn|cnszx|cngzg|cntao|cntxg/]);
+  const destChina = profileMatches(destinationProfile, [/中国|上海|宁波|厦门|福州|深圳|盐田|广州|青岛|天津|cnsha|cnngb|cnxmn|cnfoc|cnytn|cnszx|cngzg|cntao|cntxg/]);
+  const eastChinaOrigin = profileMatches(originProfile, [/上海|宁波|舟山|厦门|福州|东海|台湾海峡|cnsha|cnngb|cnxmn|cnfoc/]);
+  const southChinaOrigin = profileMatches(originProfile, [/深圳|盐田|蛇口|广州|南沙|珠江口|南海|cnytn|cnszx|cngzg/]);
+  const northChinaOrigin = profileMatches(originProfile, [/青岛|天津|渤海|黄海|山东|cntao|cntxg/]);
+  const southeastAsia = profileMatches(destinationProfile, [/新加坡|林查班|泰国|越南|巴生|马来西亚|胡志明|sgsin|thlch|vnsgn|mypkg|southeast|malacca|gulf of thailand/]);
+  const usWest = profileMatches(destinationProfile, [/洛杉矶|长滩|los angeles|long beach|uslax|uslgb|california|pacific coast/]);
+  const europe = profileMatches(destinationProfile, [/鹿特丹|rotterdam|nlrtm|europe|north sea|地中海|北海/]);
+
+  if (originChina && destChina) {
+    addArea("中国沿海", ["中国沿海", "华东沿海", "华南沿海", "渤海", "黄海", "东海", "台湾海峡", "南海北部"]);
+  }
+  if ((originChina || eastChinaOrigin || southChinaOrigin || northChinaOrigin) && southeastAsia) {
+    addArea("东亚-东南亚常规水道", ["东海", "台湾海峡", "巴士海峡", "南海", "南海北部", "越南", "泰国湾", "马六甲", "新加坡", "gulf of thailand", "malacca", "south china sea"]);
+  }
+  if ((originChina || eastChinaOrigin || southChinaOrigin || northChinaOrigin) && usWest) {
+    addArea("西北太平洋-美西航线", ["东海", "黄海", "日本南部", "琉球", "西北太平洋", "太平洋", "北太平洋", "southern california", "pacific coast", "north pacific"]);
+  }
+  if ((originChina || eastChinaOrigin || southChinaOrigin || northChinaOrigin) && europe) {
+    addArea("远东-欧洲航线", ["东海", "台湾海峡", "南海", "马六甲", "印度洋", "亚丁湾", "红海", "苏伊士", "地中海", "北海", "malacca", "indian ocean", "red sea", "suez", "mediterranean", "north sea"]);
+  }
+  if (eastChinaOrigin) addArea("华东近海", ["长江口", "浙江沿海", "福建沿海", "东海", "台湾海峡"]);
+  if (southChinaOrigin) addArea("华南近海", ["珠江口", "广东沿海", "华南沿海", "南海北部", "南海"]);
+  if (northChinaOrigin) addArea("华北/山东近海", ["渤海", "渤海湾", "黄海", "山东半岛", "山东沿海"]);
+
+  const label = areas.length
+    ? areas.slice(0, 3).join(" / ")
+    : `${originProfile.cn || originProfile.name || "出发港"} - ${destinationProfile.cn || destinationProfile.name || "目的港"} 周边海区`;
+  return {
+    label,
+    areas: compactUnique(areas),
+    terms: compactUnique(terms)
+  };
+}
+
+function routeAreaHit(context = "", routeProfile = {}) {
+  const matched = (routeProfile.terms || []).filter((term) => termMatches(context, term)).slice(0, 6);
+  return {
+    matched,
+    area: matched.length ? matched.join(" / ") : ""
+  };
+}
+
+function routeImpactForText(sourceText = "", routeProfile = {}, detector = detectHazards, impactTerms = allWeatherTerms) {
+  if (!sourceText || !routeProfile?.terms?.length) {
+    return { level: 0, routeRelevant: false, hits: [], hazards: [], snippet: "", routeArea: "" };
+  }
+  const contexts = [];
+  impactTerms.forEach((term) => {
+    termPositions(sourceText, term, 3).forEach((index) => {
+      if (contexts.length >= 16) return;
+      const start = Math.max(0, index - 160);
+      const end = Math.min(sourceText.length, index + 360);
+      contexts.push(sourceText.slice(start, end));
+    });
+  });
+  const activePattern = /发布|继续发布|预计|影响|受.{0,14}影响|签发|中心附近|将以|警告|管制|禁航|实弹|演习|warning|advisory|bulletin|expected|affect|exercise|restricted|closure|suspension/i;
+  const activeContexts = contexts.filter((context) => activePattern.test(context));
+  const directContext = activeContexts.find((context) => routeAreaHit(context, routeProfile).matched.length);
+  const targetContext = directContext || activeContexts[0] || "";
+  const hazards = detector(targetContext);
+  const routeHit = routeAreaHit(targetContext, routeProfile);
+  const eventHits = hazards.flatMap((hazard) => hazard.hits);
+  const routeRelevant = Boolean(directContext && hazards.length);
+  return {
+    level: routeRelevant ? 2 : hazards.length ? 1 : 0,
+    routeRelevant,
+    hazards,
+    hits: compactUnique([...eventHits.slice(0, 5), ...routeHit.matched.slice(0, 5)]),
+    snippet: (targetContext || snippetAround(sourceText, impactTerms)).replace(/\s+/g, " ").trim(),
+    routeArea: routeHit.area || routeProfile.label
+  };
+}
+
 function sourceImpactForProfile(sourceText = "", profile = null) {
   if (!profile || !sourceText) {
     return { level: 0, hits: [], hazards: [], snippet: "" };
@@ -510,13 +681,14 @@ function noticeImpactForText(text = "", profile = null) {
     "pilotage suspended",
     "towage suspended",
     "berth suspended",
-    "crane operations suspended"
+    "crane operations suspended",
+    ...allControlTerms
   ];
-  const portTerms = [profile?.cn, profile?.name, ...(profile?.aliases || [])].filter(Boolean);
+  const portTerms = [profile?.cn, profile?.name, ...(profile?.aliases || []), ...(profile?.weatherTerms || [])].filter(Boolean);
   const eventHits = noticeTerms.filter((term) => termMatches(text, term));
   const portHits = portTerms.filter((term) => lower.includes(normalize(term))).slice(0, 4);
-  const hazards = detectHazards(text);
-  const matched = eventHits.length > 0;
+  const hazards = uniqueHazards([...detectHazards(text), ...detectControlHazards(text)]);
+  const matched = eventHits.length > 0 && portHits.length > 0;
   return {
     matched,
     hazards,
@@ -525,37 +697,80 @@ function noticeImpactForText(text = "", profile = null) {
   };
 }
 
-async function scanWeatherSources(originProfile, destinationProfile) {
+async function scanWeatherSources(routeProfile = {}) {
   const results = await Promise.allSettled(
     weatherSources.map(async (source) => {
       const response = await fetchText(source.url, source.id === "jtwc" ? 8500 : 7000);
       const focusedText = focusWeatherText(response.text);
-      const originImpact = sourceImpactForProfile(focusedText, originProfile);
-      const destinationImpact = sourceImpactForProfile(focusedText, destinationProfile);
-      const impactLevel = Math.max(originImpact.level, destinationImpact.level);
+      const impact = routeImpactForText(focusedText, routeProfile, detectHazards, allWeatherTerms);
       return {
         ...source,
         ok: response.ok,
         status: response.status,
-        impactLevel,
-        hazards: uniqueHazards([...(originImpact.hazards || []), ...(destinationImpact.hazards || [])]),
-        hits: [...new Set([...originImpact.hits, ...destinationImpact.hits])].slice(0, 8),
-        snippet: originImpact.snippet || destinationImpact.snippet || snippetAround(response.text, allWeatherTerms)
+        impactLevel: impact.level,
+        routeRelevant: impact.routeRelevant,
+        routeArea: impact.routeArea,
+        hazards: impact.hazards,
+        hits: impact.hits,
+        snippet: impact.snippet
       };
     })
   );
-  return results.map((result, index) => {
-    if (result.status === "fulfilled") return result.value;
-    return {
-      ...weatherSources[index],
-      ok: false,
-      status: "fetch-failed",
-      impactLevel: 0,
-      hazards: [],
-      hits: [],
-      snippet: ""
-    };
-  });
+  return results
+    .map((result, index) => {
+      if (result.status === "fulfilled") return result.value;
+      return {
+        ...weatherSources[index],
+        ok: false,
+        status: "fetch-failed",
+        impactLevel: 0,
+        routeRelevant: false,
+        hazards: [],
+        hits: [],
+        snippet: ""
+      };
+    })
+    .filter((item) => item.routeRelevant && Number(item.impactLevel || 0) >= 2);
+}
+
+async function scanControlSources(routeProfile = {}) {
+  const results = await Promise.allSettled(
+    controlSources.map(async (source) => {
+      const response = await fetchText(source.url, 7500);
+      const focusedText = focusWeatherText(response.text);
+      const impact = routeImpactForText(focusedText, routeProfile, detectControlHazards, allControlTerms);
+      return {
+        ...source,
+        ok: response.ok,
+        status: response.status,
+        eventType: "control",
+        impact: impact.routeRelevant ? "matched" : "unmatched",
+        impactLevel: impact.level,
+        routeRelevant: impact.routeRelevant,
+        routeArea: impact.routeArea,
+        hazards: impact.hazards,
+        hits: impact.hits,
+        snippet: impact.snippet
+      };
+    })
+  );
+  return results
+    .map((result, index) => {
+      if (result.status === "fulfilled") return result.value;
+      return {
+        ...controlSources[index],
+        ok: false,
+        status: "fetch-failed",
+        eventType: "control",
+        impact: "unmatched",
+        impactLevel: 0,
+        routeRelevant: false,
+        hazards: [],
+        hits: [],
+        snippet: ""
+      };
+    })
+    .filter((item) => item.routeRelevant && Number(item.impactLevel || 0) >= 2);
 }
 
 async function scanPortNotices(profile) {
@@ -578,45 +793,49 @@ async function scanPortNotices(profile) {
       };
     })
   );
-  return results.map((result, index) => {
-    if (result.status === "fulfilled") return result.value;
-    const [name, url] = links[index];
-    return {
-      port: profile.cn || profile.name,
-      name,
-      url,
-      ok: false,
-      status: "unverified",
-      impact: "manual-check",
-      hazards: [],
-      hits: [],
-      snippet: ""
-    };
-  });
+  return results
+    .map((result, index) => {
+      if (result.status === "fulfilled") return result.value;
+      const [name, url] = links[index];
+      return {
+        port: profile.cn || profile.name,
+        name,
+        url,
+        ok: false,
+        status: "unverified",
+        impact: "manual-check",
+        hazards: [],
+        hits: [],
+        snippet: ""
+      };
+    })
+    .filter((item) => item.impact === "matched");
 }
 
-function conclusionHazards(weatherItems = [], noticeItems = []) {
+function conclusionHazards(weatherItems = [], noticeItems = [], controlItems = []) {
   return uniqueHazards([
     ...weatherItems.filter((item) => Number(item.impactLevel || 0) >= 2).flatMap((item) => item.hazards || []),
+    ...controlItems.filter((item) => Number(item.impactLevel || 0) >= 2).flatMap((item) => item.hazards || []),
     ...noticeItems.filter((item) => item.impact === "matched").flatMap((item) => item.hazards || [])
   ]);
 }
 
-function buildRiskConclusion(weatherItems = [], noticeItems = [], originProfile = null, destinationProfile = null) {
+function buildRiskConclusion(weatherItems = [], noticeItems = [], controlItems = [], originProfile = null, destinationProfile = null, routeProfile = {}) {
   const directWeather = weatherItems.filter((item) => item.impactLevel >= 2);
-  const generalWeather = weatherItems.filter((item) => item.impactLevel === 1);
+  const controlHits = controlItems.filter((item) => item.impactLevel >= 2);
   const noticeHits = noticeItems.filter((item) => item.impact === "matched");
-  const score = directWeather.length * 35 + generalWeather.length * 15 + noticeHits.length * 30;
+  const score = directWeather.length * 35 + controlHits.length * 35 + noticeHits.length * 30;
   const route = `${originProfile?.cn || "出发港"} → ${destinationProfile?.cn || "目的港"}`;
-  const hazards = conclusionHazards(weatherItems, noticeItems);
-  const hazardText = hazards.length ? hazards.map((item) => item.label).join("、") : "强天气/海况";
+  const hazards = conclusionHazards(weatherItems, noticeItems, controlItems);
+  const hazardText = hazards.length ? hazards.map((item) => item.label).join("、") : "天气/海况/管制异常";
   const hazardActions = hazards.map((item) => item.action).slice(0, 3);
+  const routeAreaText = routeProfile?.areas?.length ? routeProfile.areas.slice(0, 3).join("、") : routeProfile?.label || "常规航线";
   if (score >= 60) {
     return {
       riskLevel: "high",
-      label: "天气影响偏高",
+      label: "航线影响偏高",
       hazards,
-      summary: `${route}：官方气象或码头页面出现与路线区域相关的${hazardText}信号，建议先按作业不确定处理。`,
+      summary: `${route}：官方来源出现与${routeAreaText}相关的${hazardText}信号，预计可能造成靠泊、开航、绕航、等待或集疏运窗口不确定。`,
       actions: [
         "不要只按历史平均船期承诺客户，先复核船司 ETD/ETA、靠泊计划和码头闸口状态。",
         ...hazardActions,
@@ -628,14 +847,14 @@ function buildRiskConclusion(weatherItems = [], noticeItems = [], originProfile 
   if (score >= 25) {
     return {
       riskLevel: "elevated",
-      label: "天气影响需关注",
+      label: "航线影响需关注",
       hazards,
-      summary: `${route}：抓到${hazardText}信号，但未完全确认到码头停工公告；建议把截关、靠泊、提还柜和集疏运窗口再核一次。`,
+      summary: `${route}：抓到与${routeAreaText}相关的${hazardText}信号，但未确认形成封港或停工结论；预计影响以短时等待、靠泊波动或改配复核为主。`,
       actions: [
-        "先向订舱代理或船司确认是否有跳港、截关顺延、靠泊延误或临时关闸。",
+        "先向订舱代理或船司确认是否有跳港、截关顺延、靠泊延误、绕航或临时关闸。",
         ...hazardActions,
         "对时效敏感订单保留 1-3 天缓冲，并同步客户这是天气待核验风险。",
-        "点击下方气象和码头公告入口做人工复核，尤其是沿海大风、海雾、强对流或台风季。"
+        "点击下方命中的官方来源做人工复核，尤其是沿海大风、海雾、强对流、台风季、航行警告或军演管制。"
       ].slice(0, 5)
     };
   }
@@ -643,10 +862,10 @@ function buildRiskConclusion(weatherItems = [], noticeItems = [], originProfile 
     riskLevel: "watch",
     label: "暂未核实到直接影响",
     hazards,
-    summary: `${route}：本次自动扫描未抓到与两端港口直接匹配的天气停工、封港或海况限作业公告；仍建议在出运前复核官方入口。`,
+    summary: `${route}：本次自动扫描未抓到位于${routeAreaText}且与常规航线相关的公开天气、海况、军演/管制或码头限作业公告；不输出额外延误结论。`,
     actions: [
-      "系统会继续关注台风、大风、海雾/低能见度、雷暴、冰雪、高温、沙尘、洪水、风暴潮和巨浪等天气。",
-      "没有官方公告时，不把天气风险写成确定延误；只作为待观察风险。",
+      "没有官方公告命中时，不把天气或管制风险写成确定延误。",
+      "临近开船前仍需复核船司 ETD/ETA、码头公告和目的港靠泊计划。",
       "对急单、冷箱、DG/OOG 仍需由承运人或码头确认接收窗口。"
     ]
   };
@@ -668,30 +887,35 @@ exports.handler = async (event = {}) => {
       label: "港口未完整识别",
       summary: "天气/海况扫描需要先识别出发港和目的港；未命中主流港口库时不输出天气影响结论。",
       actions: ["请换用中文正式港名、英文港名或 UN/LOCODE 后再查。"],
-      weatherSources,
+      weatherSources: [],
+      controlEvents: [],
       portNotices: []
     });
   }
 
   try {
-    const [weatherItems, originNotices, destinationNotices] = await Promise.all([
-      scanWeatherSources(originProfile, destinationProfile),
+    const routeProfile = buildRouteProfile(originProfile, destinationProfile);
+    const [weatherItems, controlItems, originNotices, destinationNotices] = await Promise.all([
+      scanWeatherSources(routeProfile),
+      scanControlSources(routeProfile),
       scanPortNotices(originProfile),
       scanPortNotices(destinationProfile)
     ]);
     const portNotices = [...originNotices, ...destinationNotices];
-    const conclusion = buildRiskConclusion(weatherItems, portNotices, originProfile, destinationProfile);
+    const conclusion = buildRiskConclusion(weatherItems, portNotices, controlItems, originProfile, destinationProfile, routeProfile);
     return json(200, {
       ok: true,
       updatedAt,
       query: {
         origin: originProfile,
-        destination: destinationProfile
+        destination: destinationProfile,
+        route: routeProfile
       },
       ...conclusion,
       weatherSources: weatherItems,
+      controlEvents: controlItems,
       portNotices,
-      sourceNote: "官方页面可能存在动态渲染、地区跳转或反爬限制；抓不到公告正文时只展示官方入口，不推断停工。"
+      sourceNote: "只列出正文命中且与常规航线区域相关的官方来源；未命中、无关区域或抓不到正文的来源不会展示。"
     });
   } catch (error) {
     return json(200, {
@@ -700,14 +924,12 @@ exports.handler = async (event = {}) => {
       updatedAt,
       riskLevel: "watch",
       label: "实时扫描未完成",
-      summary: "天气/海况/码头公告接口响应较慢，页面先给官方入口；此时不能把天气影响说成确定结论。",
-      actions: ["点击中央气象台和两端港口公告入口人工复核。", "待接口恢复后刷新风险中心。"],
+      summary: "天气/海况/管制/码头公告接口响应较慢；此时不能把影响说成确定结论，也不展示未命中的来源。",
+      actions: ["待接口恢复后刷新风险中心。", "急单先向船司/货代确认 ETD/ETA、靠泊计划和是否有航行警告影响。"],
       message: error.message || "weather risk scan failed",
-      weatherSources,
-      portNotices: [
-        ...(originProfile.notices || []).map(([name, url]) => ({ port: originProfile.cn, name, url, impact: "manual-check" })),
-        ...(destinationProfile.notices || []).map(([name, url]) => ({ port: destinationProfile.cn, name, url, impact: "manual-check" }))
-      ]
+      weatherSources: [],
+      controlEvents: [],
+      portNotices: []
     });
   }
 };

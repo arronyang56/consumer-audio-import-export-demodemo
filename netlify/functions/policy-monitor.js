@@ -50,9 +50,13 @@ const officialSourceGroups = [
     title: "中国进出口与归类",
     items: [
       ["海关总署", "http://www.customs.gov.cn/", "公告、政策法规、归类决定和行政裁定。"],
+      ["海关总署公告", "http://www.customs.gov.cn/customs/302249/2480148/index.html", "海关公告和监管政策更新，优先用于核验实施日期和适用范围。"],
       ["中国国际贸易单一窗口", "https://www.singlewindow.cn/", "正式通关、监管证件和业务入口，通常需要账号权限。"],
       ["互联网+海关", "http://online.customs.gov.cn/", "税率、商品编码、办事指南等政务查询入口。"],
-      ["国家认证认可监督管理委员会", "https://www.cnca.gov.cn/", "3C 目录、认证实施规则和公告。"]
+      ["商务部贸易救济调查局", "https://trb.mofcom.gov.cn/", "反倾销、反补贴、保障措施和贸易救济调查。"],
+      ["国家市场监督管理总局", "https://www.samr.gov.cn/", "产品质量、强制标准、召回和市场监管政策入口。"],
+      ["国家认证认可监督管理委员会", "https://www.cnca.gov.cn/", "3C 目录、认证实施规则和公告。"],
+      ["工业和信息化部", "https://www.miit.gov.cn/", "无线电、型号核准、电子信息产品政策和行业管理入口。"]
     ]
   },
   {

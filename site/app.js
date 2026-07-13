@@ -1229,6 +1229,35 @@ const marketSourceLinks = {
   ]
 };
 
+const marketInquiryRows = {
+  sea: [
+    ["LogisMaster 海运模型", "模型预算", "内部估算", "页面先给预算区间；正式报价必须回到船司/货代有效报价。", ""],
+    ["Maersk Spot", "船司现舱价/船期", "需登录/授权", "适合核验现舱价、有效期、PSS/BAF、free time 和点到点船期。", "https://www.maersk.com/transportation-services/maersk-spot"],
+    ["MSC Search a Schedule", "船司船期", "公开查询", "适合先查点到点船期；价格仍需账号、代理或订舱渠道确认。", "https://www.msc.com/en/search-a-schedule"],
+    ["COSCO e-Lines", "船司询价/船期", "需账号", "中国起运港优先复核入口；适合核验中远航线、截关和订舱信息。", "https://elines.coscoshipping.com/"],
+    ["CMA CGM Schedules", "船司船期/报价入口", "部分需登录", "适合交叉核验达飞服务、转运港、ETD/ETA 和附加费。", "https://www.cma-cgm.com/ebusiness/schedules"],
+    ["Hapag-Lloyd Interactive Schedule", "船司船期", "公开查询", "适合核验赫伯罗特服务、转运、cut-off 和预计航程。", "https://www.hapag-lloyd.com/en/online-business/schedule/interactive-schedule.html"],
+    ["ONE Point-to-Point Schedule", "船司船期", "公开查询", "适合核验 ONE 航线、服务名、转运港和预计到港。", "https://ecomm.one-line.com/one-ecom/schedule/point-to-point-schedule"],
+    ["Evergreen ShipmentLink", "船司船期/货件入口", "部分需登录", "适合复核长荣航线、船名航次和订舱后货件状态。", "https://www.shipmentlink.com/"],
+    ["Kuehne+Nagel Sea Logistics", "大型货代询价", "企业账号优先", "适合拿货代实盘价和市场判断，与船司报价交叉验证。", "https://home.kuehne-nagel.com/-/services/sea-freight"],
+    ["DHL Global Forwarding Ocean", "大型货代询价", "企业账号/表单", "适合拿门到门、目的港费用和多承运人方案。", "https://www.dhl.com/global-en/home/our-divisions/global-forwarding.html"],
+    ["DSV Sea Freight", "大型货代询价", "企业账号/表单", "适合核验市场价、目的港服务和多航线替代方案。", "https://www.dsv.com/en/our-solutions/modes-of-transport/sea-freight"]
+  ],
+  air: [
+    ["LogisMaster 空运模型", "模型预算", "内部估算", "页面先给 USD/kg 预算；正式以航空公司/货代有效报价为准。", ""],
+    ["DHL Global Forwarding Air", "大型货代询价", "企业账号/表单", "适合核验普通货、含电池货、门到门和目的港清关组合价。", "https://www.dhl.com/global-en/home/our-divisions/global-forwarding.html"],
+    ["Kuehne+Nagel Air Logistics", "大型货代询价", "企业账号优先", "适合拿市场空运价、航司组合和敏感货接收建议。", "https://home.kuehne-nagel.com/-/services/air-freight"],
+    ["DSV Air Freight", "大型货代询价", "企业账号/表单", "适合核验空运、空派、清关和目的地派送方案。", "https://www.dsv.com/en/our-solutions/modes-of-transport/air-freight"],
+    ["FedEx Developer / Rate", "快件 API/报价", "账号 API", "适合快件/小货费率、追踪和标签；大货空运合同价仍需商务账号。", "https://developer.fedex.com/"],
+    ["UPS Developer / Air Cargo", "快件 API/空运入口", "账号 API/查询", "适合快件费率和追踪；UPS Air Cargo 需按航线、账号和货型核价。", "https://developer.ups.com/"],
+    ["DHL API Developer Portal", "快件 API", "可申请", "适合快件费率、运单、追踪；Global Forwarding 空运价仍需账号或询价。", "https://developer.dhl.com/"],
+    ["Cathay Cargo", "航司货运入口", "需账号/查询", "适合核验香港/亚洲航线、锂电池限制、航班和舱位规则。", "https://www.cathaycargo.com/"],
+    ["Lufthansa Cargo", "航司货运入口", "需账号/查询", "适合核验欧洲线航班、特货接收和附加费口径。", "https://lufthansa-cargo.com/"],
+    ["Emirates SkyCargo", "航司货运入口", "需账号/查询", "适合核验中东中转、特殊货物、航班和温控/危险品服务。", "https://www.skycargo.com/"],
+    ["FlightAware AeroAPI", "航班状态/位置 API", "商业 API", "适合接航班状态、ETA、位置和预警，不直接给空运价格。", "https://www.flightaware.com/commercial/aeroapi/"]
+  ]
+};
+
 const carrierScheduleSources = {
   standards: [
     ["DCSA Developer Portal", "https://developer.dcsa.org/"],
@@ -1250,97 +1279,6 @@ const carrierScheduleSources = {
   domestic: [
     ["COSCO e-Lines", "https://elines.coscoshipping.com/"],
     ["COSCO Shipping Lines", "https://lines.coscoshipping.com/"]
-  ]
-};
-
-const marketIntegrationSources = {
-  sea: [
-    {
-      name: "DCSA Commercial Schedules / OVS",
-      type: "标准/API",
-      status: "可作为标准层",
-      automation: "适合做船期数据库字段标准，不直接给价格；需要接船司或平台实际 API。",
-      url: "https://developer.dcsa.org/implementing-commercial-schedules"
-    },
-    {
-      name: "Maersk",
-      type: "船司 API/Spot",
-      status: "需账号/商业授权",
-      automation: "开发者页可作为接入候选；现阶段先放 Spot/船期查询入口，不伪装实时价。",
-      url: "https://integration.maersk.com/"
-    },
-    {
-      name: "CMA CGM",
-      type: "船司 API Portal",
-      status: "需注册/授权",
-      automation: "官方 API Portal 存在；价格、订舱、船期能力需账号开通后逐项确认。",
-      url: "https://api-portal.cma-cgm.com/"
-    },
-    {
-      name: "COSCO e-Lines",
-      type: "船司查询窗口",
-      status: "先放查询入口",
-      automation: "中国起运港常用；未拿到开放 API 前只作为人工核价/船期复核入口。",
-      url: "https://elines.coscoshipping.com/"
-    },
-    {
-      name: "MSC / Hapag-Lloyd / ONE / Evergreen",
-      type: "船司船期/报价入口",
-      status: "查询窗口优先",
-      automation: "适合定期抽取点到点船期；遇登录、验证码或反爬时进入人工/授权流程。",
-      url: "https://www.msc.com/en/search-a-schedule"
-    },
-    {
-      name: "Kuehne+Nagel / DHL Global Forwarding / DSV",
-      type: "大型货代入口",
-      status: "账号/企业授权",
-      automation: "适合做企业账号报价与订舱集成；没有授权时只放查询窗口或询价入口。",
-      url: "https://www.kuehne-nagel.com/"
-    }
-  ],
-  air: [
-    {
-      name: "DHL API Developer Portal",
-      type: "快件/物流 API",
-      status: "可申请接入",
-      automation: "适合接快件运价、标签、追踪等；Global Forwarding 空运价通常仍需账号或商务授权。",
-      url: "https://developer.dhl.com/"
-    },
-    {
-      name: "FedEx Developer",
-      type: "快件/运价 API",
-      status: "可申请接入",
-      automation: "适合接 Rate、Track、Ship 等快件/空派能力；航空货运合同价需账号条件。",
-      url: "https://developer.fedex.com/"
-    },
-    {
-      name: "UPS Developer / UPS Air Cargo",
-      type: "快件 API / 空运查询",
-      status: "API + 查询入口",
-      automation: "UPS API 适合快件费率；Air Cargo 舱位/价格需按账号和航线确认。",
-      url: "https://developer.ups.com/"
-    },
-    {
-      name: "Kuehne+Nagel / DSV / DHL Global Forwarding",
-      type: "大型货代报价入口",
-      status: "账号/企业授权",
-      automation: "适合后续用企业账号拉空运报价；当前先放查询窗口，避免假实时价格。",
-      url: "https://www.kuehne-nagel.com/"
-    },
-    {
-      name: "Lufthansa Cargo / Cathay Cargo / Emirates SkyCargo",
-      type: "航司货运入口",
-      status: "查询窗口/账号",
-      automation: "适合核验航班、货型接收、燃油/附加费和舱位；现阶段不作为自动报价源。",
-      url: "https://lufthansa-cargo.com/"
-    },
-    {
-      name: "IATA Cargo / ICAO DG",
-      type: "规则与风险源",
-      status: "公开规则源",
-      automation: "用于敏感货、危险品、锂电池和航空限制模型，不提供市场价格。",
-      url: "https://www.iata.org/en/programs/cargo/"
-    }
   ]
 };
 
@@ -2229,6 +2167,14 @@ const freeApiOptions = [
   ["World Bank API", "宏观经济指标", "免费、无需 key", "已接入", "补充全球 GDP、通胀等趋势指标，帮助判断需求、成本和市场环境。", "https://datahelpdesk.worldbank.org/knowledgebase/topics/125589-developer-information"],
   ["Frankfurter FX API", "汇率", "免费、无需 key", "已接入", "补充 USD/CNY/EUR/GBP/JPY 汇率观察，用于报价、成本和付款风险背景。", "https://www.frankfurter.app/docs/"],
   ["Open-Meteo Marine", "港口天气/海况", "免费、无需 key", "可直接接入", "按港口坐标查浪高、海温、洋流等，适合补充港口风险。非商业免费有调用限制。", "https://open-meteo.com/en/docs/marine-weather-api"],
+  ["DCSA Commercial Schedules", "海运船期标准", "开放标准", "可作为入库口径", "适合统一起运港、目的港、ETD/ETA、转运港、service/voyage 和 transit time 字段；真正数据仍要来自船司/货代 API 或官网船期。", "https://developer.dcsa.org/implementing-commercial-schedules"],
+  ["DCSA Operational Vessel Schedules", "船舶营运船期标准", "开放标准", "可作为入库口径", "适合整理船名航次、挂靠港、到离港时间和延误字段；用于替代纯预测船期。", "https://developer.dcsa.org/implementing-operational-vessel-schedules"],
+  ["Maersk Integration Hub", "船司 API", "需商业授权", "接入候选", "可评估船期、订舱、追踪等接口；未授权前只保留官网查询和 PDF/网页船期入库。", "https://integration.maersk.com/"],
+  ["CMA CGM API Portal", "船司 API", "需注册/授权", "接入候选", "可评估船期、订舱、提单、货件状态等接口；账号权限决定可用范围。", "https://api-portal.cma-cgm.com/"],
+  ["Hapag-Lloyd Developer / Online Business", "船司 API/查询", "需账号/授权", "接入候选", "可评估船期、跟踪和订舱能力；无授权时用官网船期入口做人工核验。", "https://www.hapag-lloyd.com/en/online-business.html"],
+  ["FlightAware AeroAPI", "航班状态/位置", "商业 API", "接入候选", "适合接空运航班状态、ETA、延误、位置类信息；不直接提供货物报价。", "https://www.flightaware.com/commercial/aeroapi/"],
+  ["OpenSky Network API", "航班位置/状态", "开放/限流", "可评估", "适合做航班位置和状态观察，货运业务结论仍需航司/货代订舱信息补强。", "https://openskynetwork.github.io/opensky-api/"],
+  ["Cirium APIs", "航班时刻/状态", "商业 API", "接入候选", "适合做全球航班计划、取消、延误和历史准点数据；需商业授权。", "https://www.cirium.com/"],
   ["IATA / ICAO 官方入口", "空运规则/危险品", "公开网页", "已加入来源", "用于空运锂电池、危险品、航空货运市场和操作规则的人工核验；真正自动状态查询仍需承运商 API。", "https://www.iata.org/en/programs/cargo/"],
   ["DHL/UPS/FedEx/SF 官方追踪", "快件状态", "免费网页/可能验证码", "已加入入口", "适合快件单号核验。若需要在平台内直接返回状态，需要承运商账号 API 或授权接口。", "#air"],
   ["AISstream", "AIS 船舶位置流", "免费注册 key", "可接入", "WebSocket 实时 AIS，适合关注某个 MMSI 或港口区域；必须放后端，且 beta 无 SLA。", "https://aisstream.io/documentation.html"],
@@ -8912,7 +8858,7 @@ function globalSearchOptionsForQuery(query = "") {
   }
   if (port && !airport && intel.mode !== "Air" && intel.mode !== "Courier") {
     push("risk-center", "港口风险", `${port.cn || port.name} · 船期/延误/风险分`, "✓", "risk-port-panel");
-    push("sea-market", "海运市场价格", "市场运价、船司/货代入口和船期数据库来源", "✓");
+    push("sea-market", "海运市场价格", "市场运价、船司/货代入口和官网船期核验", "✓");
     push("sea-fees", "海运操作费用", "码头、港杂、堆存和特殊箱附加费", "✓");
     push("codes", "港口代码", `${port.cn || port.name} · ${port.code || "UN/LOCODE"}`, "✓");
   }
@@ -9599,140 +9545,6 @@ function airMarketRateEstimate(origin = {}, destination = {}, weight = 300, carg
   };
 }
 
-function renderMarketSourceLinks(mode = "sea") {
-  return `<div class="source-chip-grid">${(marketSourceLinks[mode] || []).map(([title, url]) => `<a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${escapeHtml(title)}</a>`).join("")}</div>`;
-}
-
-function renderRouteScheduleSourceCard(profile = {}, className = "market-rate-card wide") {
-  const links = normalizeBriefLinks(profile.sources || []).slice(0, 7);
-  return `
-    <article class="${escapeHtml(className)} route-source-card">
-      <span>航程时间来源</span>
-      <strong>${escapeHtml(profile.label || "来源待核验")}</strong>
-      <p>${escapeHtml(profile.summary || "当前航程来源待补充。")}</p>
-      <p>可信度：${escapeHtml(profile.confidenceText || "待判断")}。${escapeHtml(profile.apiStatus || "")}</p>
-      ${links.length ? `<div class="source-chip-grid">${links.map((item) => `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a>`).join("")}</div>` : ""}
-    </article>
-  `;
-}
-
-function renderMarketIntegrationMatrix(mode = "sea") {
-  const rows = marketIntegrationSources[mode] || [];
-  if (!rows.length) return "";
-  return `
-    <article class="market-rate-card wide market-integration-card">
-      <span>${mode === "air" ? "空运 API/查询入口" : "海运 API/查询入口"}</span>
-      <strong>自动接入判断</strong>
-      <div class="market-quote-table-wrap" role="region" aria-label="${mode === "air" ? "空运" : "海运"}API和查询入口">
-        <table class="market-quote-table market-integration-table">
-          <thead>
-            <tr>
-              <th>来源</th>
-              <th>类型</th>
-              <th>接入状态</th>
-              <th>我的判断</th>
-              <th>入口</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows.map((row) => `
-              <tr>
-                <td><strong>${escapeHtml(row.name)}</strong></td>
-                <td>${escapeHtml(row.type)}</td>
-                <td><b>${escapeHtml(row.status)}</b></td>
-                <td>${escapeHtml(row.automation)}</td>
-                <td><a href="${escapeHtml(row.url)}" target="_blank" rel="noreferrer">打开</a></td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>
-      <p>${mode === "air" ? "空运价格优先接大型货代/快件开发者 API；航司入口主要用于舱位、限制和附加费核验。" : "海运价格优先接船司/大型货代授权 API；没有授权时只放查询窗口，价格仍按模型预算。"}登录、验证码或商业授权未完成前，不把网页查询结果写成自动实时价。</p>
-    </article>
-  `;
-}
-
-function renderScheduleDatabasePlanCard(profile = {}, className = "market-rate-card wide") {
-  const links = normalizeBriefLinks([
-    ...(profile.sources || []),
-    ["DCSA Commercial Schedules", "https://developer.dcsa.org/implementing-commercial-schedules"],
-    ["DCSA Operational Vessel Schedules", "https://developer.dcsa.org/implementing-operational-vessel-schedules"]
-  ]).slice(0, 8);
-  return `
-    <article class="${escapeHtml(className)} schedule-database-card">
-      <span>船期数据库</span>
-      <strong>先数据库，后实时 API</strong>
-      <p>当前港口风险的航程时间先从内置航线数据库读取；后续更新层按 DCSA 字段口径，把船司/大型货代的点到点船期、ETD/ETA、转运港、cut-off 和 transit time 定期入库。</p>
-      <p>如果来源需要登录、验证码或商业授权，只保留查询窗口，不自动抓取；拿到 API 密钥后再切到定时同步。</p>
-      <div class="source-chip-grid">${links.map((item) => `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a>`).join("")}</div>
-    </article>
-  `;
-}
-
-function portDelayImpactRows(origin = {}, destination = {}, cargo = "general", days = null, scheduleSource = {}, delay = 0) {
-  const rows = [];
-  if (days) {
-    rows.push({
-      impact: `交期承诺需按 ${routeDaysText(days)} 作为基础，并预留约 ${delay.toFixed(1)} 天操作缓冲。`,
-      cause: routeDaysNote(days),
-      source: scheduleSource.label || "航程数据库",
-      links: normalizeBriefLinks(scheduleSource.sources || []).slice(0, 3)
-    });
-  }
-  if (cargo === "dg") {
-    rows.push({
-      impact: "危险品可能影响订舱接收、危申、进港窗口和船司 cut-off，不能直接按普货船期承诺。",
-      cause: "危险品运输需按 IMDG/船司/码头接收规则逐票确认，未确认前只作为风险项。",
-      source: "IMO Dangerous Goods / 船司查询入口",
-      links: normalizeBriefLinks([
-        ["IMO Dangerous Goods", "https://www.imo.org/en/OurWork/Safety/Pages/DangerousGoods-default.aspx"],
-        ...(scheduleSource.sources || []).slice(0, 2)
-      ])
-    });
-  }
-  return rows;
-}
-
-function renderPortDelayImpactCard(origin = {}, destination = {}, cargo = "general", days = null, scheduleSource = {}, delay = 0) {
-  const rows = portDelayImpactRows(origin, destination, cargo, days, scheduleSource, delay);
-  const excluded = [
-    cargo !== "dg" ? "货型未命中 DG 官方规则源，冷箱/OOG/电池等不会在没有码头或船司来源时写成确定延误。" : "",
-    "实时天气/码头公告影响只在下方天气层抓到官方正文命中时成立；没有命中时不加入本表。"
-  ].filter(Boolean);
-  return `
-    <article class="risk-center-card wide delay-impact-card">
-      <span>延误影响来源</span>
-      <strong>${rows.length ? "只展示有来源的影响判断" : "暂无可引用影响源"}</strong>
-      ${rows.length ? `
-        <div class="market-quote-table-wrap">
-          <table class="market-quote-table delay-impact-table">
-            <thead>
-              <tr>
-                <th>影响</th>
-                <th>原因</th>
-                <th>数据源</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows.map((row) => `
-                <tr>
-                  <td><strong>${escapeHtml(row.impact)}</strong></td>
-                  <td>${escapeHtml(row.cause)}</td>
-                  <td>
-                    <b>${escapeHtml(row.source)}</b>
-                    ${row.links?.length ? `<div class="table-link-row">${row.links.map((item) => `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a>`).join("")}</div>` : ""}
-                  </td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-      ` : `<p>当前没有足够的官网来源支撑额外延误判断；系统只保留平均船期和单点风险，不扩大结论。</p>`}
-      ${excluded.length ? `<p>${escapeHtml(excluded.join(" "))}</p>` : ""}
-    </article>
-  `;
-}
-
 function renderAirportRiskSourceCard(origin = {}, destination = {}, cargo = "general", batteryRate = 0) {
   const links = normalizeBriefLinks(airportRiskModelSources).slice(0, 6);
   return `
@@ -9751,20 +9563,20 @@ function renderMarketQuoteTable(mode = "sea", context = {}) {
   const route = mode === "air"
     ? `${origin.iata || origin.cn || "起飞机场"} → ${destination.iata || destination.cn || "目的机场"}`
     : `${origin.cn || origin.name || "起运港"} → ${destination.cn || destination.name || "目的港"}`;
-  const rows = mode === "air"
-    ? [
-        ["LogisMaster 空运模型", route, rate.label || "待估算", "模型参考", "按计费重、货型和区域基准估算，不是航司合同价。"],
-        ["DHL Global Forwarding", route, "需输入货件实时询价", "官方/货代入口", "适合门到门、机场到机场或货代报价核验。"],
-        ["Cathay Cargo / Lufthansa Cargo", route, "需按航班和货型确认", "航司入口", "适合核验航班、货型接收和舱位。"],
-        ["UPS Air Cargo / FedEx", `${weight} kg 参考`, "需账号或运单条件", "快件/空运入口", "快件和空运口径不同，燃油和偏远费需单列。"]
-      ]
-    : [
-        ["LogisMaster 海运模型", route, rate.label || "待估算", "模型参考", "按区域、箱型和货型估算，不是船司现舱报价。"],
-        ["DCSA / 船司 API", route, "需账号或密钥", "API 可行性", "适合后续接 Commercial Schedules、Operational Vessel Schedules 或船司商业 API；未授权前不能伪装实时船期。"],
-        ["Maersk Spot", route, "需实时询价", "船司入口", "适合核验现舱价、有效期、PSS/BAF 和 free time。"],
-        ["COSCO e-Lines / CMA CGM", route, "需实时询价", "船司入口", "适合核验中国起运港官方订舱价和附加费。"],
-        ["Hapag-Lloyd / ONE", route, "需实时询价", "船司入口", "适合交叉核验航线服务、转运和船期。"]
-      ];
+  const rows = (marketInquiryRows[mode] || []).map((row, index) => {
+    const price = index === 0
+      ? (mode === "air" ? `${rate.label || "待估算"} / ${weight} kg 约 ${rate.total || "待估算"}` : rate.label || "待估算")
+      : "点击入口实时询价/查船期";
+    return {
+      name: row[0],
+      type: row[1],
+      status: row[2],
+      note: row[3],
+      url: row[4],
+      route,
+      price
+    };
+  });
   return `
     <article class="market-rate-card wide market-quote-card">
       <span>${mode === "air" ? "空运价目表" : "海运价目表"}</span>
@@ -9777,22 +9589,24 @@ function renderMarketQuoteTable(mode = "sea", context = {}) {
               <th>页面显示价格</th>
               <th>性质</th>
               <th>说明</th>
+              <th>询价/船期入口</th>
             </tr>
           </thead>
           <tbody>
             ${rows.map((row) => `
               <tr>
-                <td><strong>${escapeHtml(row[0])}</strong></td>
-                <td>${escapeHtml(row[1])}</td>
-                <td><b>${escapeHtml(row[2])}</b></td>
-                <td>${escapeHtml(row[3])}</td>
-                <td>${escapeHtml(row[4])}</td>
+                <td><strong>${escapeHtml(row.name)}</strong></td>
+                <td>${escapeHtml(row.route)}</td>
+                <td><b>${escapeHtml(row.price)}</b></td>
+                <td>${escapeHtml(row.type)}<br><small>${escapeHtml(row.status)}</small></td>
+                <td>${escapeHtml(row.note)}</td>
+                <td>${row.url ? `<a href="${escapeHtml(row.url)}" target="_blank" rel="noreferrer">打开</a>` : `<span>本页模型</span>`}</td>
               </tr>
             `).join("")}
           </tbody>
         </table>
       </div>
-      <p>只有第一行是页面模型预算；其他行是需要实时询价的承运人/货代入口，接入 API 前不会伪装成已报价。</p>
+      <p>只有第一行是页面模型预算；其他行是承运人/货代官方入口。没有账号、PDF 船期或 API 授权前，不把预测值包装成实时价或确定船期。</p>
     </article>
   `;
 }
@@ -9828,11 +9642,7 @@ function renderSeaMarketRate(event) {
     <article class="market-rate-card primary"><span>参考海运价</span><strong>${escapeHtml(rate.label)}</strong><p>${escapeHtml(rate.basis)}</p></article>
     <article class="market-rate-card"><span>平均船期</span><strong>${escapeHtml(routeDaysText(days))}</strong><p>${escapeHtml(routeDaysNote(days))}</p></article>
     <article class="market-rate-card warning"><span>费用风险</span><strong>${escapeHtml(extra)}</strong><p>报价单必须拆明细，不建议只看一个 all-in 数字。</p></article>
-    ${renderRouteScheduleSourceCard(scheduleSource)}
-    ${renderScheduleDatabasePlanCard(scheduleSource)}
     ${renderMarketQuoteTable("sea", { origin, destination, rate, unit: rate.unit })}
-    ${renderMarketIntegrationMatrix("sea")}
-    <article class="market-rate-card wide"><span>主要参考入口</span>${renderMarketSourceLinks("sea")}</article>
   `;
 }
 
@@ -9873,8 +9683,6 @@ function renderAirMarketRate(event) {
     <article class="market-rate-card"><span>航程时效</span><strong>${hours[0]}-${hours[1]} 小时</strong><p>不含截仓、安检、清关、仓储和末端派送。</p></article>
     <article class="market-rate-card warning"><span>敏感货风险</span><strong>${batteryRate}% 预审关注</strong><p>${escapeHtml(action)}</p></article>
     ${renderMarketQuoteTable("air", { origin, destination, rate, weight })}
-    ${renderMarketIntegrationMatrix("air")}
-    <article class="market-rate-card wide"><span>主要参考入口</span>${renderMarketSourceLinks("air")}</article>
   `;
 }
 
@@ -9934,20 +9742,14 @@ function fallbackPortWeatherRisk(origin = {}, destination = {}, message = "") {
     riskLevel: "watch",
     label: "天气/海况扫描待复核",
     updatedAt: new Date().toISOString(),
-    summary: `${originName} → ${destinationName}：实时天气/海况/码头公告接口暂未完成，不能把天气影响说成确定结论。`,
+    summary: `${originName} → ${destinationName}：实时天气、海况、军演/管制和码头公告接口暂未完成，不能把影响说成确定结论。`,
     actions: [
-      "点击中央气象台综合预警、海区预报和两端港口公告入口复核。",
-      "重点看台风、大风、海雾/低能见度、雷暴、冰雪、高温、沙尘、洪水、风暴潮和巨浪。",
+      "本次未拿到可引用正文，页面不展示来源清单，避免把无关预警误当成航线影响。",
+      "人工复核时重点看台风、大风、海雾/低能见度、雷暴、冰雪、高温、沙尘、洪水、风暴潮、巨浪、航行警告、军演和临时禁航区。",
       message ? `接口提示：${message}` : "刷新后可重新拉取实时扫描结果。"
     ],
-    weatherSources: [
-      { name: "中央气象台气象灾害预警", url: "https://www.nmc.cn/publish/alarm.html", impactLevel: 0, hits: [] },
-      { name: "中央气象台台风预警", url: "https://www.nmc.cn/publish/typhoon/warning.html", impactLevel: 0, hits: [] },
-      { name: "中央气象台台风路径", url: "https://www.nmc.cn/publish/typhoon/typhoon_new.html", impactLevel: 0, hits: [] },
-      { name: "中央气象台海区预报", url: "https://www.nmc.cn/publish/marine/newcoastal.html", impactLevel: 0, hits: [] },
-      { name: "中央气象台交通气象", url: "https://www.nmc.cn/publish/traffic.html", impactLevel: 0, hits: [] },
-      { name: "JTWC Tropical Cyclone Warnings", url: "https://www.metoc.navy.mil/jtwc/jtwc.html", impactLevel: 0, hits: [] }
-    ],
+    weatherSources: [],
+    controlEvents: [],
     portNotices: []
   };
 }
@@ -9960,22 +9762,20 @@ function weatherRiskTone(level = "") {
 }
 
 function renderWeatherSourceRows(items = [], emptyText = "暂无来源") {
-  if (!items.length) return `<p>${escapeHtml(emptyText)}</p>`;
+  const relevantItems = items.filter((item) => item.routeRelevant || item.impact === "matched" || Number(item.impactLevel || 0) >= 2);
+  if (!relevantItems.length) return `<p>${escapeHtml(emptyText)}</p>`;
   return `
     <div class="weather-source-grid">
-      ${items
+      ${relevantItems
         .slice(0, 8)
         .map((item) => {
-          const status = item.impact === "matched" || Number(item.impactLevel || 0) >= 2
-            ? "命中"
-            : item.ok === false || item.status === "unverified"
-              ? "待人工"
-              : "已扫";
-          const showHazards = item.impact === "matched" || Number(item.impactLevel || 0) >= 2;
+          const status = item.eventType === "control" ? "管制" : item.impact === "matched" || Number(item.impactLevel || 0) >= 2 ? "命中" : "相关";
+          const showHazards = item.impact === "matched" || item.routeRelevant || Number(item.impactLevel || 0) >= 2;
           const hazardText = showHazards && Array.isArray(item.hazards) && item.hazards.length
-            ? `天气类型：${item.hazards.map((hazard) => hazard.label || hazard.id).join("、")}`
+            ? `类型：${item.hazards.map((hazard) => hazard.label || hazard.id).join("、")}`
             : "";
-          const detail = [hazardText, item.snippet || (Array.isArray(item.hits) && item.hits.length ? `关键词：${item.hits.join("、")}` : "未抓到正文命中，保留官方入口复核。")].filter(Boolean).join("；");
+          const routeText = item.routeArea ? `航线区域：${item.routeArea}` : "";
+          const detail = [routeText, hazardText, item.snippet || (Array.isArray(item.hits) && item.hits.length ? `关键词：${item.hits.join("、")}` : "")].filter(Boolean).join("；");
           return `
             <a href="${escapeHtml(item.url || "#")}" target="_blank" rel="noreferrer">
               <span>${escapeHtml(status)}</span>
@@ -9992,12 +9792,13 @@ function renderWeatherSourceRows(items = [], emptyText = "暂无来源") {
 function renderPortWeatherRiskCard(data = {}, origin = {}, destination = {}) {
   const tone = weatherRiskTone(data.riskLevel);
   const sources = Array.isArray(data.weatherSources) ? data.weatherSources : [];
+  const controlEvents = Array.isArray(data.controlEvents) ? data.controlEvents : [];
   const notices = Array.isArray(data.portNotices) ? data.portNotices : [];
-  const actions = Array.isArray(data.actions) && data.actions.length ? data.actions : ["复核中央气象台和两端港口公告入口。"];
+  const actions = Array.isArray(data.actions) && data.actions.length ? data.actions : ["未发现航线相关公开异常时，按常规船期执行，临近开船前再复核承运人 ETA/ETD。"];
   return `
     <article class="risk-center-card wide weather-risk-card weather-risk-${escapeHtml(tone)}">
       <div class="weather-risk-head">
-        <span>天气/海况实时层</span>
+        <span>天气/海况/管制实时层</span>
         <strong>${escapeHtml(data.label || "天气影响待复核")}</strong>
         <b>${escapeHtml(formatEta(data.updatedAt || new Date().toISOString()))}</b>
       </div>
@@ -10007,15 +9808,21 @@ function renderPortWeatherRiskCard(data = {}, origin = {}, destination = {}) {
       </div>
       <div class="weather-risk-columns">
         <div>
-          <span>气象官方来源</span>
-          ${renderWeatherSourceRows(sources, "暂无气象来源")}
+          <span>航线相关天气/海况</span>
+          ${renderWeatherSourceRows(sources, "未发现与常规航线相关的公开天气/海况异常。")}
         </div>
         <div>
-          <span>码头公告入口</span>
-          ${renderWeatherSourceRows(notices, "暂无码头公告入口")}
+          <span>航线相关管制/军演</span>
+          ${renderWeatherSourceRows(controlEvents, "未发现与常规航线相关的公开管制或军演影响。")}
         </div>
       </div>
-      <p class="weather-risk-note">${escapeHtml(data.sourceNote || "抓不到官方公告正文时，页面只提示复核入口，不推断停工或封港。")}</p>
+      <div class="weather-risk-columns">
+        <div>
+          <span>两端港口公告命中</span>
+          ${renderWeatherSourceRows(notices, "未发现两端港口官网公告命中天气或作业限制。")}
+        </div>
+      </div>
+      <p class="weather-risk-note">${escapeHtml(data.sourceNote || "只列出正文命中且与常规航线相关的来源；不相关或未命中的来源不会出现在页面。")}</p>
     </article>
   `;
 }
@@ -10029,11 +9836,11 @@ function schedulePortWeatherRisk(origin = {}, destination = {}) {
   target.innerHTML = `
     <article class="risk-center-card wide weather-risk-card is-loading">
       <div class="weather-risk-head">
-        <span>天气/海况实时层</span>
-        <strong>正在核验气象、海况和码头公告...</strong>
+        <span>天气/海况/管制实时层</span>
+        <strong>正在核验航线相关异常...</strong>
         <b>Live</b>
       </div>
-      <p>系统会搜索台风、大风、海雾、雷暴、冰雪、高温、沙尘、洪水、风暴潮、巨浪以及两端港口官方公告；没有抓到公告时不会推断停工。</p>
+      <p>系统会先判断常规航线区域，再搜索台风、大风、海雾、雷暴、冰雪、高温、沙尘、洪水、风暴潮、巨浪、航行警告、军演/管制和两端港口公告；不在航线上的异常不会展示。</p>
     </article>
   `;
   riskWeatherTimer = window.setTimeout(async () => {
@@ -10089,14 +9896,11 @@ function renderRiskPortResult(event) {
       risk: `${score}/100 · ${origin.cn || origin.name}：${origin.note || "待核验"}；${destination.cn || destination.name}：${destination.note || "待核验"}`,
       cost: "延误会影响改配、堆存、滞箱、拖车等待、客户交付承诺和可能的空运替代成本。",
       action: actions[0],
-      source: `航程：${scheduleSource.label}；天气/海况：官方公开预警；码头事件仍需看港口、码头和船司公告。`
+      source: "航程/延误为模型估算；天气、海况、军演/管制只在官方公开来源命中且与常规航线相关时展示。"
     })}
     ${renderRiskScoreCard(score, days ? "港口路线风险" : "港口单点风险")}
     <article class="risk-center-card"><span>平均船期</span><strong>${escapeHtml(routeDaysText(days))}</strong><p>${escapeHtml(routeDaysNote(days))}</p></article>
     <article class="risk-center-card"><span>平均延误</span><strong>${days ? `${delay.toFixed(1)} 天` : "覆盖不足"}</strong><p>${escapeHtml(days ? "这是港口画像与货型敏感度形成的操作缓冲，不等于官网已公告延误。" : "缺少该港口组合的历史时效表，不输出延误天数。")}</p></article>
-    ${renderRouteScheduleSourceCard(scheduleSource, "risk-center-card wide")}
-    ${renderScheduleDatabasePlanCard(scheduleSource, "risk-center-card wide")}
-    ${renderPortDelayImpactCard(origin, destination, cargo, days, scheduleSource, delay)}
     <article class="risk-center-card wide"><span>建议动作</span><ul>${actions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
     <div id="riskPortWeatherLayer" class="risk-center-result-grid weather-risk-layer"></div>
   `;
