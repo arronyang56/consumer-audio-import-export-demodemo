@@ -1312,6 +1312,19 @@ const supplementalSeaPorts = [
   { code: "CNQZH", name: "Qinzhou", cn: "钦州港", country: "中国", aliases: ["钦州", "qinzhou", "cnqzh", "北部湾"], note: "北部湾主要集装箱港，海铁联运和内贸中转需确认班期。" },
   { code: "CNHAK", name: "Haikou", cn: "海口港", country: "中国", aliases: ["海口", "haikou", "cnhak"], note: "海南口岸，进出岛运输受天气、滚装/集装箱班期和码头窗口影响。" },
   { code: "CNYPG", name: "Yangpu", cn: "洋浦港", country: "中国", aliases: ["洋浦", "yangpu", "cnypg", "cnype", "小铲滩"], note: "海南洋浦港，内贸集装箱和区域中转需按船司班期确认。" },
+  { code: "CNYIK", name: "Yingkou", cn: "营口港", country: "中国", aliases: ["营口", "鲅鱼圈", "yingkou", "bayuquan", "cnyik"], note: "辽宁沿海重要内贸和近洋港口，东北货源需确认鲅鱼圈/营口具体港区。" },
+  { code: "CNTGS", name: "Tangshan / Jingtang", cn: "唐山/京唐港", country: "中国", aliases: ["唐山", "京唐", "曹妃甸", "tangshan", "jingtang", "caofeidian", "cntgs"], note: "环渤海港口群，散杂、内贸箱和工业品较常见；代码和码头需按订舱口径复核。" },
+  { code: "CNHUA", name: "Huanghua", cn: "黄骅港", country: "中国", aliases: ["黄骅", "沧州", "huanghua", "cangzhou", "cnhua"], note: "河北沿海港口，煤炭、散杂和内贸场景较多；集装箱服务需看具体承运人。" },
+  { code: "CNQHD", name: "Qinhuangdao", cn: "秦皇岛港", country: "中国", aliases: ["秦皇岛", "qinhuangdao", "cnqhd"], note: "环渤海港口，散杂、滚装和部分内贸场景需确认港区和班期。" },
+  { code: "CNZOS", name: "Zhoushan", cn: "舟山港区", country: "中国", aliases: ["舟山", "金塘", "zhoushan", "jintang", "cnzos"], note: "宁波舟山港重要港区，输入舟山/金塘时按宁波舟山港群处理，具体码头仍需复核。" },
+  { code: "CNTZO", name: "Taizhou", cn: "台州港", country: "中国", aliases: ["台州", "taizhou", "cntzo"], note: "浙江沿海支线/内贸港口，需确认具体港区、支线船和中转安排。" },
+  { code: "CNZAP", name: "Jiaxing / Zhapu", cn: "嘉兴/乍浦港", country: "中国", aliases: ["嘉兴", "乍浦", "jiaxing", "zhapu", "cnzap"], note: "杭州湾港区，内贸和支线场景需确认挂靠、驳船和上海/宁波中转。" },
+  { code: "CNQZJ", name: "Quanzhou", cn: "泉州港", country: "中国", aliases: ["泉州", "石湖", "围头", "quanzhou", "shihu", "weitou", "cnqzj"], note: "福建沿海港口，近洋、内贸和支线服务需确认泉州港区和船司挂靠。" },
+  { code: "CNPUT", name: "Putian / Meizhou Bay", cn: "莆田/湄洲湾港", country: "中国", aliases: ["莆田", "湄洲湾", "putian", "meizhou bay", "cnput"], note: "福建沿海港口群，散杂、内贸和区域支线需确认具体作业港区。" },
+  { code: "CNJMN", name: "Jiangmen", cn: "江门港", country: "中国", aliases: ["江门", "外海", "高沙", "jiangmen", "cnjmn"], note: "珠江西岸内河/沿海联运口岸，通常需结合驳船、南沙/蛇口中转判断。" },
+  { code: "CNZSN", name: "Zhongshan", cn: "中山港", country: "中国", aliases: ["中山", "小榄", "zhongshan", "cnzsn"], note: "珠三角内河和支线港口，适合华南内贸/驳船场景，主干线需看中转港。" },
+  { code: "CNFAN", name: "Fangchenggang", cn: "防城港", country: "中国", aliases: ["防城港", "fangchenggang", "cnfan"], note: "北部湾港口群，西南出海、内贸和东盟近洋需确认具体港区和班期。" },
+  { code: "CNBIH", name: "Beihai", cn: "北海港", country: "中国", aliases: ["北海", "beihai", "cnbih"], note: "北部湾港口，区域内贸、支线和散杂场景需确认承运服务。" },
   { code: "KRPUS", name: "Busan", cn: "釜山港", country: "韩国", aliases: ["釜山", "busan", "krpus"], note: "东北亚主要中转港，转运和班轮衔接能力强。" },
   { code: "JPTYO", name: "Tokyo", cn: "东京港", country: "日本", aliases: ["东京港", "tokyo", "jptyo"], note: "日本关东主要港口，需确认具体码头和内陆派送窗口。" },
   { code: "JPYOK", name: "Yokohama", cn: "横滨港", country: "日本", aliases: ["横滨", "yokohama", "jpyok"], note: "日本关东主要集装箱港，常与东京港联动。" },
@@ -1353,9 +1366,9 @@ appendUniqueBy(seaPortCodeData, supplementalSeaPorts, (item) => item.code);
 
 const supplementalPortRiskProfiles = supplementalSeaPorts.map((port) => {
   const text = normalize(`${port.code} ${port.cn} ${port.name} ${port.country}`);
-  const region = /cndlc|cntsn|cntao|cnynt|cnwei|cnrzh|大连|天津|青岛|烟台|威海|日照/.test(text) ? "china-north"
-    : /cnsha|cnngb|cntxg|cnlyg|cnwnz|上海|宁波|舟山|太仓|连云港|温州/.test(text) ? "china-east"
-      : /cnxmn|cnfoc|cnytn|cnszx|cngzg|cnzuh|cnswa|cnzha|cnqzh|厦门|福州|盐田|深圳|广州|南沙|珠海|汕头|湛江|钦州|北部湾/.test(text) ? "china-south"
+  const region = /cndlc|cnyik|cntsn|cntgs|cnhua|cnqhd|cntao|cnynt|cnwei|cnrzh|大连|营口|鲅鱼圈|天津|唐山|京唐|曹妃甸|黄骅|秦皇岛|青岛|烟台|威海|日照/.test(text) ? "china-north"
+    : /cnsha|cnngb|cnzos|cntxg|cnlyg|cnwnz|cntzo|cnzap|上海|宁波|舟山|太仓|连云港|温州|台州|嘉兴|乍浦/.test(text) ? "china-east"
+      : /cnxmn|cnfoc|cnqzj|cnput|cnytn|cnszx|cngzg|cnzuh|cnjmn|cnzsn|cnswa|cnzha|cnqzh|cnfan|cnbih|厦门|福州|泉州|莆田|湄洲湾|盐田|深圳|广州|南沙|珠海|江门|中山|汕头|湛江|钦州|防城港|北海|北部湾/.test(text) ? "china-south"
         : /cnhak|cnypg|cnype|海口|洋浦|海南/.test(text) ? "china-hainan"
           : /krpus|jptyo|jpyok|twkhh/.test(text) ? "asia-hub"
     : /vn|id|ph|thlch|singapore|sgsin|vietnam|indonesia|philippines|越南|印尼|菲律宾/.test(text) ? "southeast-asia"
@@ -1413,6 +1426,24 @@ const supplementalAirports = [
   { iata: "TSN", icao: "ZBTJ", name: "Tianjin Binhai International Airport", cn: "天津滨海国际机场", city: "天津", country: "中国", aliases: ["天津机场", "滨海", "tsn"], note: "华北空运口岸，需确认航司和货站接收。" },
   { iata: "NGB", icao: "ZSNB", name: "Ningbo Lishe International Airport", cn: "宁波栎社国际机场", city: "宁波", country: "中国", aliases: ["宁波机场", "栎社", "ngb"], note: "华东外贸货源口岸，国际货班需逐票确认。" },
   { iata: "FOC", icao: "ZSFZ", name: "Fuzhou Changle International Airport", cn: "福州长乐国际机场", city: "福州", country: "中国", aliases: ["福州机场", "长乐", "foc"], note: "福建空运口岸，样品/电商件需确认渠道规则。" },
+  { iata: "SHA", icao: "ZSSS", name: "Shanghai Hongqiao International Airport", cn: "上海虹桥国际机场", city: "上海", country: "中国", aliases: ["虹桥", "上海虹桥", "sha"], note: "上海国内/区域航班和部分货运场景，国际大货通常仍优先核 PVG。" },
+  { iata: "CTU", icao: "ZUUU", name: "Chengdu Shuangliu International Airport", cn: "成都双流国际机场", city: "成都", country: "中国", aliases: ["成都双流", "双流", "ctu"], note: "成都双机场之一，需确认货站和实际航班口径。" },
+  { iata: "URC", icao: "ZWWW", name: "Urumqi Diwopu International Airport", cn: "乌鲁木齐地窝堡国际机场", city: "乌鲁木齐", country: "中国", aliases: ["乌鲁木齐", "地窝堡", "urc"], note: "西北/中亚通道口岸，转运、安检和航班密度需确认。" },
+  { iata: "SHE", icao: "ZYTX", name: "Shenyang Taoxian International Airport", cn: "沈阳桃仙国际机场", city: "沈阳", country: "中国", aliases: ["沈阳", "桃仙", "she"], note: "东北空运口岸，日韩/国内转运和货站接收需确认。" },
+  { iata: "HRB", icao: "ZYHB", name: "Harbin Taiping International Airport", cn: "哈尔滨太平国际机场", city: "哈尔滨", country: "中国", aliases: ["哈尔滨", "太平", "hrb"], note: "东北北部口岸，冬季天气和货站窗口需关注。" },
+  { iata: "CGQ", icao: "ZYCC", name: "Changchun Longjia International Airport", cn: "长春龙嘉国际机场", city: "长春", country: "中国", aliases: ["长春", "龙嘉", "cgq"], note: "东北口岸，汽车/电子零部件和样品货需确认航班。" },
+  { iata: "TNA", icao: "ZSJN", name: "Jinan Yaoqiang International Airport", cn: "济南遥墙国际机场", city: "济南", country: "中国", aliases: ["济南", "遥墙", "tna"], note: "山东空运口岸，华北/日韩线和电商货需确认承运渠道。" },
+  { iata: "HFE", icao: "ZSOF", name: "Hefei Xinqiao International Airport", cn: "合肥新桥国际机场", city: "合肥", country: "中国", aliases: ["合肥", "新桥", "hfe"], note: "长三角内陆货源口岸，需确认国际货班和中转安排。" },
+  { iata: "WUX", icao: "ZSWX", name: "Sunan Shuofang International Airport", cn: "苏南硕放国际机场", city: "无锡", country: "中国", aliases: ["无锡", "苏南硕放", "硕放", "wux"], note: "苏南制造业货源口岸，可作为 PVG/NKG 补充。" },
+  { iata: "WNZ", icao: "ZSWZ", name: "Wenzhou Longwan International Airport", cn: "温州龙湾国际机场", city: "温州", country: "中国", aliases: ["温州机场", "龙湾", "wnz"], note: "浙南口岸，样品、鞋服和电商件需确认渠道规则。" },
+  { iata: "JJN", icao: "ZSQZ", name: "Quanzhou Jinjiang International Airport", cn: "泉州晋江国际机场", city: "泉州", country: "中国", aliases: ["泉州", "晋江", "jjn"], note: "福建泉州口岸，电商/样品货和东南亚航线需确认。" },
+  { iata: "CSX", icao: "ZGHA", name: "Changsha Huanghua International Airport", cn: "长沙黄花国际机场", city: "长沙", country: "中国", aliases: ["长沙", "黄花", "csx"], note: "华中空运口岸，跨境电商和普货需确认货班。" },
+  { iata: "KWE", icao: "ZUGY", name: "Guiyang Longdongbao International Airport", cn: "贵阳龙洞堡国际机场", city: "贵阳", country: "中国", aliases: ["贵阳", "龙洞堡", "kwe"], note: "西南口岸，航班密度和中转窗口需逐票核验。" },
+  { iata: "NNG", icao: "ZGNN", name: "Nanning Wuxu International Airport", cn: "南宁吴圩国际机场", city: "南宁", country: "中国", aliases: ["南宁", "吴圩", "nng"], note: "面向东盟的西南口岸，东南亚航线和清关资料需确认。" },
+  { iata: "HAK", icao: "ZJHK", name: "Haikou Meilan International Airport", cn: "海口美兰国际机场", city: "海口", country: "中国", aliases: ["海口机场", "美兰", "hak"], note: "海南空运口岸，进出岛天气和货站窗口需关注。" },
+  { iata: "SYX", icao: "ZJSY", name: "Sanya Phoenix International Airport", cn: "三亚凤凰国际机场", city: "三亚", country: "中国", aliases: ["三亚", "凤凰", "syx"], note: "海南南部机场，货运能力和航班密度需提前确认。" },
+  { iata: "LHW", icao: "ZLLL", name: "Lanzhou Zhongchuan International Airport", cn: "兰州中川国际机场", city: "兰州", country: "中国", aliases: ["兰州", "中川", "lhw"], note: "西北空运口岸，铁路/航空联运和中转安排需确认。" },
+  { iata: "INC", icao: "ZLIC", name: "Yinchuan Hedong International Airport", cn: "银川河东国际机场", city: "银川", country: "中国", aliases: ["银川", "河东", "inc"], note: "西北区域口岸，空运资源和航班密度需逐票确认。" },
   { iata: "KIX", icao: "RJBB", name: "Kansai International Airport", cn: "大阪关西机场", city: "大阪", country: "日本", aliases: ["大阪", "关西", "kix"], note: "日本关西国际货运口岸。" },
   { iata: "TPE", icao: "RCTP", name: "Taiwan Taoyuan International Airport", cn: "台北桃园机场", city: "台北", country: "中国台湾", aliases: ["台北", "桃园", "tpe"], note: "东亚空运枢纽，电子货和转运较常见。" },
   { iata: "KUL", icao: "WMKK", name: "Kuala Lumpur International Airport", cn: "吉隆坡国际机场", city: "吉隆坡", country: "马来西亚", aliases: ["吉隆坡", "kul"], note: "东南亚空运枢纽，电商和转运货需确认。" },
@@ -1442,7 +1473,7 @@ appendUniqueBy(airportCodeData, supplementalAirports, (item) => item.iata);
 
 const supplementalAirportRiskProfiles = supplementalAirports.map((airport) => {
   const text = normalize(`${airport.iata} ${airport.cn} ${airport.city} ${airport.country}`);
-  const region = /中国|pvg|sha|can|szx|pek|pkx|cgo|hgh|tao|xmn|tfu|wuh|nkg|xiy|ckg|kmg|dlc|tsn|ngb|foc/.test(text) ? (/can|szx|xmn|foc|kmg/.test(text) ? "china-south" : /pek|pkx|tao|dlc|tsn/.test(text) ? "china-north" : /xiy|ckg|tfu/.test(text) ? "china-west" : /cgo|wuh/.test(text) ? "china-central" : "china-east")
+  const region = /中国|pvg|sha|can|szx|pek|pkx|cgo|hgh|tao|xmn|tfu|ctu|wuh|nkg|xiy|ckg|kmg|dlc|tsn|ngb|foc|urc|she|hrb|cgq|tna|hfe|wux|wnz|jjn|csx|kwe|nng|hak|syx|lhw|inc/.test(text) ? (/can|szx|xmn|foc|jjn|kmg|nng|hak|syx/.test(text) ? "china-south" : /pek|pkx|tao|dlc|tsn|she|hrb|cgq|tna/.test(text) ? "china-north" : /xiy|ckg|tfu|ctu|urc|kwe|lhw|inc/.test(text) ? "china-west" : /cgo|wuh|csx/.test(text) ? "china-central" : "china-east")
     : /日本|韩国|台湾|新加坡|香港|kix|nrt|icn|tpe|sin|hkg/.test(text) ? "asia-hub"
       : /越南|泰国|马来|印尼|菲律宾|sgn|han|bkk|kul|cgk|mnl/.test(text) ? "southeast-asia"
         : /印度|del|bom/.test(text) ? "south-asia"
@@ -8351,7 +8382,11 @@ function findPortRiskProfile(query = "") {
 
 const domesticCoastalPortGroups = {
   CNDLC: { group: "dalian", region: "china-north", label: "大连港" },
+  CNYIK: { group: "liaoning", region: "china-north", label: "营口/鲅鱼圈港" },
   CNTSN: { group: "tianjin", region: "china-north", label: "天津/新港" },
+  CNTGS: { group: "bohai", region: "china-north", label: "唐山/京唐港" },
+  CNHUA: { group: "bohai", region: "china-north", label: "黄骅港" },
+  CNQHD: { group: "bohai", region: "china-north", label: "秦皇岛港" },
   CNTAO: { group: "qingdao", region: "china-north", label: "青岛港" },
   CNYNT: { group: "qingdao", region: "china-north", label: "烟台/山东港群" },
   CNWEI: { group: "qingdao", region: "china-north", label: "威海/山东港群" },
@@ -8359,17 +8394,26 @@ const domesticCoastalPortGroups = {
   CNLYG: { group: "lianyungang", region: "china-east", label: "连云港" },
   CNSHA: { group: "shanghai", region: "china-east", label: "上海港" },
   CNTXG: { group: "shanghai", region: "china-east", label: "太仓/长三角港群" },
+  CNZAP: { group: "shanghai", region: "china-east", label: "嘉兴/乍浦港" },
   CNNGB: { group: "ningbo", region: "china-east", label: "宁波舟山港" },
+  CNZOS: { group: "ningbo", region: "china-east", label: "舟山港区" },
   CNWNZ: { group: "wenzhou", region: "china-east", label: "温州港" },
+  CNTZO: { group: "wenzhou", region: "china-east", label: "台州港" },
   CNFOC: { group: "fuzhou", region: "china-fujian", label: "福州港" },
   CNXMN: { group: "xiamen", region: "china-fujian", label: "厦门港" },
+  CNQZJ: { group: "xiamen", region: "china-fujian", label: "泉州港" },
+  CNPUT: { group: "fuzhou", region: "china-fujian", label: "莆田/湄洲湾港" },
   CNYTN: { group: "prd", region: "china-south", label: "盐田/深圳港群" },
   CNSZX: { group: "prd", region: "china-south", label: "深圳港群" },
   CNGZG: { group: "prd", region: "china-south", label: "广州/南沙港群" },
   CNZUH: { group: "prd", region: "china-south", label: "珠海/珠江西岸港群" },
+  CNJMN: { group: "prd", region: "china-south", label: "江门港" },
+  CNZSN: { group: "prd", region: "china-south", label: "中山港" },
   CNSWA: { group: "prd", region: "china-south", label: "汕头/粤东港群" },
   CNZHA: { group: "beibu", region: "china-beibu", label: "湛江/粤西港群" },
   CNQZH: { group: "beibu", region: "china-beibu", label: "钦州/北部湾港群" },
+  CNFAN: { group: "beibu", region: "china-beibu", label: "防城港" },
+  CNBIH: { group: "beibu", region: "china-beibu", label: "北海港" },
   CNHAK: { group: "hainan", region: "china-hainan", label: "海口港" },
   CNYPG: { group: "hainan", region: "china-hainan", label: "洋浦港" }
 };
@@ -8399,7 +8443,13 @@ function buildLaneRangeMap(rows = []) {
 
 const domesticCoastalLaneRanges = buildLaneRangeMap([
   ["dalian", "tianjin", [1, 3]],
+  ["dalian", "liaoning", [1, 2]],
+  ["liaoning", "tianjin", [2, 4]],
+  ["liaoning", "bohai", [2, 4]],
+  ["bohai", "tianjin", [1, 2]],
+  ["bohai", "qingdao", [2, 4]],
   ["dalian", "qingdao", [2, 4]],
+  ["liaoning", "qingdao", [2, 5]],
   ["tianjin", "qingdao", [2, 4]],
   ["qingdao", "lianyungang", [1, 3]],
   ["qingdao", "shanghai", [3, 5]],
@@ -8408,6 +8458,10 @@ const domesticCoastalLaneRanges = buildLaneRangeMap([
   ["tianjin", "ningbo", [5, 8]],
   ["dalian", "shanghai", [4, 7]],
   ["dalian", "ningbo", [5, 8]],
+  ["liaoning", "shanghai", [4, 7]],
+  ["liaoning", "ningbo", [5, 8]],
+  ["bohai", "shanghai", [4, 7]],
+  ["bohai", "ningbo", [5, 8]],
   ["lianyungang", "shanghai", [2, 4]],
   ["lianyungang", "ningbo", [3, 5]],
   ["shanghai", "ningbo", [1, 3]],
@@ -8429,9 +8483,13 @@ const domesticCoastalLaneRanges = buildLaneRangeMap([
   ["tianjin", "xiamen", [5, 8]],
   ["qingdao", "xiamen", [4, 7]],
   ["dalian", "xiamen", [5, 8]],
+  ["liaoning", "xiamen", [5, 8]],
+  ["bohai", "xiamen", [5, 8]],
   ["tianjin", "fuzhou", [5, 8]],
   ["qingdao", "fuzhou", [4, 7]],
   ["dalian", "fuzhou", [5, 8]],
+  ["liaoning", "fuzhou", [5, 8]],
+  ["bohai", "fuzhou", [5, 8]],
   ["xiamen", "prd", [2, 4]],
   ["fuzhou", "prd", [3, 5]],
   ["prd", "hainan", [2, 4]],
@@ -8444,6 +8502,8 @@ const domesticCoastalLaneRanges = buildLaneRangeMap([
   ["qingdao", "hainan", [6, 10]],
   ["tianjin", "hainan", [7, 11]],
   ["dalian", "hainan", [7, 11]],
+  ["liaoning", "hainan", [7, 11]],
+  ["bohai", "hainan", [7, 11]],
   ["prd", "beibu", [2, 4]],
   ["hainan", "beibu", [1, 3]],
   ["xiamen", "beibu", [4, 6]],
@@ -8454,7 +8514,9 @@ const domesticCoastalLaneRanges = buildLaneRangeMap([
   ["lianyungang", "beibu", [6, 9]],
   ["qingdao", "beibu", [6, 10]],
   ["tianjin", "beibu", [7, 11]],
-  ["dalian", "beibu", [7, 11]]
+  ["dalian", "beibu", [7, 11]],
+  ["liaoning", "beibu", [7, 11]],
+  ["bohai", "beibu", [7, 11]]
 ]);
 
 const domesticCoastalRegionRanges = buildLaneRangeMap([
@@ -8486,6 +8548,10 @@ function domesticCoastalRouteDays(origin = {}, destination = {}, makeRange = (ra
   const laneRange = domesticCoastalLaneRanges[sortedLaneKey(originPort.group, destinationPort.group)];
   if (laneRange) {
     return makeRange(laneRange, "domestic-lane", `${originPort.label} 到 ${destinationPort.label} 按国内沿海重点港群航线估算；来源口径为 LogisMaster 内置港群距离 + 公开船期入口校准的经验模型，不等同实时船司班期。`);
+  }
+  if (originPort.region === destinationPort.region) {
+    const sameRegionRange = originPort.region === "china-north" ? [1, 4] : originPort.region === "china-east" ? [1, 3] : [1, 4];
+    return makeRange(sameRegionRange, "domestic-regional", `${originPort.label} 到 ${destinationPort.label} 属于同一沿海区域港群；系统给区域窗口，不替代具体船司/支线船班期。`);
   }
   const regionRange = domesticCoastalRegionRanges[sortedLaneKey(originPort.region, destinationPort.region)];
   if (regionRange) {
@@ -8679,9 +8745,23 @@ function detectGlobalConcerns(query = "") {
 
 function inferTransportMode(query = "", airport = null, port = null) {
   const text = normalize(query);
+  const route = splitRouteQuery(query);
+  const originAir = findAirportRiskProfile(route.origin || "");
+  const destinationAir = findAirportRiskProfile(route.destination || "");
+  const originPort = findPortRiskProfile(route.origin || "");
+  const destinationPort = findPortRiskProfile(route.destination || "");
+  const hasRoutePair = Boolean(route.origin && route.destination);
+  const explicitAir = /空运|机场|航空|航班|awb|air|iata|icao/.test(text) || (/^[A-Z]{3,4}$/i.test(query.trim()) && airport);
+  const explicitSea = /海运|港口|码头|船|船期|箱号|提单|container|vessel|sea|ocean|port/.test(text) || (/^[A-Z]{5}$/i.test(query.trim()) && port);
   if (/快件|快递|dhl|ups|fedex|sf|顺丰|courier|express/.test(text)) return "Courier";
-  if (/空运|机场|航空|航班|awb|air|iata|icao/.test(text) || airport) return "Air";
-  if (/海运|港口|码头|船|船期|箱号|提单|container|vessel|sea|ocean|port/.test(text) || port) return "Sea";
+  if (hasRoutePair && originAir && destinationAir && originPort && destinationPort) {
+    if (explicitAir && !explicitSea) return "Air";
+    return "Sea";
+  }
+  if (hasRoutePair && originAir && destinationAir) return "Air";
+  if (hasRoutePair && originPort && destinationPort) return "Sea";
+  if (explicitAir) return "Air";
+  if (explicitSea) return "Sea";
   return "Mixed";
 }
 
@@ -8765,9 +8845,9 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
 
   const metrics = [];
   const hasRoutePair = Boolean(route.origin && route.destination);
-  if ((mode === "Air" || mode === "Courier") && hasRoutePair && (originAir || destinationAir)) {
-    const origin = originAir || findAirportRiskProfile("PVG");
-    const destination = destinationAir || findAirportRiskProfile(route.destination || "LAX");
+  if ((mode === "Air" || mode === "Courier") && hasRoutePair && originAir && destinationAir) {
+    const origin = originAir;
+    const destination = destinationAir;
     const cargo = primaryProduct?.airCargo || (/电池|battery|锂/.test(text) ? "battery-contained" : "general");
     const rate = airMarketRateEstimate(origin, destination, 300, cargo);
     const hours = flightHoursForAirports(origin, destination);
@@ -8776,9 +8856,9 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
     metrics.push(["航程", `${hours[0]}-${hours[1]} 小时`]);
     metrics.push(["敏感货关注", `${batteryRate}%`]);
   }
-  if (mode === "Sea" && hasRoutePair && (originPort || destinationPort)) {
-    const origin = originPort || findPortRiskProfile("上海");
-    const destination = destinationPort || findPortRiskProfile(route.destination || "洛杉矶");
+  if (mode === "Sea" && hasRoutePair && originPort && destinationPort) {
+    const origin = originPort;
+    const destination = destinationPort;
     const cargo = primaryProduct?.seaCargo || (/危险品|dg/.test(text) ? "dg" : "general");
     const rate = seaMarketRateEstimate(origin, destination, "40HQ", cargo);
     const days = routeDaysForPorts(origin, destination);
@@ -8866,6 +8946,85 @@ function globalSearchOptionsForQuery(query = "") {
   return options.slice(0, 6);
 }
 
+function featureCheckList(items = []) {
+  return items
+    .filter(Boolean)
+    .slice(0, 4)
+    .map((item) => `✓ ${item}`);
+}
+
+function buildLiveIntentInsights(query = "", intel = {}, options = []) {
+  const value = String(query || "").trim();
+  const text = normalize(value);
+  const route = splitRouteQuery(value);
+  const airport = findAirportCodeProfile(value) || findAirportRiskProfile(value);
+  const port = findPortRiskProfile(value);
+  const routeOriginAir = findAirportRiskProfile(route.origin || "");
+  const routeDestinationAir = findAirportRiskProfile(route.destination || "");
+  const routeOriginPort = findPortRiskProfile(route.origin || "");
+  const routeDestinationPort = findPortRiskProfile(route.destination || "");
+  const insights = [];
+  const explicitAirQuery = /空运|机场|航空|航班|awb|iata|icao|air/.test(text);
+  const explicitSeaQuery = /海运|港口|码头|船|船期|箱号|提单|sea|ocean|port|vessel|container/.test(text);
+  const add = (module, title, subtitle, checks = [], tab = "") => {
+    if (!title || insights.some((item) => item.title === title && item.module === module)) return;
+    insights.push({ module, title, subtitle, checks: featureCheckList(checks), tab });
+  };
+
+  const hasRoutePair = Boolean(route.origin && route.destination);
+  if (hasRoutePair && routeOriginPort && routeDestinationPort && intel.mode === "Sea") {
+    const origin = routeOriginPort;
+    const destination = routeDestinationPort;
+    const days = routeDaysForPorts(origin, destination);
+    add(
+      "risk-center",
+      `${origin.cn || origin.name} → ${destination.cn || destination.name}`,
+      days ? `港口路线已识别，平均船期 ${routeDaysText(days)}` : "港口路线已识别，但该组合不猜平均船期",
+      [days ? `平均船期 ${routeDaysText(days)}` : "覆盖不足不猜天数", "港口风险", "天气/海况/管制", "海运市场价"],
+      "risk-port-panel"
+    );
+  }
+  if (hasRoutePair && routeOriginAir && routeDestinationAir && (intel.mode === "Air" || intel.mode === "Courier")) {
+    const origin = routeOriginAir;
+    const destination = routeDestinationAir;
+    const hours = flightHoursForAirports(origin, destination);
+    add(
+      "risk-center",
+      `${origin.cn || origin.iata} → ${destination.cn || destination.iata}`,
+      `机场路线已识别，航程约 ${hours[0]}-${hours[1]} 小时`,
+      [`航程 ${hours[0]}-${hours[1]} 小时`, "机场风险", "空运费用", "航班/运单状态"],
+      "risk-airport-panel"
+    );
+  }
+  if (airport && (!hasRoutePair || intel.mode !== "Sea" || explicitAirQuery)) {
+    add(
+      "codes",
+      airport.cn || airport.name || airport.iata,
+      `机场代码 ${airport.iata || "待补"}${airport.icao ? ` / ${airport.icao}` : ""}`,
+      ["机场代码", "空运费用", "航班/运单状态", "机场风险"]
+    );
+  }
+  if (port && intel.mode !== "Air" && intel.mode !== "Courier" && (!hasRoutePair || explicitSeaQuery)) {
+    add(
+      "risk-center",
+      port.cn || port.name || port.code,
+      `港口代码 ${port.code || "待复核"} · ${port.note || "可进入港口风险判断"}`,
+      ["港口代码", "港口风险", "海运价格", "天气/管制"],
+      "risk-port-panel"
+    );
+  }
+  if (/特朗普|川普|trump|大选|选举|关税|301|232|制裁|出口管制|热点|政策|贸易战/.test(text)) {
+    add(
+      /关税|301|232|制裁|出口管制|政策/.test(text) ? "policy" : "trends",
+      "政策/热点影响",
+      "自动进入政策或热点趋势，不再误判到产品模块",
+      ["实时来源", "政策影响", "物流影响", "关务动作"]
+    );
+  }
+  options.slice(0, 3).forEach((item) => add(item.module, item.label, item.detail, [item.label, "自动带入查询", "直接生成结果"], item.tab || ""));
+  return insights.slice(0, 5);
+}
+
 function buildGlobalSearchAnswer(query = "", candidates = []) {
   const value = String(query || "").trim();
   if (!value) return "";
@@ -8934,6 +9093,7 @@ function renderGlobalSearchLiveAssist(query = "") {
   const candidates = classifyGlobalSearch(value);
   const intel = buildLogisticsIntelligence(value, candidates);
   const options = globalSearchOptionsForQuery(value);
+  const insights = buildLiveIntentInsights(value, intel, options);
   const title = intel.products.length
     ? `正在判断：${intel.productLabel}`
     : airport
@@ -8952,6 +9112,17 @@ function renderGlobalSearchLiveAssist(query = "") {
         <span>${escapeHtml(intel.routeLabel)}</span>
         <span>${escapeHtml(intel.productLabel)}</span>
       </div>
+      ${insights.length ? `
+        <div class="live-intent-insight-grid">
+          ${insights.map((item) => `
+            <button type="button" data-live-module="${escapeHtml(item.module)}" data-live-tab="${escapeHtml(item.tab || "")}" data-global-query="${escapeHtml(value)}">
+              <span>${escapeHtml(item.title)}</span>
+              <strong>${escapeHtml(item.subtitle || "可直接查询")}</strong>
+              <small>${item.checks.map((check) => `<b>${escapeHtml(check)}</b>`).join("")}</small>
+            </button>
+          `).join("")}
+        </div>
+      ` : ""}
       <div class="live-intent-actions">
         ${options.map((item) => `
           <button type="button" data-live-module="${escapeHtml(item.module)}" data-live-tab="${escapeHtml(item.tab || "")}" data-global-query="${escapeHtml(value)}">
@@ -8988,8 +9159,17 @@ function classifyGlobalSearch(raw = "") {
   const opsFeeLike = /港杂|码头费|码头|操作费|本地费|堆存|滞箱|滞港|仓储|安检|货站|换单|文件费|thc|terminal|handling|storage|demurrage|detention|surcharge|附加费|charge|fee/.test(text);
   const genericFeeLike = /费用|收费|成本|cost|tariff/.test(text);
   const feeLike = marketPriceLike || opsFeeLike || genericFeeLike;
-  const airLike = /空运|机场|航空|快件|快递|dhl|ups|fedex|sf|顺丰|awb|iata|货站/.test(text) || airportMatchLike;
-  const seaLike = /海运|港口|码头|船|船期|箱号|提单|港杂|堆存|冷箱|危险品|oog|bbk|reefer|dg|vessel|port|container/.test(text) || portMatchLike;
+  const airportCodeOnly = /^[A-Z]{3,4}$/i.test(query) && airportMatchLike;
+  const portCodeOnly = /^[A-Z]{5}$/i.test(query) && portMatchLike;
+  const route = splitRouteQuery(query);
+  const hasRoutePair = Boolean(route.origin && route.destination);
+  const routeAirportPair = hasRoutePair && findAirportRiskProfile(route.origin) && findAirportRiskProfile(route.destination);
+  const routePortPair = hasRoutePair && findPortRiskProfile(route.origin) && findPortRiskProfile(route.destination);
+  const explicitAirLike = /空运|机场|航空|快件|快递|dhl|ups|fedex|sf|顺丰|awb|iata|货站/.test(text) || trackingLike || airportCodeOnly;
+  const explicitSeaLike = /海运|港口|码头|船|船期|箱号|提单|港杂|堆存|冷箱|危险品|oog|bbk|reefer|dg|vessel|port|container/.test(text) || portCodeOnly;
+  const ambiguousCityRouteLike = routeAirportPair && routePortPair && !explicitAirLike && !explicitSeaLike;
+  const airLike = explicitAirLike || (routeAirportPair && !ambiguousCityRouteLike && !explicitSeaLike);
+  const seaLike = explicitSeaLike || (routePortPair && !explicitAirLike);
   const riskCenterLike = /风险|预警|延误|拥堵|塞港|查验率|查验|delay|risk|congestion|inspection/.test(text);
   const countryLike = /中国|美国|欧盟|英国|日本|泰国|巴西|中东|沙特|阿联酋|印度|越南|印尼|菲律宾|加拿大|墨西哥|澳大利亚|韩国|南非|土耳其|新加坡|马来西亚|country|import|export/.test(text);
   const politicalHotspotLike = /特朗普|川普|trump|拜登|biden|习近平|普京|putin|泽连斯基|zelensky|总统|首相|国会|白宫|共和党|民主党|大选|选举|election|president|congress|white house|geopolitic|地缘|贸易战|trade war/.test(text);
@@ -8997,8 +9177,6 @@ function classifyGlobalSearch(raw = "") {
   const trendLike = /趋势|新闻|热点|热搜|市场|金融|汇率|利率|突发|实时|最新|影响/.test(text) || politicalHotspotLike;
   const policyLike = policyHardLike || trendLike;
   const documentLike = /单证|箱单|发票|invoice|packing|装箱单|报关单|报关草稿|declaration|申报单/.test(text);
-  const airportCodeOnly = /^[A-Z]{3,4}$/i.test(query) && airportMatchLike;
-  const portCodeOnly = /^[A-Z]{5}$/i.test(query) && portMatchLike;
   const knowledgeHits = findChinaKnowledgeProfiles(query);
   const concernHits = detectGlobalConcerns(query);
   const complexQuestionLike = knowledgeHits.length
@@ -9031,6 +9209,14 @@ function classifyGlobalSearch(raw = "") {
   }
   if (trackingLike && !containerLike) {
     add("air", "空运/快件查询", "看起来是快递单号、空运单号或承运商状态查询。", 108, { tracking: query });
+  }
+  if (hasRoutePair && routePortPair && seaLike && !feeLike && !policyLike && !documentLike) {
+    add("risk-center", "港口风险与船期判断", "已识别起运港/目的港；先给平均船期、延误风险、天气海况和管制影响，不让用户再找菜单。", 126, { risk: query });
+    add("sea-market", "海运市场价格", "路线已识别，可继续查看海运市场价参考和船司/货代询价入口。", 104, { fee: query });
+  }
+  if (hasRoutePair && routeAirportPair && airLike && !feeLike && !policyLike && !documentLike) {
+    add("risk-center", "机场风险与空运时效", "已识别起飞机场/到达机场；先给预审关注率、延误、天气和航班时效判断。", 124, { risk: query });
+    add("air-market", "空运市场价格", "路线已识别，可继续查看空运市场价参考和货代询价入口。", 102, { fee: query });
   }
   if (feeLike && airLike) {
     if (marketPriceLike || !opsFeeLike) {
@@ -9317,6 +9503,7 @@ async function openGlobalSearchModule(moduleId = "", query = "", tabId = "") {
   if (moduleId === "risk-center") {
     activateWorkspaceModule("risk-center", true);
     fillRiskCenterFromQuery(value, tabId);
+    await executeGlobalSearchModule(moduleId, value);
     addHistory("全局搜索", value, "已跳转到风险预警中心");
     return;
   }

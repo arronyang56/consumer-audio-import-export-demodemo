@@ -227,6 +227,94 @@ const portProfiles = [
     notices: [["天津港集团", "https://www.tjgportnet.com/"]]
   },
   {
+    code: "CNDLC",
+    cn: "大连港",
+    name: "Dalian Port",
+    aliases: ["大连", "dalian", "cndlc"],
+    weatherTerms: ["大连", "辽宁", "辽东半岛", "渤海", "黄海北部"],
+    notices: [["辽港集团", "https://www.liaoganggf.cn/"], ["中国海事局航行警告", "https://www.msa.gov.cn/"]]
+  },
+  {
+    code: "CNYIK",
+    cn: "营口/鲅鱼圈港",
+    name: "Yingkou / Bayuquan Port",
+    aliases: ["营口", "鲅鱼圈", "yingkou", "bayuquan", "cnyik"],
+    weatherTerms: ["营口", "鲅鱼圈", "辽宁", "辽东湾", "渤海"],
+    notices: [["辽港集团", "https://www.liaoganggf.cn/"], ["中国海事局航行警告", "https://www.msa.gov.cn/"]]
+  },
+  {
+    code: "CNHBW",
+    cn: "环渤海港群",
+    name: "Bohai Bay Ports",
+    aliases: ["唐山", "京唐", "曹妃甸", "黄骅", "秦皇岛", "tangshan", "jingtang", "caofeidian", "huanghua", "qinhuangdao", "cntgs", "cnhua", "cnqhd"],
+    weatherTerms: ["唐山", "曹妃甸", "黄骅", "秦皇岛", "河北沿海", "渤海", "渤海湾", "华北沿海"],
+    notices: [["中国海事局航行警告", "https://www.msa.gov.cn/"], ["河北港口集团", "https://www.porthebei.com/"]]
+  },
+  {
+    code: "CNLYG",
+    cn: "连云港",
+    name: "Lianyungang Port",
+    aliases: ["连云港", "lianyungang", "cnlyg"],
+    weatherTerms: ["连云港", "江苏沿海", "黄海", "黄海中部"],
+    notices: [["连云港港", "https://www.lygport.com.cn/"], ["中国海事局航行警告", "https://www.msa.gov.cn/"]]
+  },
+  {
+    code: "CNZAP",
+    cn: "嘉兴/乍浦港",
+    name: "Jiaxing / Zhapu Port",
+    aliases: ["嘉兴", "乍浦", "jiaxing", "zhapu", "cnzap"],
+    weatherTerms: ["嘉兴", "乍浦", "杭州湾", "浙江北部", "东海"],
+    notices: [["嘉兴港区", "https://jxgq.jiaxing.gov.cn/"], ["中国海事局航行警告", "https://www.msa.gov.cn/"]]
+  },
+  {
+    code: "CNWNZ",
+    cn: "温州港",
+    name: "Wenzhou Port",
+    aliases: ["温州", "wenzhou", "cnwnz"],
+    weatherTerms: ["温州", "浙南", "浙江沿海", "东海"],
+    notices: [["温州港集团", "https://www.wzport.com/"], ["中国海事局航行警告", "https://www.msa.gov.cn/"]]
+  },
+  {
+    code: "CNTZO",
+    cn: "台州港",
+    name: "Taizhou Port",
+    aliases: ["台州", "taizhou", "cntzo"],
+    weatherTerms: ["台州", "浙江沿海", "东海"],
+    notices: [["中国海事局航行警告", "https://www.msa.gov.cn/"]]
+  },
+  {
+    code: "CNFJG",
+    cn: "福建沿海港群",
+    name: "Fujian Coastal Ports",
+    aliases: ["泉州", "莆田", "湄洲湾", "石湖", "quanzhou", "putian", "meizhou bay", "cnqzj", "cnput"],
+    weatherTerms: ["泉州", "莆田", "湄洲湾", "福建沿海", "闽南", "台湾海峡"],
+    notices: [["福建省港口集团", "https://www.fjpg.cn/"], ["中国海事局航行警告", "https://www.msa.gov.cn/"]]
+  },
+  {
+    code: "CNPRD",
+    cn: "珠江西岸/粤东港群",
+    name: "Pearl River Delta Feeder Ports",
+    aliases: ["珠海", "江门", "中山", "汕头", "zhuhai", "jiangmen", "zhongshan", "shantou", "cnzuh", "cnjmn", "cnzsn", "cnswa"],
+    weatherTerms: ["珠江口", "广东", "华南沿海", "南海北部", "汕头", "粤东"],
+    notices: [["广州港集团", "https://www.gzport.com/"], ["中国海事局航行警告", "https://www.msa.gov.cn/"]]
+  },
+  {
+    code: "CNBBW",
+    cn: "北部湾港群",
+    name: "Beibu Gulf Ports",
+    aliases: ["湛江", "钦州", "防城港", "北海", "北部湾", "zhanjiang", "qinzhou", "fangchenggang", "beihai", "cnzha", "cnqzh", "cnfan", "cnbih"],
+    weatherTerms: ["湛江", "北部湾", "广西沿海", "广东西部沿海", "南海西北部"],
+    notices: [["北部湾港", "https://www.bbwport.com/"], ["中国海事局航行警告", "https://www.msa.gov.cn/"]]
+  },
+  {
+    code: "CNHIN",
+    cn: "海南港群",
+    name: "Hainan Ports",
+    aliases: ["海口", "洋浦", "海南", "haikou", "yangpu", "cnhak", "cnypg"],
+    weatherTerms: ["海南", "琼州海峡", "南海北部", "北部湾"],
+    notices: [["海南港航", "https://www.hnhs.com.cn/"], ["中国海事局航行警告", "https://www.msa.gov.cn/"]]
+  },
+  {
     code: "SGSIN",
     cn: "新加坡港",
     name: "Singapore Port",
@@ -504,11 +592,13 @@ function buildRouteProfile(originProfile = {}, destinationProfile = {}) {
     destinationProfile.name
   );
 
-  const originChina = profileMatches(originProfile, [/中国|上海|宁波|厦门|福州|深圳|盐田|广州|青岛|天津|cnsha|cnngb|cnxmn|cnfoc|cnytn|cnszx|cngzg|cntao|cntxg/]);
-  const destChina = profileMatches(destinationProfile, [/中国|上海|宁波|厦门|福州|深圳|盐田|广州|青岛|天津|cnsha|cnngb|cnxmn|cnfoc|cnytn|cnszx|cngzg|cntao|cntxg/]);
-  const eastChinaOrigin = profileMatches(originProfile, [/上海|宁波|舟山|厦门|福州|东海|台湾海峡|cnsha|cnngb|cnxmn|cnfoc/]);
-  const southChinaOrigin = profileMatches(originProfile, [/深圳|盐田|蛇口|广州|南沙|珠江口|南海|cnytn|cnszx|cngzg/]);
-  const northChinaOrigin = profileMatches(originProfile, [/青岛|天津|渤海|黄海|山东|cntao|cntxg/]);
+  const chinaPortPattern = /中国|上海|宁波|舟山|嘉兴|乍浦|温州|台州|厦门|福州|泉州|莆田|湄洲湾|深圳|盐田|蛇口|广州|南沙|珠海|江门|中山|汕头|湛江|钦州|防城港|北海|海口|洋浦|大连|营口|鲅鱼圈|唐山|京唐|曹妃甸|黄骅|秦皇岛|青岛|天津|连云港|cnsha|cnngb|cnzos|cnzap|cnwnz|cntzo|cnxmn|cnfoc|cnqzj|cnput|cnytn|cnszx|cngzg|cnzuh|cnjmn|cnzsn|cnswa|cnzha|cnqzh|cnfan|cnbih|cnhak|cnypg|cndlc|cnyik|cntgs|cnhua|cnqhd|cntao|cntxg|cnlyg|cnfjg|cnprd|cnbbw|cnhin/;
+  const originChina = profileMatches(originProfile, [chinaPortPattern]);
+  const destChina = profileMatches(destinationProfile, [chinaPortPattern]);
+  const eastChinaOrigin = profileMatches(originProfile, [/上海|宁波|舟山|嘉兴|乍浦|温州|台州|东海|浙江|杭州湾|cnsha|cnngb|cnzos|cnzap|cnwnz|cntzo/]);
+  const fujianOrigin = profileMatches(originProfile, [/厦门|福州|泉州|莆田|湄洲湾|福建|台湾海峡|cnxmn|cnfoc|cnqzj|cnput|cnfjg/]);
+  const southChinaOrigin = profileMatches(originProfile, [/深圳|盐田|蛇口|广州|南沙|珠海|江门|中山|汕头|湛江|钦州|防城港|北海|海口|洋浦|珠江口|广东|广西|海南|北部湾|南海|cnytn|cnszx|cngzg|cnzuh|cnjmn|cnzsn|cnswa|cnzha|cnqzh|cnfan|cnbih|cnhak|cnypg|cnprd|cnbbw|cnhin/]);
+  const northChinaOrigin = profileMatches(originProfile, [/大连|营口|鲅鱼圈|唐山|京唐|曹妃甸|黄骅|秦皇岛|青岛|天津|连云港|渤海|黄海|山东|辽宁|河北|江苏沿海|cndlc|cnyik|cntgs|cnhua|cnqhd|cntao|cntxg|cnlyg|cnhbw/]);
   const southeastAsia = profileMatches(destinationProfile, [/新加坡|林查班|泰国|越南|巴生|马来西亚|胡志明|sgsin|thlch|vnsgn|mypkg|southeast|malacca|gulf of thailand/]);
   const usWest = profileMatches(destinationProfile, [/洛杉矶|长滩|los angeles|long beach|uslax|uslgb|california|pacific coast/]);
   const europe = profileMatches(destinationProfile, [/鹿特丹|rotterdam|nlrtm|europe|north sea|地中海|北海/]);
@@ -516,16 +606,17 @@ function buildRouteProfile(originProfile = {}, destinationProfile = {}) {
   if (originChina && destChina) {
     addArea("中国沿海", ["中国沿海", "华东沿海", "华南沿海", "渤海", "黄海", "东海", "台湾海峡", "南海北部"]);
   }
-  if ((originChina || eastChinaOrigin || southChinaOrigin || northChinaOrigin) && southeastAsia) {
+  if ((originChina || eastChinaOrigin || fujianOrigin || southChinaOrigin || northChinaOrigin) && southeastAsia) {
     addArea("东亚-东南亚常规水道", ["东海", "台湾海峡", "巴士海峡", "南海", "南海北部", "越南", "泰国湾", "马六甲", "新加坡", "gulf of thailand", "malacca", "south china sea"]);
   }
-  if ((originChina || eastChinaOrigin || southChinaOrigin || northChinaOrigin) && usWest) {
+  if ((originChina || eastChinaOrigin || fujianOrigin || southChinaOrigin || northChinaOrigin) && usWest) {
     addArea("西北太平洋-美西航线", ["东海", "黄海", "日本南部", "琉球", "西北太平洋", "太平洋", "北太平洋", "southern california", "pacific coast", "north pacific"]);
   }
-  if ((originChina || eastChinaOrigin || southChinaOrigin || northChinaOrigin) && europe) {
+  if ((originChina || eastChinaOrigin || fujianOrigin || southChinaOrigin || northChinaOrigin) && europe) {
     addArea("远东-欧洲航线", ["东海", "台湾海峡", "南海", "马六甲", "印度洋", "亚丁湾", "红海", "苏伊士", "地中海", "北海", "malacca", "indian ocean", "red sea", "suez", "mediterranean", "north sea"]);
   }
-  if (eastChinaOrigin) addArea("华东近海", ["长江口", "浙江沿海", "福建沿海", "东海", "台湾海峡"]);
+  if (eastChinaOrigin) addArea("华东近海", ["长江口", "浙江沿海", "杭州湾", "东海"]);
+  if (fujianOrigin) addArea("福建/台湾海峡近海", ["福建沿海", "闽南", "台湾海峡", "东海", "南海北部"]);
   if (southChinaOrigin) addArea("华南近海", ["珠江口", "广东沿海", "华南沿海", "南海北部", "南海"]);
   if (northChinaOrigin) addArea("华北/山东近海", ["渤海", "渤海湾", "黄海", "山东半岛", "山东沿海"]);
 
