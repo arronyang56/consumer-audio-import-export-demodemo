@@ -6199,6 +6199,111 @@ nav a[href="#learn"]::before {
   line-height: 1.45;
 }
 
+.global-evidence-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(20, 184, 166, 0.24);
+  border-radius: 8px;
+  background: rgba(240, 253, 250, 0.58);
+}
+
+.global-evidence-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.global-evidence-head span {
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.global-evidence-head strong {
+  color: #0f172a;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.global-evidence-head small {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.global-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.global-evidence-card {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  min-height: 116px;
+  padding: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 8px;
+  background: #ffffff;
+  color: inherit;
+  text-decoration: none;
+}
+
+.global-evidence-card:hover {
+  border-color: rgba(13, 148, 136, 0.48);
+  background: #f0fdfa;
+}
+
+.global-evidence-card span {
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.global-evidence-card strong {
+  color: #0f172a;
+  font-size: 13px;
+  line-height: 1.28;
+}
+
+.global-evidence-card p {
+  margin: 0;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.global-evidence-card small {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.global-evidence-caveats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.global-evidence-caveats span {
+  display: inline-flex;
+  min-width: 0;
+  padding: 5px 7px;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  border-radius: 8px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
 .live-intent-actions,
 .global-ai-action-grid {
   display: grid;
@@ -16367,6 +16472,7 @@ body[data-active-module="air-fees"] .ops-fee-hero::after {
   .live-intent-actions,
   .global-ai-action-grid,
   .global-ai-metric-grid,
+  .global-evidence-grid,
   .market-rate-form,
   .risk-center-form,
   .market-rate-result-grid,
@@ -16385,6 +16491,7 @@ body[data-active-module="air-fees"] .ops-fee-hero::after {
   .live-intent-actions,
   .global-ai-action-grid,
   .global-ai-metric-grid,
+  .global-evidence-grid,
   .market-rate-form,
   .risk-center-form,
   .market-rate-result-grid,

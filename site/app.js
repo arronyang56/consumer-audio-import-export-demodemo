@@ -2162,6 +2162,30 @@ const officialSources = dedupeSourceRows([
   ...(Array.isArray(window.EXTRA_SOURCE_CATALOG) ? window.EXTRA_SOURCE_CATALOG : [])
 ]);
 
+const logisticsSourceRegistry = Array.isArray(window.LOGISTICS_SOURCE_REGISTRY) ? window.LOGISTICS_SOURCE_REGISTRY : [];
+
+const portEvidenceSourceIds = {
+  CNSHA: ["port-shanghai", "sipg", "china-msa", "china-nmc"],
+  CNNGB: ["ningbo-port", "china-msa", "china-nmc"],
+  CNYTN: ["yantian", "china-msa", "china-nmc"],
+  CNTAO: ["qingdao-port", "china-msa", "china-nmc"],
+  CNXMN: ["xiamen-port", "china-msa", "china-nmc"],
+  CNGZG: ["guangzhou-port", "china-msa", "china-nmc"],
+  SGSIN: ["singapore-mpa"],
+  USLAX: ["noaa-marine"],
+  USLGB: ["noaa-marine"]
+};
+
+const airportEvidenceSourceIds = {
+  PVG: ["caac", "iata-dgr", "flightaware-aeroapi", "opensky"],
+  CAN: ["caac", "iata-dgr", "flightaware-aeroapi"],
+  SZX: ["caac", "iata-dgr", "flightaware-aeroapi"],
+  HKG: ["iata-dgr", "flightaware-aeroapi"],
+  LAX: ["faa-lithium", "flightaware-aeroapi", "opensky"],
+  JFK: ["faa-lithium", "flightaware-aeroapi", "opensky"],
+  ORD: ["faa-lithium", "flightaware-aeroapi", "opensky"]
+};
+
 const declarationSets = [
   ["耳机 / Headphone", ["品名及用途", "佩戴方式", "是否无线/蓝牙", "是否含电池", "品牌/型号", "是否带麦克风"]],
   ["音箱 / Soundbar", ["喇叭数量", "是否有箱体", "额定功率", "连接方式", "是否带电源适配器", "是否含电池"]],
@@ -8909,6 +8933,240 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
   };
 }
 
+function sourceTypeLabel(type = "") {
+  const labels = {
+    official: "官方",
+    "port-official": "港口官方",
+    terminal: "码头/港区",
+    carrier: "船司",
+    forwarder: "大型货代",
+    standard: "标准/API",
+    "market-index": "市场指数",
+    "commercial-api": "商业 API",
+    "open-api": "开放 API"
+  };
+  return labels[type] || "来源";
+}
+
+function sourceAccessLabel(access = "", apiStatus = "") {
+  const text = normalize(`${access} ${apiStatus}`);
+  if (/commercial|授权|requires|account|login|账号/.test(text)) return "需账号/授权";
+  if (/captcha|manual|人工|query/.test(text)) return "人工核验";
+  if (/api|open/.test(text)) return "可接 API";
+  if (/download/.test(text)) return "可下载";
+  return "公开网页";
+}
+
+function desiredEvidenceKinds(intel = {}, target = {}) {
+  const kinds = new Set(["location"]);
+  const concernIds = new Set((intel.concerns || []).map((item) => item.id));
+  if (intel.mode === "Sea") {
+    ["ocean-schedule", "transit-time", "port-notice", "terminal", "freight-index", "price", "marine-weather", "navigation-warning", "maritime-control"].forEach((item) => kinds.add(item));
+  }
+  if (intel.mode === "Air" || intel.mode === "Courier") {
+    ["air-cargo", "flight-status", "eta", "delay", "dangerous-goods", "lithium-battery", "quote"].forEach((item) => kinds.add(item));
+  }
+  if (concernIds.has("price") || /market|price/.test(target.module || "")) ["quote", "price", "freight-index", "market-update"].forEach((item) => kinds.add(item));
+  if (concernIds.has("risk") || target.module === "risk-center") {
+    if (intel.mode === "Sea") ["weather", "typhoon", "marine-weather", "port-notice", "terminal-notice", "maritime-control"].forEach((item) => kinds.add(item));
+    else if (intel.mode === "Air" || intel.mode === "Courier") ["flight-status", "eta", "delay", "air-cargo"].forEach((item) => kinds.add(item));
+    else ["weather", "typhoon", "port-notice", "maritime-control"].forEach((item) => kinds.add(item));
+  }
+  if (concernIds.has("policy") || target.module === "policy" || target.module === "trends") ["trade-policy", "tariff-policy", "regulation", "effective-date", "customs-message"].forEach((item) => kinds.add(item));
+  if (concernIds.has("customs") || target.module === "hs" || target.module === "customs") ["tariff", "hs", "customs", "declaration"].forEach((item) => kinds.add(item));
+  if (concernIds.has("docs") || /docs/.test(target.module || "")) ["documents", "declaration", "dangerous-goods"].forEach((item) => kinds.add(item));
+  if (/电池|锂|battery|un38|msds/i.test(intel.query || "")) ["lithium-battery", "dangerous-goods"].forEach((item) => kinds.add(item));
+  if (/特朗普|川普|trump|301|232|关税|制裁|出口管制/i.test(intel.query || "")) ["trade-policy", "tariff-measures", "regulation"].forEach((item) => kinds.add(item));
+  return kinds;
+}
+
+function sourceCountryBoost(source = {}, intel = {}) {
+  const haystack = normalize([source.coverage, source.summary, source.authority, source.name].join(" "));
+  const route = normalize(intel.routeLabel || "");
+  const country = normalize(intel.country || "");
+  let boost = 0;
+  if (country && haystack.includes(country)) boost += 14;
+  if (/中国|china/.test(route) && /china|中国/.test(haystack)) boost += 12;
+  if (/新加坡|singapore/.test(route) && /singapore|新加坡/.test(haystack)) boost += 10;
+  if (/美国|united states|洛杉矶|纽约|lax|jfk|us/.test(route) && /united states|us |美国|cbp|ustr|federal/.test(haystack)) boost += 10;
+  if (/欧盟|德国|荷兰|法国|eu|europe|rotterdam|hamburg/.test(route) && /eu|europe|欧盟|european/.test(haystack)) boost += 10;
+  return boost;
+}
+
+function preferredEvidenceSourceIds(query = "", intel = {}) {
+  const preferred = new Set();
+  const value = normalize(query);
+  const policyOrCustoms = /特朗普|川普|trump|301|232|关税|制裁|出口管制|tariff|sanction/.test(value)
+    || (intel.concerns || []).some((item) => /policy|customs/.test(item.id || ""));
+  const originPort = findPortRiskProfile(intel.route?.origin || "");
+  const destinationPort = findPortRiskProfile(intel.route?.destination || "");
+  const originAirport = findAirportRiskProfile(intel.route?.origin || "");
+  const destinationAirport = findAirportRiskProfile(intel.route?.destination || "");
+  [originPort, destinationPort].filter(Boolean).forEach((port) => {
+    (portEvidenceSourceIds[port.code] || []).forEach((id) => preferred.add(id));
+  });
+  [originAirport, destinationAirport].filter(Boolean).forEach((airport) => {
+    (airportEvidenceSourceIds[airport.iata] || []).forEach((id) => preferred.add(id));
+  });
+  if (intel.mode === "Sea") {
+    ["dcsa-schedules", "maersk-schedules"].forEach((id) => preferred.add(id));
+    if (/价格|报价|运费|市场|price|rate|freight/.test(value)) ["freightos-fbx", "drewry"].forEach((id) => preferred.add(id));
+    if (/电池|锂|battery|un38|msds/.test(value)) preferred.add("imo-imdg");
+  }
+  if (intel.mode === "Air" || intel.mode === "Courier") {
+    ["iata-dgr", "flightaware-aeroapi"].forEach((id) => preferred.add(id));
+    if (/电池|锂|battery|un38|msds/.test(value)) ["faa-lithium", "iata-dgr"].forEach((id) => preferred.add(id));
+  }
+  if (policyOrCustoms) {
+    ["ustr", "federal-register", "cbp-csms", "usitc-hts"].forEach((id) => preferred.add(id));
+    if (/中国|china/.test(value)) ["china-tariff-commission", "china-customs-tariff"].forEach((id) => preferred.add(id));
+  }
+  if (policyOrCustoms && /美国|united states/.test(normalize(intel.country || ""))) ["ustr", "federal-register", "cbp-csms", "usitc-hts"].forEach((id) => preferred.add(id));
+  if (policyOrCustoms && /欧盟|eu|europe/.test(normalize(intel.country || ""))) preferred.add("eu-access2markets");
+  return preferred;
+}
+
+function evidenceScore(source = {}, query = "", candidates = [], intel = {}, preferredIds = new Set()) {
+  const target = candidates[0] || {};
+  const modules = new Set([target.module, ...(intel.modules || [])].filter(Boolean));
+  const desiredKinds = desiredEvidenceKinds(intel, target);
+  const sourceModules = new Set(source.modules || []);
+  const sourceKinds = new Set(source.dataKinds || []);
+  const sourceText = normalize([
+    source.id,
+    source.name,
+    source.authority,
+    source.sourceType,
+    source.coverage,
+    source.summary,
+    ...(source.modules || []),
+    ...(source.dataKinds || [])
+  ].join(" "));
+  const queryText = normalize([
+    query,
+    intel.routeLabel,
+    intel.productLabel,
+    intel.country,
+    (intel.concerns || []).map((item) => item.label).join(" ")
+  ].join(" "));
+  let score = Number(source.credibility || 50) / 3;
+  modules.forEach((module) => {
+    if (sourceModules.has(module)) score += 20;
+  });
+  desiredKinds.forEach((kind) => {
+    if (sourceKinds.has(kind)) score += 16;
+  });
+  const hasDesiredKind = Array.from(sourceKinds).some((kind) => desiredKinds.has(kind));
+  queryText.split(/\s+/).filter((word) => word.length >= 2).slice(0, 12).forEach((word) => {
+    if (sourceText.includes(word)) score += 3;
+  });
+  if (/official|port-official|terminal|carrier|standard/.test(source.sourceType || "")) score += 8;
+  if (/manual|requires|account/.test(normalize(`${source.access || ""} ${source.apiStatus || ""}`))) score -= 2;
+  if (preferredIds.has(source.id)) score += 72;
+  if (intel.mode === "Air" && !hasDesiredKind && Array.from(sourceKinds).some((kind) => /ocean|marine|port-notice|terminal-notice|freight-index/.test(kind))) score -= 38;
+  if (intel.mode === "Air" && !preferredIds.has(source.id) && sourceKinds.has("marine-weather")) score -= 44;
+  if (intel.mode === "Sea" && !hasDesiredKind && Array.from(sourceKinds).some((kind) => /flight|air-traffic|air-cargo/.test(kind))) score -= 38;
+  const policyContext = (intel.concerns || []).some((item) => /policy|customs/.test(item.id || "")) || /特朗普|川普|trump|301|232|关税|制裁|出口管制|tariff|sanction/.test(normalize(query));
+  const country = normalize(intel.country || "");
+  const coverage = normalize(`${source.coverage || ""} ${source.authority || ""}`);
+  const policyQueryText = normalize(query);
+  if (policyContext && /美国|united states/.test(country) && !/united states|usitc|ustr|cbp|federal|global/.test(coverage) && !(/中国|china/.test(policyQueryText) && /china|中国/.test(coverage))) score -= 85;
+  if (policyContext && /欧盟|eu|europe/.test(country) && !/eu|europe|european|global/.test(coverage)) score -= 85;
+  if (policyContext && !hasDesiredKind && Array.from(sourceKinds).some((kind) => /dangerous-goods|air-cargo|ocean-cargo|marine-weather|weather|quote|flight/.test(kind))) score -= 46;
+  score += sourceCountryBoost(source, intel);
+  return score;
+}
+
+function isEligibleEvidenceSource(source = {}, query = "", intel = {}, preferredIds = new Set()) {
+  const sourceKinds = new Set(source.dataKinds || []);
+  const queryText = normalize(query);
+  const country = normalize(intel.country || "");
+  const coverage = normalize(`${source.coverage || ""} ${source.authority || ""}`);
+  const policyContext = (intel.concerns || []).some((item) => /policy|customs/.test(item.id || "")) || /特朗普|川普|trump|301|232|关税|制裁|出口管制|tariff|sanction/.test(queryText);
+  const airContext = intel.mode === "Air" || intel.mode === "Courier" || /空运|航空|航班|机场|pvg|lax|jfk|ord|hkg|can|szx/.test(queryText);
+  const policyKinds = /trade-policy|tariff|hs|customs|regulation|effective-date|customs-message|import-requirements|tariff-measures/;
+  if (airContext && sourceKinds.has("marine-weather") && !preferredIds.has(source.id)) return false;
+  if (policyContext && !Array.from(sourceKinds).some((kind) => policyKinds.test(kind))) return false;
+  if (policyContext && /美国|united states/.test(country) && !/united states|usitc|ustr|cbp|federal|global/.test(coverage) && !(/中国|china/.test(normalize(query)) && /china|中国/.test(coverage))) return false;
+  if (policyContext && /欧盟|eu|europe/.test(country) && !/eu|europe|european|global/.test(coverage)) return false;
+  return true;
+}
+
+function selectEvidenceSourcesForQuery(query = "", candidates = [], intel = {}) {
+  const rows = logisticsSourceRegistry.length
+    ? logisticsSourceRegistry
+    : officialSources.map(([name, url, summary, category]) => ({
+      id: name,
+      name,
+      url,
+      summary,
+      sourceType: "official",
+      modules: ["policy", "risk-center", "hs"],
+      dataKinds: [category || "source"],
+      credibility: 75,
+      access: "public"
+  }));
+  const preferredIds = preferredEvidenceSourceIds(query, intel);
+  const policyContext = (intel.concerns || []).some((item) => /policy|customs/.test(item.id || "")) || /特朗普|川普|trump|301|232|关税|制裁|出口管制|tariff|sanction/.test(normalize(query));
+  const resultLimit = policyContext ? 4 : (intel.mode === "Air" || intel.mode === "Courier" ? 6 : 6);
+  const selected = rows
+    .map((source) => ({ source, score: evidenceScore(source, query, candidates, intel, preferredIds) }))
+    .filter((item) => item.score > 38 && isEligibleEvidenceSource(item.source, query, intel, preferredIds))
+    .sort((a, b) => b.score - a.score)
+    .map((item) => item.source)
+    .filter((source, index, list) => list.findIndex((item) => item.id === source.id || item.url === source.url) === index)
+    .slice(0, resultLimit);
+  if (selected.length >= 4) return selected;
+  return rows
+    .filter((source) => !selected.some((item) => item.id === source.id) && isEligibleEvidenceSource(source, query, intel, preferredIds))
+    .sort((a, b) => Number(b.credibility || 0) - Number(a.credibility || 0))
+    .slice(0, 4 - selected.length)
+    .reduce((items, source) => [...items, source], selected);
+}
+
+function evidenceCaveats(intel = {}, sources = []) {
+  const caveats = [];
+  if (intel.metrics?.some(([label]) => /预算|价格|运价/.test(label))) caveats.push("价格是预算区间：必须用船司/货代有效报价复核。");
+  if (intel.metrics?.some(([label, value]) => /船期|航程/.test(`${label}${value}`))) caveats.push("时效是航程/运行判断：正式承诺前要查承运人 ETD/ETA、转运港和截关。");
+  if ((intel.concerns || []).some((item) => item.id === "policy")) caveats.push("政策类结论要看公告生效日期、适用 HS、原产国和豁免/暂停条款。");
+  if ((intel.missing || []).length) caveats.push("缺少关键字段时，系统不会把模型估算包装成确定结论。");
+  if (!sources.some((source) => /official|port-official|terminal|carrier/.test(source.sourceType || ""))) caveats.push("当前证据偏参考来源，建议进入对应模块做官方核验。");
+  return caveats.slice(0, 4);
+}
+
+function renderGlobalEvidencePanel(query = "", candidates = [], intel = {}) {
+  const queryText = normalize(query);
+  const airQuery = intel.mode === "Air" || intel.mode === "Courier" || /空运|航空|航班|机场|pvg|lax|jfk|ord|hkg|can|szx/.test(queryText);
+  const policyQuery = (intel.concerns || []).some((item) => /policy|customs/.test(item.id || "")) || /特朗普|川普|trump|301|232|关税|制裁|出口管制|tariff|sanction/.test(queryText);
+  const policyKinds = /trade-policy|tariff|hs|customs|regulation|effective-date|customs-message|import-requirements|tariff-measures/;
+  const sources = selectEvidenceSourcesForQuery(query, candidates, intel)
+    .filter((source) => !(airQuery && source.id === "noaa-marine"))
+    .filter((source) => !policyQuery || (source.dataKinds || []).some((kind) => policyKinds.test(kind)))
+    .slice(0, policyQuery ? 4 : (airQuery ? 5 : 6));
+  const caveats = evidenceCaveats(intel, sources);
+  const officialCount = sources.filter((source) => /official|port-official|terminal|carrier|standard/.test(source.sourceType || "")).length;
+  return `
+    <section class="global-evidence-panel" aria-label="AI 回答证据面板">
+      <div class="global-evidence-head">
+        <span>证据面板</span>
+        <strong>${escapeHtml(`${sources.length} 个来源 · ${officialCount} 个官方/承运人级别`)}</strong>
+        <small>按问题自动筛选</small>
+      </div>
+      <div class="global-evidence-grid">
+        ${sources.map((source) => `
+          <a href="${escapeHtml(source.url || "#")}" target="_blank" rel="noreferrer" class="global-evidence-card">
+            <span>${escapeHtml(sourceTypeLabel(source.sourceType))} · ${escapeHtml(sourceAccessLabel(source.access, source.apiStatus))}</span>
+            <strong>${escapeHtml(source.name || source.id || "来源")}</strong>
+            <p>${escapeHtml(source.summary || "用于复核当前查询结论。")}</p>
+            <small>${escapeHtml([source.coverage, source.updateCadence, source.dataKinds?.slice(0, 2).join("/")].filter(Boolean).join(" · "))}</small>
+          </a>
+        `).join("")}
+      </div>
+      ${caveats.length ? `<div class="global-evidence-caveats">${caveats.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>` : ""}
+    </section>
+  `;
+}
+
 function globalSearchOptionsForQuery(query = "") {
   const value = String(query || "").trim();
   if (!value) return [];
@@ -9066,6 +9324,7 @@ function buildGlobalSearchAnswer(query = "", candidates = []) {
         <p>${escapeHtml(intel.action)}</p>
         ${intel.primaryProduct?.compliance ? `<p>${escapeHtml(intel.primaryProduct.compliance)}</p>` : ""}
       </div>
+      ${renderGlobalEvidencePanel(value, candidates, intel)}
       ${intel.missing.length ? `<div class="global-ai-gap-row">${intel.missing.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>` : ""}
       <div class="global-ai-action-grid">
         ${options.map((item) => `
