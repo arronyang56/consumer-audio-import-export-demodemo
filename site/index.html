@@ -15,7 +15,7 @@
         display: none !important;
       }
     </style>
-    <link rel="stylesheet" href="./styles.css?v=20260714-evidence-db-v74" />
+    <link rel="stylesheet" href="./styles.css?v=20260714-evidence-db-v76" />
   </head>
   <body class="auth-pending is-public-home">
     <button type="button" class="login-trigger" id="openLoginDialog">登录</button>
@@ -92,6 +92,11 @@
           </details>
 
           <details class="nav-group">
+            <summary>数据与证据</summary>
+            <a href="#evidence-ledger"><span class="nav-icon nav-icon-decision" aria-hidden="true"></span><span>报价、时效与查验记录</span></a>
+          </details>
+
+          <details class="nav-group">
             <summary>通关</summary>
             <a href="#customs"><span class="nav-icon nav-icon-customs" aria-hidden="true"></span><span>通关/箱货放行</span></a>
           </details>
@@ -135,6 +140,7 @@
         <a href="#air-market"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空价</span></a>
         <a href="#air-fees"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>货站</span></a>
         <a href="#risk-center"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>风险</span></a>
+        <a href="#evidence-ledger"><span class="nav-icon nav-icon-decision" aria-hidden="true"></span><span>记录</span></a>
         <a href="#customs"><span class="nav-icon nav-icon-customs" aria-hidden="true"></span><span>通关</span></a>
         <a href="#docs-invoice"><span class="nav-icon nav-icon-docs" aria-hidden="true"></span><span>单证</span></a>
         <a href="#docs-declaration"><span class="nav-icon nav-icon-declaration" aria-hidden="true"></span><span>报关</span></a>
@@ -2240,7 +2246,7 @@
                 <p class="eyebrow">Port Risk</p>
                 <h2>港口风险</h2>
               </div>
-              <span class="quiet-tag">平均船期 / 平均延误 / 风险分</span>
+              <span class="quiet-tag">历史实绩 / 航程模型 / 实时异常</span>
             </div>
             <form id="riskPortForm" class="query-card risk-center-form">
               <label>
@@ -2272,7 +2278,7 @@
                 <p class="eyebrow">Airport Risk</p>
                 <h2>机场风险</h2>
               </div>
-              <span class="quiet-tag">锂电池预审关注率 / 曲线 / 风险分</span>
+              <span class="quiet-tag">预审等级 / 业务实绩 / 官方规则</span>
             </div>
             <form id="riskAirportForm" class="query-card risk-center-form">
               <label>
@@ -2298,6 +2304,141 @@
             <div id="riskAirportResult" class="risk-center-result-grid"></div>
           </section>
 
+        </section>
+
+        <section id="evidence-ledger" class="panel evidence-ledger-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Rate, Transit & Inspection Records</p>
+              <h2>报价、时效与查验记录</h2>
+            </div>
+            <span>真实报价 · 实际时效 · 查验结果 · 本机保存</span>
+          </div>
+
+          <div class="evidence-ledger-summary">
+            <div>
+              <p class="eyebrow">Evidence Before Estimate</p>
+              <h2>保存实际结果，让页面优先使用真实记录</h2>
+              <p>录入真实报价、实际出发和到达时间、查验或补件结果。海运价格、空运价格和风险预警会优先采用同航线近期记录；没有记录时，页面会明确标注“模型估算”。</p>
+            </div>
+            <div id="evidenceLedgerStats" class="evidence-ledger-stats" aria-label="报价、时效与查验记录统计"></div>
+          </div>
+
+          <div class="evidence-ledger-workspace">
+            <form id="evidenceLedgerForm" class="query-card evidence-ledger-form">
+              <div class="evidence-form-heading">
+                <div>
+                  <span>新增记录</span>
+                  <strong>每票保存一条，写清来源和日期</strong>
+                </div>
+                <small>数据只保存在当前浏览器</small>
+              </div>
+              <label>
+                运输方式
+                <select id="evidenceMode">
+                  <option value="sea">海运</option>
+                  <option value="air">空运</option>
+                </select>
+              </label>
+              <label>
+                记录类型
+                <select id="evidenceType">
+                  <option value="quote">有效报价</option>
+                  <option value="schedule">承运人船期/航班</option>
+                  <option value="actual">实际运输结果</option>
+                  <option value="inspection">查验/预审结果</option>
+                </select>
+              </label>
+              <label>
+                出发港/机场
+                <input id="evidenceOrigin" required lang="zh-CN" placeholder="上海 / CNSHA / PVG" />
+              </label>
+              <label>
+                到达港/机场
+                <input id="evidenceDestination" required lang="zh-CN" placeholder="林查班 / THLCH / LAX" />
+              </label>
+              <label>
+                船司/航司/货代
+                <input id="evidenceCarrier" required lang="zh-CN" placeholder="如 COSCO / Maersk / DHL GF" />
+              </label>
+              <label>
+                记录日期
+                <input id="evidenceDate" type="date" required />
+              </label>
+              <label>
+                箱型/计价单位
+                <select id="evidenceUnit">
+                  <option value="40HQ">40HQ</option>
+                  <option value="40GP">40GP</option>
+                  <option value="20GP">20GP</option>
+                  <option value="CBM">LCL / CBM</option>
+                  <option value="KG">空运 / KG</option>
+                  <option value="SHIPMENT">整票</option>
+                </select>
+              </label>
+              <label>
+                报价金额（可选）
+                <div class="evidence-money-field">
+                  <select id="evidenceCurrency" aria-label="币种">
+                    <option value="USD">USD</option>
+                    <option value="CNY">CNY</option>
+                    <option value="EUR">EUR</option>
+                  </select>
+                  <input id="evidencePrice" type="number" min="0" step="0.01" placeholder="金额" />
+                </div>
+              </label>
+              <label>
+                计划出发（可选）
+                <input id="evidencePlannedDeparture" type="datetime-local" />
+              </label>
+              <label>
+                实际出发（可选）
+                <input id="evidenceActualDeparture" type="datetime-local" />
+              </label>
+              <label>
+                计划到达（可选）
+                <input id="evidencePlannedArrival" type="datetime-local" />
+              </label>
+              <label>
+                实际到达（可选）
+                <input id="evidenceActualArrival" type="datetime-local" />
+              </label>
+              <label>
+                查验/预审结果
+                <select id="evidenceOutcome">
+                  <option value="">不适用/未知</option>
+                  <option value="passed">通过</option>
+                  <option value="documents">补件后通过</option>
+                  <option value="inspection">进入查验</option>
+                  <option value="rejected">退仓/拒载</option>
+                </select>
+              </label>
+              <label class="evidence-note-field">
+                来源编号/备注
+                <textarea id="evidenceNote" rows="3" placeholder="报价单号、订舱确认号、运单号后四位、费用包含项或异常原因；不要录入客户敏感信息。"></textarea>
+              </label>
+              <button type="submit" class="primary-button">保存这条记录</button>
+            </form>
+
+            <section class="evidence-ledger-results" aria-label="报价、时效与查验记录">
+              <div class="evidence-ledger-toolbar">
+                <div>
+                  <span>近期记录</span>
+                  <strong id="evidenceLedgerCount">0 条</strong>
+                </div>
+                <div class="evidence-ledger-actions">
+                  <button type="button" id="exportEvidenceLedger" class="secondary-button">下载备份</button>
+                  <label class="secondary-button evidence-import-button">
+                    导入备份
+                    <input id="importEvidenceLedger" type="file" accept="application/json,.json" />
+                  </label>
+                </div>
+              </div>
+              <small class="evidence-backup-note">记录只保存在当前浏览器。换电脑、重装或清理浏览器前，请先下载备份；需要恢复时再导入。</small>
+              <div id="evidenceLedgerRouteSummary" class="evidence-route-summary"></div>
+              <div id="evidenceLedgerList" class="evidence-ledger-list"></div>
+            </section>
+          </div>
         </section>
 
         <section id="port-risk" class="panel">
@@ -2521,10 +2662,10 @@
     </div>
 
     <script src="./company-hs-data.js?v=20260610-logistics-intel-v12"></script>
-    <script src="./source-catalog.js?v=20260714-evidence-db-v14"></script>
+    <script src="./source-catalog.js?v=20260714-evidence-db-v15"></script>
     <script src="./china-tariff-2026.js?v=20260610-logistics-intel-v12"></script>
     <script src="./trade-measures-data.js?v=20260610-logistics-intel-v12"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="./app.js?v=20260714-evidence-db-v89"></script>
+    <script src="./app.js?v=20260714-evidence-db-v93"></script>
   </body>
 </html>

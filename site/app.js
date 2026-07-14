@@ -363,6 +363,7 @@ const workspaceModules = {
   hotspots: { title: "热点快报", selectors: ["hotspots"] },
   codes: { title: "港口/机场代码查询", selectors: ["codes"] },
   "risk-center": { title: "风险预警中心", selectors: ["risk-center"] },
+  "evidence-ledger": { title: "报价、时效与查验记录", selectors: ["evidence-ledger"] },
   "ops-fees": { title: "海运码头费用参考", selectors: ["sea-fees"] },
   "sea-fees": { title: "海运码头费用参考", selectors: ["sea-fees"] },
   "sea-market": { title: "海运市场价格参考", selectors: ["sea-market"] },
@@ -3110,7 +3111,8 @@ const state = {
   failures: loadFailureEvents(),
   feedbacks: loadFeedbacks(),
   vesselAlerts: loadVesselAlerts(),
-  history: loadHistory()
+  history: loadHistory(),
+  evidenceSamples: loadBusinessEvidence()
 };
 
 const vesselMapState = {
@@ -3364,6 +3366,20 @@ function loadHistory() {
 
 function saveHistory() {
   localStorage.setItem("queryHistory", JSON.stringify(state.history.slice(0, 100)));
+}
+
+function loadBusinessEvidence() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem("businessEvidenceLedgerV1") || "[]");
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    return [];
+  }
+  return [];
+}
+
+function saveBusinessEvidence() {
+  localStorage.setItem("businessEvidenceLedgerV1", JSON.stringify(state.evidenceSamples.slice(0, 500)));
 }
 
 function addHistory(type, query, result) {
@@ -8127,15 +8143,14 @@ function buildGlobalSearchVerdict(query = "", candidates = []) {
   const target = candidates[0];
   if (!value || !target || target.module === "dashboard") return "";
   const score = Number(target.score || 0);
-  const confidence = score >= 130 ? "高" : score >= 100 ? "中高" : score >= 75 ? "中" : "低";
-  const confidenceText = `${confidence}可信 · ${score || "待评分"}分`;
+  const matchText = score >= 120 ? "路由匹配明确" : score >= 80 ? "路由匹配可能" : "需要补充问题";
   const autoAction = globalSearchActionForModule(target.module);
   return `
     <article class="global-search-verdict">
       <div class="global-verdict-head">
         <span>直接判断</span>
         <strong>${escapeHtml(value)} → ${escapeHtml(target.title)}</strong>
-        <small>${escapeHtml(confidenceText)}</small>
+        <small>${escapeHtml(matchText)}</small>
       </div>
       <div class="global-verdict-grid">
         <section>
@@ -8644,7 +8659,7 @@ function routeDaysText(days) {
 }
 
 function routeDaysNote(days) {
-  return days?.note || "该港口组合暂未纳入平均船期表，不输出默认天数；请以船司/货代班期或历史订单核验。";
+  return days?.note || "该港口组合暂未纳入航程模型，不输出默认天数；请以船司/货代班期或历史订单核验。";
 }
 
 function routeScheduleSourceProfile(origin = {}, destination = {}, days = null) {
@@ -8699,6 +8714,326 @@ function flightHoursForAirports(origin = {}, destination = {}) {
   if (/china|asia/.test(origin.region || "") && /latin-america/.test(destination.region || "")) return [28, 44];
   if ((origin.region || "") === (destination.region || "")) return [2, 8];
   return [10, 24];
+}
+
+function evidenceEndpointKey(value = "", mode = "sea") {
+  const raw = typeof value === "object"
+    ? (mode === "air" ? value.iata || value.icao || value.cn || value.name : value.code || value.cn || value.name)
+    : value;
+  const profile = mode === "air" ? findAirportRiskProfile(raw) : findPortRiskProfile(raw);
+  const canonical = profile
+    ? (mode === "air" ? profile.iata || profile.icao : profile.code)
+    : raw;
+  return normalize(String(canonical || "")).replace(/[^a-z0-9\u4e00-\u9fff]/g, "").toUpperCase();
+}
+
+function evidenceRecordTime(sample = {}) {
+  const value = sample.evidenceDate || sample.updatedAt || sample.createdAt;
+  const time = new Date(value || 0).getTime();
+  return Number.isFinite(time) ? time : 0;
+}
+
+function medianNumber(values = []) {
+  const rows = values.filter(Number.isFinite).sort((a, b) => a - b);
+  if (!rows.length) return null;
+  const middle = Math.floor(rows.length / 2);
+  return rows.length % 2 ? rows[middle] : (rows[middle - 1] + rows[middle]) / 2;
+}
+
+function elapsedHours(start = "", end = "") {
+  const startTime = new Date(start || 0).getTime();
+  const endTime = new Date(end || 0).getTime();
+  if (!startTime || !endTime || endTime <= startTime) return null;
+  return (endTime - startTime) / 3600000;
+}
+
+function businessEvidenceForRoute(mode = "sea", origin = {}, destination = {}, options = {}) {
+  const originKey = evidenceEndpointKey(origin, mode);
+  const destinationKey = evidenceEndpointKey(destination, mode);
+  const now = Date.now();
+  const routeRows = state.evidenceSamples
+    .filter((sample) => sample.mode === mode)
+    .filter((sample) => evidenceEndpointKey(sample.origin, mode) === originKey && evidenceEndpointKey(sample.destination, mode) === destinationKey)
+    .sort((a, b) => evidenceRecordTime(b) - evidenceRecordTime(a));
+  const quoteCutoff = now - 60 * 86400000;
+  let quoteRows = routeRows.filter((sample) => Number(sample.price) > 0 && evidenceRecordTime(sample) >= quoteCutoff);
+  const requestedUnit = mode === "air" ? "KG" : String(options.unit || "").toUpperCase();
+  if (requestedUnit) {
+    quoteRows = quoteRows.filter((sample) => String(sample.unit || "").toUpperCase() === requestedUnit);
+  }
+  const quoteCurrency = quoteRows[0]?.currency || "";
+  if (quoteCurrency) quoteRows = quoteRows.filter((sample) => sample.currency === quoteCurrency);
+  const prices = quoteRows.map((sample) => Number(sample.price)).filter((value) => value > 0);
+  const actualRows = routeRows.filter((sample) => elapsedHours(sample.actualDeparture, sample.actualArrival) !== null);
+  const transitValues = actualRows.map((sample) => elapsedHours(sample.actualDeparture, sample.actualArrival));
+  const delayRows = routeRows.filter((sample) => sample.plannedArrival && sample.actualArrival);
+  const delayValues = delayRows
+    .map((sample) => (new Date(sample.actualArrival).getTime() - new Date(sample.plannedArrival).getTime()) / 3600000)
+    .filter(Number.isFinite);
+  const outcomeRows = routeRows.filter((sample) => sample.outcome);
+  return {
+    mode,
+    originKey,
+    destinationKey,
+    rows: routeRows,
+    quotes: quoteRows,
+    actuals: actualRows,
+    delays: delayRows,
+    outcomes: outcomeRows,
+    quote: prices.length ? {
+      min: Math.min(...prices),
+      max: Math.max(...prices),
+      median: medianNumber(prices),
+      currency: quoteCurrency,
+      unit: quoteRows[0]?.unit || requestedUnit,
+      carriers: Array.from(new Set(quoteRows.map((sample) => sample.carrier).filter(Boolean))).slice(0, 4),
+      latestDate: quoteRows[0]?.evidenceDate || ""
+    } : null,
+    transit: transitValues.length ? {
+      minHours: Math.min(...transitValues),
+      maxHours: Math.max(...transitValues),
+      medianHours: medianNumber(transitValues),
+      count: transitValues.length
+    } : null,
+    delay: delayValues.length ? {
+      medianHours: medianNumber(delayValues),
+      count: delayValues.length
+    } : null
+  };
+}
+
+function formatEvidencePrice(evidence = {}) {
+  const quote = evidence.quote;
+  if (!quote) return "";
+  const unit = quote.unit === "KG" ? "/kg" : quote.unit === "CBM" ? "/CBM" : quote.unit === "SHIPMENT" ? "/票" : `/${quote.unit}`;
+  const amount = quote.min === quote.max
+    ? Math.round(quote.min).toLocaleString()
+    : `${Math.round(quote.min).toLocaleString()}-${Math.round(quote.max).toLocaleString()}`;
+  return `${quote.currency} ${amount}${unit}`;
+}
+
+function formatEvidenceTransit(evidence = {}) {
+  if (!evidence.transit) return "";
+  if (evidence.mode === "air") {
+    const min = evidence.transit.minHours.toFixed(0);
+    const max = evidence.transit.maxHours.toFixed(0);
+    return `${min === max ? min : `${min}-${max}`} 小时`;
+  }
+  const min = (evidence.transit.minHours / 24).toFixed(1);
+  const max = (evidence.transit.maxHours / 24).toFixed(1);
+  return `${min === max ? min : `${min}-${max}`} 天`;
+}
+
+function formatEvidenceDelay(evidence = {}) {
+  if (!evidence.delay) return "";
+  const value = evidence.mode === "air" ? evidence.delay.medianHours : evidence.delay.medianHours / 24;
+  const unit = evidence.mode === "air" ? "小时" : "天";
+  if (Math.abs(value) < 0.05) return `与计划基本一致（${evidence.delay.count} 票）`;
+  return `${value > 0 ? "晚于" : "早于"}计划 ${Math.abs(value).toFixed(1)} ${unit}（${evidence.delay.count} 票）`;
+}
+
+function airportPrecheckAssessment(cargo = "general", evidence = {}) {
+  const outcomeSummary = evidence.outcomes.reduce((summary, sample) => {
+    summary[sample.outcome] = (summary[sample.outcome] || 0) + 1;
+    return summary;
+  }, {});
+  const severeOutcome = (outcomeSummary.rejected || 0) + (outcomeSummary.inspection || 0);
+  const level = cargo === "battery-alone" || severeOutcome > 0
+    ? "严格预审"
+    : /battery-contained|magnetic/.test(cargo)
+      ? "加强预审"
+      : cargo === "express"
+        ? "资料一致性预审"
+        : "常规预审";
+  const tone = level === "严格预审" ? "danger" : level === "常规预审" ? "ok" : "warn";
+  return { level, tone, outcomeSummary };
+}
+
+function evidenceStateLabel(intel = {}) {
+  const mode = intel.mode === "Air" || intel.mode === "Courier" ? "air" : intel.mode === "Sea" ? "sea" : "";
+  if (mode && intel.route?.origin && intel.route?.destination) {
+    const origin = mode === "air" ? findAirportRiskProfile(intel.route.origin) : findPortRiskProfile(intel.route.origin);
+    const destination = mode === "air" ? findAirportRiskProfile(intel.route.destination) : findPortRiskProfile(intel.route.destination);
+    if (origin && destination) {
+      const evidence = businessEvidenceForRoute(mode, origin, destination);
+      if (evidence.actuals.length || evidence.quotes.length) return `有真实记录 · ${evidence.rows.length} 条`;
+      return "路线已识别 · 模型初判";
+    }
+  }
+  return intel.missing?.length ? "资料待补" : "规则初判";
+}
+
+function evidenceTypeLabel(type = "") {
+  return ({ quote: "有效报价", schedule: "承运人船期/航班", actual: "实际运输结果", inspection: "查验/预审结果" })[type] || "业务记录";
+}
+
+function evidenceOutcomeLabel(outcome = "") {
+  return ({ passed: "通过", documents: "补件后通过", inspection: "进入查验", rejected: "退仓/拒载" })[outcome] || "";
+}
+
+function evidenceRouteText(sample = {}) {
+  return `${sample.origin || "起点待补"} → ${sample.destination || "终点待补"}`;
+}
+
+function renderEvidenceLedgerRouteSummary() {
+  const target = $("evidenceLedgerRouteSummary");
+  if (!target) return;
+  const mode = $("evidenceMode")?.value || "sea";
+  const originQuery = String($("evidenceOrigin")?.value || "").trim();
+  const destinationQuery = String($("evidenceDestination")?.value || "").trim();
+  if (!originQuery || !destinationQuery) {
+    target.innerHTML = `<p>输入出发地和目的地后，这里会立即显示同航线已有样本和缺口。</p>`;
+    return;
+  }
+  const origin = mode === "air" ? findAirportRiskProfile(originQuery) : findPortRiskProfile(originQuery);
+  const destination = mode === "air" ? findAirportRiskProfile(destinationQuery) : findPortRiskProfile(destinationQuery);
+  if (!origin || !destination) {
+    target.innerHTML = `<p><strong>路线待规范：</strong>请优先使用 UN/LOCODE、IATA 三字码或主流港口/机场正式名称。</p>`;
+    return;
+  }
+  const evidence = businessEvidenceForRoute(mode, origin, destination, { unit: $("evidenceUnit")?.value || "" });
+  const priceText = formatEvidencePrice(evidence);
+  const transitText = formatEvidenceTransit(evidence);
+  const delayText = formatEvidenceDelay(evidence);
+  target.innerHTML = `
+    <div>
+      <span>当前路线记录</span>
+      <strong>${escapeHtml(`${origin.cn || origin.name || origin.iata} → ${destination.cn || destination.name || destination.iata}`)}</strong>
+    </div>
+    <div class="evidence-route-facts">
+      <span>${escapeHtml(priceText ? `近期报价 ${priceText}` : "暂无 60 天内同单位报价")}</span>
+      <span>${escapeHtml(transitText ? `实际运输 ${transitText}` : "暂无实际出发/到达实绩")}</span>
+      <span>${escapeHtml(delayText || "暂无计划与实际到达偏差")}</span>
+    </div>
+  `;
+}
+
+function renderEvidenceLedger() {
+  const rows = [...state.evidenceSamples].sort((a, b) => evidenceRecordTime(b) - evidenceRecordTime(a));
+  const stats = $("evidenceLedgerStats");
+  const recentCutoff = Date.now() - 60 * 86400000;
+  if (stats) {
+    const recentCount = rows.filter((sample) => evidenceRecordTime(sample) >= recentCutoff).length;
+    stats.innerHTML = `
+      <span><b>${rows.length}</b>全部记录</span>
+      <span><b>${rows.filter((sample) => Number(sample.price) > 0).length}</b>价格样本</span>
+      <span><b>${rows.filter((sample) => elapsedHours(sample.actualDeparture, sample.actualArrival) !== null).length}</b>时效实绩</span>
+      <span><b>${recentCount}</b>近 60 天</span>
+    `;
+  }
+  if ($("evidenceLedgerCount")) $("evidenceLedgerCount").textContent = `${rows.length} 条`;
+  const list = $("evidenceLedgerList");
+  if (list) {
+    list.innerHTML = rows.length ? rows.slice(0, 30).map((sample) => {
+      const transitHours = elapsedHours(sample.actualDeparture, sample.actualArrival);
+      const transit = transitHours === null ? "" : sample.mode === "air" ? `${transitHours.toFixed(1)} 小时` : `${(transitHours / 24).toFixed(1)} 天`;
+      const price = Number(sample.price) > 0 ? `${sample.currency || "USD"} ${Number(sample.price).toLocaleString()}/${sample.unit || "票"}` : "";
+      const outcome = evidenceOutcomeLabel(sample.outcome);
+      return `
+        <article class="evidence-record-card">
+          <div class="evidence-record-head">
+            <span>${sample.mode === "air" ? "空运" : "海运"} · ${escapeHtml(evidenceTypeLabel(sample.type))}</span>
+            <button type="button" data-evidence-delete="${escapeHtml(sample.id)}" aria-label="删除这条业务记录">删除</button>
+          </div>
+          <strong>${escapeHtml(evidenceRouteText(sample))}</strong>
+          <p>${escapeHtml([sample.carrier, sample.evidenceDate].filter(Boolean).join(" · "))}</p>
+          <div class="evidence-record-facts">
+            ${price ? `<span>${escapeHtml(price)}</span>` : ""}
+            ${transit ? `<span>实绩 ${escapeHtml(transit)}</span>` : ""}
+            ${outcome ? `<span>${escapeHtml(outcome)}</span>` : ""}
+          </div>
+          ${sample.note ? `<small>${escapeHtml(sample.note)}</small>` : ""}
+        </article>
+      `;
+    }).join("") : `
+      <article class="evidence-ledger-empty">
+        <strong>还没有报价、时效或查验记录</strong>
+        <p>先录入一条真实报价或实际运输结果。页面不会预置虚构数据。</p>
+      </article>
+    `;
+  }
+  renderEvidenceLedgerRouteSummary();
+}
+
+function refreshEvidenceDrivenViews() {
+  renderEvidenceLedger();
+  renderSeaMarketRate({ preventDefault() {} });
+  renderAirMarketRate({ preventDefault() {} });
+  renderRiskPortResult({ preventDefault() {} });
+  renderRiskAirportResult({ preventDefault() {} });
+  renderGlobalSearchLiveAssist($("globalSearchInput")?.value || "");
+}
+
+function addBusinessEvidence(event) {
+  event?.preventDefault();
+  const priceInput = $("evidencePrice");
+  const type = $("evidenceType")?.value || "quote";
+  if (type === "quote" && !(Number(priceInput?.value) > 0)) {
+    priceInput?.setCustomValidity("有效报价需要填写报价金额。 ");
+    priceInput?.reportValidity();
+    return;
+  }
+  priceInput?.setCustomValidity("");
+  const sample = {
+    id: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    mode: $("evidenceMode")?.value || "sea",
+    type,
+    origin: String($("evidenceOrigin")?.value || "").trim(),
+    destination: String($("evidenceDestination")?.value || "").trim(),
+    carrier: String($("evidenceCarrier")?.value || "").trim(),
+    evidenceDate: $("evidenceDate")?.value || new Date().toISOString().slice(0, 10),
+    unit: $("evidenceUnit")?.value || "SHIPMENT",
+    currency: $("evidenceCurrency")?.value || "USD",
+    price: Number($("evidencePrice")?.value || 0),
+    plannedDeparture: $("evidencePlannedDeparture")?.value || "",
+    actualDeparture: $("evidenceActualDeparture")?.value || "",
+    plannedArrival: $("evidencePlannedArrival")?.value || "",
+    actualArrival: $("evidenceActualArrival")?.value || "",
+    outcome: $("evidenceOutcome")?.value || "",
+    note: String($("evidenceNote")?.value || "").trim().slice(0, 500),
+    createdAt: new Date().toISOString()
+  };
+  state.evidenceSamples.unshift(sample);
+  saveBusinessEvidence();
+  ["evidencePrice", "evidencePlannedDeparture", "evidenceActualDeparture", "evidencePlannedArrival", "evidenceActualArrival", "evidenceNote"].forEach((id) => {
+    if ($(id)) $(id).value = "";
+  });
+  if ($("evidenceOutcome")) $("evidenceOutcome").value = "";
+  refreshEvidenceDrivenViews();
+}
+
+function deleteBusinessEvidence(id = "") {
+  state.evidenceSamples = state.evidenceSamples.filter((sample) => sample.id !== id);
+  saveBusinessEvidence();
+  refreshEvidenceDrivenViews();
+}
+
+function exportBusinessEvidence() {
+  downloadBlob(`logismaster-record-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(state.evidenceSamples, null, 2), "application/json;charset=utf-8");
+}
+
+async function importBusinessEvidence(event) {
+  const file = event?.target?.files?.[0];
+  if (!file) return;
+  try {
+    const parsed = JSON.parse(await file.text());
+    if (!Array.isArray(parsed)) throw new Error("文件内容不是记录数组");
+    const accepted = parsed.filter((sample) => sample && /^(sea|air)$/.test(sample.mode) && sample.origin && sample.destination).slice(0, 500);
+    const byId = new Map([...accepted, ...state.evidenceSamples].map((sample) => [sample.id || `${sample.mode}-${sample.origin}-${sample.destination}-${sample.evidenceDate}-${sample.carrier}`, sample]));
+    state.evidenceSamples = Array.from(byId.values()).slice(0, 500);
+    saveBusinessEvidence();
+    refreshEvidenceDrivenViews();
+  } catch (error) {
+    openResultDialog("导入失败", "报价、时效与查验记录", `<p>${escapeHtml(error.message || "无法读取该备份文件。")}</p>`);
+  } finally {
+    event.target.value = "";
+  }
+}
+
+function syncEvidenceFormMode() {
+  const mode = $("evidenceMode")?.value || "sea";
+  if ($("evidenceUnit")) $("evidenceUnit").value = mode === "air" ? "KG" : "40HQ";
+  renderEvidenceLedgerRouteSummary();
 }
 
 function riskLevelFromScore(score = 0) {
@@ -8875,10 +9210,11 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
     const cargo = primaryProduct?.airCargo || (/电池|battery|锂/.test(text) ? "battery-contained" : "general");
     const rate = airMarketRateEstimate(origin, destination, 300, cargo);
     const hours = flightHoursForAirports(origin, destination);
-    const batteryRate = clampPercent(((origin.batteryRate || 18) + (destination.batteryRate || 18)) / 2 + (cargo.includes("battery") ? 8 : cargo === "magnetic" ? 5 : 0));
-    metrics.push(["空运预算", rate.label]);
-    metrics.push(["航程", `${hours[0]}-${hours[1]} 小时`]);
-    metrics.push(["敏感货关注", `${batteryRate}%`]);
+    const evidence = businessEvidenceForRoute("air", origin, destination, { unit: "KG" });
+    const assessment = airportPrecheckAssessment(cargo, evidence);
+    metrics.push([evidence.quote ? "近期业务报价" : "空运模型预算", evidence.quote ? formatEvidencePrice(evidence) : rate.label]);
+    metrics.push([evidence.transit ? "历史实绩时效" : "基础时效模型", evidence.transit ? formatEvidenceTransit(evidence) : `${hours[0]}-${hours[1]} 小时`]);
+    metrics.push(["敏感货预审", assessment.level]);
   }
   if (mode === "Sea" && hasRoutePair && originPort && destinationPort) {
     const origin = originPort;
@@ -8886,20 +9222,11 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
     const cargo = primaryProduct?.seaCargo || (/危险品|dg/.test(text) ? "dg" : "general");
     const rate = seaMarketRateEstimate(origin, destination, "40HQ", cargo);
     const days = routeDaysForPorts(origin, destination);
-    const delay = ((origin.baseDelay || 1.8) + (destination.baseDelay || 1.8)) / 2;
-    metrics.push(["海运预算", rate.label]);
-    metrics.push(["平均船期", routeDaysText(days)]);
-    if (days) metrics.push(["平均延误", `${delay.toFixed(1)} 天`]);
+    const evidence = businessEvidenceForRoute("sea", origin, destination, { unit: "40HQ" });
+    metrics.push([evidence.quote ? "近期业务报价" : "海运模型预算", evidence.quote ? formatEvidencePrice(evidence) : rate.label]);
+    metrics.push([evidence.transit ? "历史实绩航程" : "航程模型", evidence.transit ? formatEvidenceTransit(evidence) : routeDaysText(days)]);
+    if (evidence.delay) metrics.push(["历史到港偏差", formatEvidenceDelay(evidence)]);
   }
-
-  const complexity = [
-    products.length > 0,
-    concerns.length >= 2,
-    Boolean(route.origin && route.destination),
-    Boolean(country),
-    Boolean(hs)
-  ].filter(Boolean).length;
-  const confidence = clampPercent(48 + complexity * 9 + Math.min(16, (candidates[0]?.score || 0) / 10));
   const productLabel = primaryProduct?.label || (hs ? `HS ${hs}` : airport?.cn || port?.cn || "待识别货物");
   const concernText = concerns.map((item) => item.label).join(" + ");
   const routeLabel = intelligenceRouteLabel({ originLabel, destinationLabel, route });
@@ -8907,7 +9234,11 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
     ? `${routeLabel}，我会按「${modeLabel(mode)} + ${primaryProduct.label} + ${concernText}」处理。${primaryProduct.summary}`
     : `${routeLabel}，我会先按「${modeLabel(mode)} + ${concernText}」处理；如果补充真实品名、HS 或货型，结论会更可靠。`;
   const action = primaryProduct
-    ? primaryProduct.logistics
+    ? mode === "Sea"
+      ? /battery|锂|电池/.test(normalize(`${primaryProduct.id || ""} ${primaryProduct.label || ""} ${value}`))
+        ? "海运先确认电池是否构成 IMDG 危险品、UN 编号、SDS/MSDS、包装和船司 DG 接收；再核对箱型、直航/中转、有效报价和目的港费用。"
+        : "海运先确认箱型、货重、直航/中转、船司接收、有效报价和目的港费用，再承诺时效。"
+      : primaryProduct.logistics
     : concerns.some((item) => item.id === "price")
       ? "先用市场区间做预算，再用承运人/货代有效报价复核。"
       : "先定位模块并给业务判断，再提示需要补充的关键字段。";
@@ -8927,7 +9258,6 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
     modules: Array.from(moduleSet).slice(0, 6),
     missing: missing.slice(0, 5),
     metrics,
-    confidence,
     conclusion,
     action
   };
@@ -9010,16 +9340,17 @@ function preferredEvidenceSourceIds(query = "", intel = {}) {
   });
   if (intel.mode === "Sea") {
     ["dcsa-schedules", "maersk-schedules"].forEach((id) => preferred.add(id));
+    if (/中国|china/.test(normalize(`${value} ${intel.routeLabel || ""}`))) preferred.add("china-msa-open-data");
     if (/价格|报价|运费|市场|price|rate|freight/.test(value)) ["freightos-fbx", "drewry"].forEach((id) => preferred.add(id));
     if (/电池|锂|battery|un38|msds/.test(value)) preferred.add("imo-imdg");
   }
   if (intel.mode === "Air" || intel.mode === "Courier") {
-    ["iata-dgr", "flightaware-aeroapi"].forEach((id) => preferred.add(id));
+    ["iata-dgr", "flightaware-aeroapi", "aviationweather-api"].forEach((id) => preferred.add(id));
     if (/电池|锂|battery|un38|msds/.test(value)) ["faa-lithium", "iata-dgr"].forEach((id) => preferred.add(id));
   }
   if (policyOrCustoms) {
     ["ustr", "federal-register", "cbp-csms", "usitc-hts"].forEach((id) => preferred.add(id));
-    if (/中国|china/.test(value)) ["china-tariff-commission", "china-customs-tariff"].forEach((id) => preferred.add(id));
+    if (/中国|china/.test(value)) ["china-tariff-commission", "china-customs-tariff", "china-mofcom-trade-remedy", "china-cnca"].forEach((id) => preferred.add(id));
   }
   if (policyOrCustoms && /美国|united states/.test(normalize(intel.country || ""))) ["ustr", "federal-register", "cbp-csms", "usitc-hts"].forEach((id) => preferred.add(id));
   if (policyOrCustoms && /欧盟|eu|europe/.test(normalize(intel.country || ""))) preferred.add("eu-access2markets");
@@ -9084,8 +9415,10 @@ function isEligibleEvidenceSource(source = {}, query = "", intel = {}, preferred
   const coverage = normalize(`${source.coverage || ""} ${source.authority || ""}`);
   const policyContext = (intel.concerns || []).some((item) => /policy|customs/.test(item.id || "")) || /特朗普|川普|trump|301|232|关税|制裁|出口管制|tariff|sanction/.test(queryText);
   const airContext = intel.mode === "Air" || intel.mode === "Courier" || /空运|航空|航班|机场|pvg|lax|jfk|ord|hkg|can|szx/.test(queryText);
+  const seaContext = intel.mode === "Sea" || /海运|港口|码头|船期|集装箱|ocean|vessel/.test(queryText);
   const policyKinds = /trade-policy|tariff|hs|customs|regulation|effective-date|customs-message|import-requirements|tariff-measures/;
   if (airContext && sourceKinds.has("marine-weather") && !preferredIds.has(source.id)) return false;
+  if (seaContext && sourceKinds.has("air-cargo") && !sourceKinds.has("ocean-cargo")) return false;
   if (policyContext && !Array.from(sourceKinds).some((kind) => policyKinds.test(kind))) return false;
   if (policyContext && /美国|united states/.test(country) && !/united states|usitc|ustr|cbp|federal|global/.test(coverage) && !(/中国|china/.test(normalize(query)) && /china|中国/.test(coverage))) return false;
   if (policyContext && /欧盟|eu|europe/.test(country) && !/eu|europe|european|global/.test(coverage)) return false;
@@ -9146,11 +9479,11 @@ function renderGlobalEvidencePanel(query = "", candidates = [], intel = {}) {
   const caveats = evidenceCaveats(intel, sources);
   const officialCount = sources.filter((source) => /official|port-official|terminal|carrier|standard/.test(source.sourceType || "")).length;
   return `
-    <section class="global-evidence-panel" aria-label="AI 回答证据面板">
+    <section class="global-evidence-panel" aria-label="AI 回答证据与核验面板">
       <div class="global-evidence-head">
-        <span>证据面板</span>
-        <strong>${escapeHtml(`${sources.length} 个来源 · ${officialCount} 个官方/承运人级别`)}</strong>
-        <small>按问题自动筛选</small>
+        <span>证据与核验</span>
+        <strong>${escapeHtml(`${sources.length} 个核验入口 · ${officialCount} 个官方/承运人级别`)}</strong>
+        <small>来源目录，不等于已读取正文</small>
       </div>
       <div class="global-evidence-grid">
         ${sources.map((source) => `
@@ -9158,7 +9491,7 @@ function renderGlobalEvidencePanel(query = "", candidates = [], intel = {}) {
             <span>${escapeHtml(sourceTypeLabel(source.sourceType))} · ${escapeHtml(sourceAccessLabel(source.access, source.apiStatus))}</span>
             <strong>${escapeHtml(source.name || source.id || "来源")}</strong>
             <p>${escapeHtml(source.summary || "用于复核当前查询结论。")}</p>
-            <small>${escapeHtml([source.coverage, source.updateCadence, source.dataKinds?.slice(0, 2).join("/")].filter(Boolean).join(" · "))}</small>
+            <small>${escapeHtml([source.coverage, source.updateCadence, source.lastVerified ? `目录核验 ${source.lastVerified}` : "", source.dataKinds?.slice(0, 2).join("/")].filter(Boolean).join(" · "))}</small>
           </a>
         `).join("")}
       </div>
@@ -9185,17 +9518,17 @@ function globalSearchOptionsForQuery(query = "") {
     push("codes", "机场代码", `${airport.cn} · ${airport.iata}/${airport.icao}`, "✓");
     push("air-market", "空运市场价格", "查看市场空运价、报价入口和 API 接入状态", "✓");
     push("air-fees", "空运操作费用", "查看货站、安检、仓储和敏感货附加费", "✓");
-    push("risk-center", "机场风险", "锂电池预审关注率、延误和风险曲线", "✓", "risk-airport-panel");
+    push("risk-center", "机场风险", "敏感货预审等级、业务实绩和官方规则", "✓", "risk-airport-panel");
     push("air", "空运/快件状态", "输入运单号时自动查承运商轨迹", "✓");
   }
   if (!airport && (intel.mode === "Air" || intel.mode === "Courier")) {
     push("air-market", "空运市场价格", `${intel.routeLabel} · 市场价、计费重和敏感货风险`, "✓");
     push("air-fees", "空运操作费用", "货站、安检、仓储和特殊货附加费", "✓");
-    push("risk-center", "机场风险", "锂电池/磁性货预审、延误和风险曲线", "✓", "risk-airport-panel");
+    push("risk-center", "机场风险", "锂电池/磁性货预审、实绩时效和规则缺口", "✓", "risk-airport-panel");
     push("docs-invoice", "空运资料清单", "发票箱单、MSDS、UN38.3、鉴定和品名风险", "✓");
   }
   if (port && !airport && intel.mode !== "Air" && intel.mode !== "Courier") {
-    push("risk-center", "港口风险", `${port.cn || port.name} · 船期/延误/风险分`, "✓", "risk-port-panel");
+    push("risk-center", "港口风险", `${port.cn || port.name} · 实绩航程/模型窗口/实时异常`, "✓", "risk-port-panel");
     push("sea-market", "海运市场价格", "市场运价、船司/货代入口和官网船期核验", "✓");
     push("sea-fees", "海运操作费用", "码头、港杂、堆存和特殊箱附加费", "✓");
     push("codes", "港口代码", `${port.cn || port.name} · ${port.code || "UN/LOCODE"}`, "✓");
@@ -9234,11 +9567,13 @@ function buildLiveIntentInsights(query = "", intel = {}, options = []) {
     const origin = routeOriginPort;
     const destination = routeDestinationPort;
     const days = routeDaysForPorts(origin, destination);
+    const evidence = businessEvidenceForRoute("sea", origin, destination);
+    const transitText = evidence.transit ? formatEvidenceTransit(evidence) : routeDaysText(days);
     add(
       "risk-center",
       `${origin.cn || origin.name} → ${destination.cn || destination.name}`,
-      days ? `港口路线已识别，平均船期 ${routeDaysText(days)}` : "港口路线已识别，但该组合不猜平均船期",
-      [days ? `平均船期 ${routeDaysText(days)}` : "覆盖不足不猜天数", "港口风险", "天气/海况/管制", "海运市场价"],
+      evidence.transit ? `港口路线已识别，历史实绩 ${transitText}` : days ? `港口路线已识别，航程模型 ${transitText}` : "港口路线已识别，但该组合不猜航程",
+      [evidence.transit ? `历史实绩 ${transitText}` : days ? `航程模型 ${transitText}` : "覆盖不足不猜天数", "港口风险", "天气/海况/管制", "海运市场价"],
       "risk-port-panel"
     );
   }
@@ -9283,6 +9618,31 @@ function buildLiveIntentInsights(query = "", intel = {}, options = []) {
   return insights.slice(0, 5);
 }
 
+function contextualComplianceSummary(profile = {}, country = "", query = "") {
+  const context = normalize(`${country} ${query}`);
+  const product = normalize(`${profile.id || ""} ${profile.label || ""} ${profile.summary || ""}`);
+  const battery = /battery|锂|电池/.test(product);
+  const wireless = /wireless|bluetooth|wifi|无线|蓝牙/.test(product);
+  const parts = [];
+  if (battery) parts.push("运输侧先核 UN38.3、SDS/MSDS、Wh、包装方式和适用 PI 条款");
+  if (/中国|china/.test(context)) {
+    if (wireless) parts.push("进口中国时核对 SRRC 型号核准和无线电发射设备口径");
+    parts.push("按 CNCA 目录判断 CCC 是否适用，并以中国海关税号/监管条件复核申报");
+  } else if (/泰国|thailand|林查班|laem chabang|thlch/.test(context)) {
+    if (wireless) parts.push("进口泰国时核对 NBTC 无线设备许可、标签和进口商责任");
+    parts.push("以泰国海关税号、进口许可和收货人清关能力复核");
+  } else if (/美国|united states|usa|us |洛杉矶|lax|纽约|jfk/.test(context)) {
+    if (wireless) parts.push("进口美国时核 FCC 设备授权、标签和责任方信息");
+    parts.push("核对 HTS、原产国、301/232 等额外贸易措施及生效日期");
+  } else if (/欧盟|europe|eu |德国|荷兰|法国|意大利|西班牙/.test(context)) {
+    if (wireless) parts.push("进口欧盟时核 RED/CE、RoHS、WEEE 和经济运营者信息");
+    parts.push("通过 Access2Markets/TARIC 复核税号、关税和产品措施");
+  } else {
+    parts.push("目的国尚未明确时，不套用美国、欧盟或巴西规则；先补进口国再判断认证、标签和税费");
+  }
+  return `${parts.join("；")}。`;
+}
+
 function buildGlobalSearchAnswer(query = "", candidates = []) {
   const value = String(query || "").trim();
   if (!value) return "";
@@ -9305,7 +9665,7 @@ function buildGlobalSearchAnswer(query = "", candidates = []) {
       <div class="global-ai-head">
         <span>AI 回答</span>
         <strong>${escapeHtml(subject)}</strong>
-        <small>${escapeHtml(`${intel.confidence}/100 · ${modeLabel(intel.mode)}`)}</small>
+        <small>${escapeHtml(`${evidenceStateLabel(intel)} · ${modeLabel(intel.mode)}`)}</small>
       </div>
       <p>${escapeHtml(intel.conclusion)}</p>
       <div class="global-ai-signal-row">
@@ -9322,7 +9682,7 @@ function buildGlobalSearchAnswer(query = "", candidates = []) {
       <div class="global-ai-judgement">
         <b>独立判断</b>
         <p>${escapeHtml(intel.action)}</p>
-        ${intel.primaryProduct?.compliance ? `<p>${escapeHtml(intel.primaryProduct.compliance)}</p>` : ""}
+        ${intel.primaryProduct ? `<p>${escapeHtml(contextualComplianceSummary(intel.primaryProduct, intel.country, value))}</p>` : ""}
       </div>
       ${renderGlobalEvidencePanel(value, candidates, intel)}
       ${intel.missing.length ? `<div class="global-ai-gap-row">${intel.missing.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>` : ""}
@@ -9470,11 +9830,11 @@ function classifyGlobalSearch(raw = "") {
     add("air", "空运/快件查询", "看起来是快递单号、空运单号或承运商状态查询。", 108, { tracking: query });
   }
   if (hasRoutePair && routePortPair && seaLike && !feeLike && !policyLike && !documentLike) {
-    add("risk-center", "港口风险与船期判断", "已识别起运港/目的港；先给平均船期、延误风险、天气海况和管制影响，不让用户再找菜单。", 126, { risk: query });
+    add("risk-center", "港口风险与船期判断", "已识别起运港/目的港；优先展示业务实绩，再给航程模型、天气海况和管制影响。", 126, { risk: query });
     add("sea-market", "海运市场价格", "路线已识别，可继续查看海运市场价参考和船司/货代询价入口。", 104, { fee: query });
   }
   if (hasRoutePair && routeAirportPair && airLike && !feeLike && !policyLike && !documentLike) {
-    add("risk-center", "机场风险与空运时效", "已识别起飞机场/到达机场；先给预审关注率、延误、天气和航班时效判断。", 124, { risk: query });
+    add("risk-center", "机场风险与空运时效", "已识别起飞机场/到达机场；先给敏感货预审等级、实际时效和官方规则。", 124, { risk: query });
     add("air-market", "空运市场价格", "路线已识别，可继续查看空运市场价参考和货代询价入口。", 102, { fee: query });
   }
   if (feeLike && airLike) {
@@ -9494,7 +9854,7 @@ function classifyGlobalSearch(raw = "") {
     }
   }
   if (riskCenterLike && (airLike || seaLike)) {
-    add("risk-center", "风险预警中心", "看起来是在问港口、机场、查验率或延误风险；系统会直接给可覆盖路线的平均时效、平均延误和风险分。", airLike ? 121 : 118, { risk: query });
+    add("risk-center", "风险预警中心", "看起来是在问港口、机场、查验或延误风险；系统会区分业务实绩、模型窗口和实时异常。", airLike ? 121 : 118, { risk: query });
   }
   if (riskCenterLike && !airLike && !seaLike && /航线|海域|红海|巴拿马|台风|大风|阵风|强风|海雾|大雾|低能见度|雷暴|强对流|暴雨|洪水|冰雪|暴雪|冻雨|寒潮|高温|沙尘|风暴潮|巨浪|涌浪|suez|panama|route|typhoon|fog|gale|storm|thunderstorm|flood|snow|ice|heatwave|dust|swell/.test(text)) {
     add("trends", "天气/航线事件趋势", "这是天气、海况或航线事件问题；先进入趋势模块看公开来源和业务影响，港口/机场输入完整时可继续进风险中心。", 104, { trend: query });
@@ -9505,7 +9865,7 @@ function classifyGlobalSearch(raw = "") {
   if ((airportCodeOnly || /机场代码|iata|icao/.test(text)) && !feeLike) {
     add("codes", "机场代码 + 空运入口", "看起来是机场代码、机场名或城市代码；同时可以继续查空运价格和机场风险。", 108, { airport: query });
     add("air-market", "空运市场价格", "机场代码已识别，可直接进入空运市场价格参考。", 93, { fee: query });
-    add("risk-center", "机场风险", "机场代码已识别，可继续看锂电池预审关注率、延误曲线和风险分。", 91, { risk: query });
+    add("risk-center", "机场风险", "机场代码已识别，可继续看敏感货预审等级、业务实绩和官方规则。", 91, { risk: query });
   }
   if ((portCodeOnly || /港口代码|un\/locode|locode/.test(text)) && !feeLike) {
     add("codes", "港口/机场代码查询", "看起来是海运港口代码或港口名查询。", 90, { port: query });
@@ -9991,14 +10351,19 @@ function airMarketRateEstimate(origin = {}, destination = {}, weight = 300, carg
   };
 }
 
-function renderAirportRiskSourceCard(origin = {}, destination = {}, cargo = "general", batteryRate = 0) {
+function renderAirportRiskSourceCard(origin = {}, destination = {}, cargo = "general", evidence = {}) {
   const links = normalizeBriefLinks(airportRiskModelSources).slice(0, 6);
+  const assessment = airportPrecheckAssessment(cargo, evidence);
+  const outcomes = assessment.outcomeSummary;
+  const outcomeText = evidence.outcomes.length
+    ? `${evidence.outcomes.length} 票业务结果：通过 ${outcomes.passed || 0}、补件 ${outcomes.documents || 0}、查验 ${outcomes.inspection || 0}、退仓/拒载 ${outcomes.rejected || 0}`
+    : "该航线暂无企业查验/预审结果样本";
   return `
     <article class="risk-center-card wide airport-model-source-card">
-      <span>曲线来源</span>
-      <strong>业务预审关注率，不是官方查验率</strong>
-      <p>${escapeHtml(`${origin.iata || origin.cn} → ${destination.iata || destination.cn} 当前显示 ${batteryRate}%：这是根据机场区域、敏感货类型、锂电/磁性/DG 规则和承运人接收限制形成的预审模型。`)}</p>
-      <p>我暂时没有找到公开、可按机场定期更新的官方“查验率”数据集；可用官方数据主要是危险品规则、锂电池运输限制、航空公司/机场货站公告和企业内部异常记录。没有官方统计源时，不把曲线称为官方查验率。</p>
+      <span>判断依据</span>
+      <strong>${escapeHtml(assessment.level)}，不虚构官方查验率</strong>
+      <p>${escapeHtml(`${origin.iata || origin.cn} → ${destination.iata || destination.cn}：判断只使用货物性质、IATA/承运人规则、机场公告和企业实际结果。${outcomeText}。`)}</p>
+      <p>目前没有公开、可按全球机场和货型持续更新的官方查验率数据集，因此页面不再输出百分比或趋势曲线。录入企业实际结果后，只展示样本数量和事实结果，不把小样本外推成市场概率。</p>
       <div class="source-chip-grid">${links.map((item) => `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a>`).join("")}</div>
     </article>
   `;
@@ -10057,6 +10422,35 @@ function renderMarketQuoteTable(mode = "sea", context = {}) {
   `;
 }
 
+function renderBusinessEvidenceRouteCard(mode = "sea", evidence = {}) {
+  const price = formatEvidencePrice(evidence);
+  const transit = formatEvidenceTransit(evidence);
+  const delay = formatEvidenceDelay(evidence);
+  if (!evidence.rows.length) {
+    return `
+      <article class="market-rate-card wide business-evidence-card empty">
+        <span>同航线实际记录</span>
+        <strong>该航线暂无真实样本</strong>
+        <p>当前只能给模型预算或航程窗口，不能称为市场实时价、平均船期或平均延误。</p>
+        <a href="#evidence-ledger">录入有效报价或实际运输结果</a>
+      </article>
+    `;
+  }
+  const carriers = Array.from(new Set(evidence.rows.map((sample) => sample.carrier).filter(Boolean))).slice(0, 4);
+  return `
+    <article class="market-rate-card wide business-evidence-card verified">
+      <span>同航线实际记录 · ${evidence.rows.length} 条</span>
+      <strong>${escapeHtml(price || transit || "已有记录，尚不足以形成价格或时效区间")}</strong>
+      <div class="business-evidence-facts">
+        ${price ? `<p><b>60 天内报价</b>${escapeHtml(price)} · ${evidence.quotes.length} 条</p>` : ""}
+        ${transit ? `<p><b>实际运输</b>${escapeHtml(transit)} · ${evidence.actuals.length} 票</p>` : ""}
+        ${delay ? `<p><b>到港偏差</b>${escapeHtml(delay)}</p>` : ""}
+      </div>
+      <small>${escapeHtml(carriers.length ? `样本来源：${carriers.join("、")}` : "记录已保存，但承运人字段不足")}</small>
+    </article>
+  `;
+}
+
 function renderSeaMarketRate(event) {
   event?.preventDefault();
   const target = $("seaMarketRateResult");
@@ -10070,24 +10464,28 @@ function renderSeaMarketRate(event) {
   const days = routeDaysForPorts(origin, destination);
   const scheduleSource = routeScheduleSourceProfile(origin, destination, days);
   const rate = seaMarketRateEstimate(origin, destination, box, cargo);
-  const delay = ((origin.baseDelay || 1.8) + (destination.baseDelay || 1.8)) / 2;
+  const evidence = businessEvidenceForRoute("sea", origin, destination, { unit: box });
+  const evidencePrice = formatEvidencePrice(evidence);
+  const evidenceTransit = formatEvidenceTransit(evidence);
+  const evidenceDelay = formatEvidenceDelay(evidence);
   const extra = cargo === "dg" ? "危险品要逐票确认船司接收、危申、港区进港窗口和 DG surcharge。" : cargo === "reefer" ? "冷箱要确认插电、温控、PTI、目的港冷箱费和超期堆存。" : cargo === "oog" ? "OOG/特种箱必须先拿船司和码头确认，市场价只能作方向参考。" : "普通货仍需确认旺季附加费、BAF、PSS、目的港费用和免堆免箱。";
   target.innerHTML = `
     ${renderResultBrief({
       className: "market-rate-brief primary",
       kicker: "Sea Market Price",
       title: `${origin.cn || origin.name} → ${destination.cn || destination.name} · ${box}`,
-      updatedLabel: "市场参考区间",
-      conclusion: `当前可先按 ${rate.label} 做预算区间；正式报价要拿船司/货代有效期和附加费明细。`,
-      risk: days ? `平均船期 ${routeDaysText(days)}；来源：${scheduleSource.label}；平均延误约 ${delay.toFixed(1)} 天。` : `平均船期：覆盖不足。${routeDaysNote(days)}`,
+      updatedLabel: evidence.quote ? "近期业务样本" : "模型预算",
+      conclusion: evidence.quote ? `同航线 60 天内有效报价为 ${evidencePrice}，共 ${evidence.quotes.length} 条；仍需核对有效期、包含项和舱位。` : `暂无同航线近期报价，只能先按 ${rate.label} 做模型预算；正式报价要拿船司/货代有效期和附加费明细。`,
+      risk: evidence.transit ? `历史实际运输区间 ${evidenceTransit}${evidenceDelay ? `；到港偏差 ${evidenceDelay}` : ""}。` : days ? `航程模型 ${routeDaysText(days)}；口径：${scheduleSource.label}。这不是实时船期。` : `航程覆盖不足。${routeDaysNote(days)}`,
       cost: rate.basis,
       action: "至少向 2-3 家船司/货代核价，要求列明海运费、BAF/PSS、文件费、目的港费、免堆免箱和有效期。",
-      source: `价格：市场区间模型；航程：${scheduleSource.label}；不是合约价、保证价或实时船司 ETA。`,
+      source: evidence.rows.length ? `同航线实际记录 + ${scheduleSource.label}；以记录日期和承运人为准。` : `价格模型 + ${scheduleSource.label}；不是合约价、保证价或实时船司 ETA。`,
       links: marketSourceLinks.sea
     })}
-    <article class="market-rate-card primary"><span>参考海运价</span><strong>${escapeHtml(rate.label)}</strong><p>${escapeHtml(rate.basis)}</p></article>
-    <article class="market-rate-card"><span>平均船期</span><strong>${escapeHtml(routeDaysText(days))}</strong><p>${escapeHtml(routeDaysNote(days))}</p></article>
+    <article class="market-rate-card primary"><span>${evidence.quote ? "近期业务报价" : "模型预算"}</span><strong>${escapeHtml(evidencePrice || rate.label)}</strong><p>${escapeHtml(evidence.quote ? `${evidence.quotes.length} 条同航线、同单位样本；最近日期 ${evidence.quote.latestDate || "待补"}。` : rate.basis)}</p></article>
+    <article class="market-rate-card"><span>${evidence.transit ? "历史实绩航程" : "航程模型"}</span><strong>${escapeHtml(evidenceTransit || routeDaysText(days))}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : routeDaysNote(days))}</p></article>
     <article class="market-rate-card warning"><span>费用风险</span><strong>${escapeHtml(extra)}</strong><p>报价单必须拆明细，不建议只看一个 all-in 数字。</p></article>
+    ${renderBusinessEvidenceRouteCard("sea", evidence)}
     ${renderMarketQuoteTable("sea", { origin, destination, rate, unit: rate.unit })}
   `;
 }
@@ -10104,7 +10502,10 @@ function renderAirMarketRate(event) {
   const destination = findAirportRiskProfile(destinationQuery) || findAirportRiskProfile("LAX");
   const hours = flightHoursForAirports(origin, destination);
   const rate = airMarketRateEstimate(origin, destination, weight, cargo);
-  const batteryRate = Math.round(((origin.batteryRate || 18) + (destination.batteryRate || 18)) / 2 + (cargo.includes("battery") ? 8 : cargo === "magnetic" ? 5 : 0));
+  const evidence = businessEvidenceForRoute("air", origin, destination, { unit: "KG" });
+  const evidencePrice = formatEvidencePrice(evidence);
+  const evidenceTransit = formatEvidenceTransit(evidence);
+  const assessment = airportPrecheckAssessment(cargo, evidence);
   const action = cargo === "battery-alone"
     ? "电池单独运输要先确认 PI965、SOC、危包/限量、航司接收和目的国清关资料。"
     : cargo === "battery-contained"
@@ -10117,17 +10518,18 @@ function renderAirMarketRate(event) {
       className: "market-rate-brief primary",
       kicker: "Air Market Price",
       title: `${origin.iata || origin.cn} → ${destination.iata || destination.cn} · ${weight} kg`,
-      updatedLabel: "市场参考区间",
-      conclusion: `当前可先按 ${rate.label}、总价 ${rate.total} 做预算区间；正式以航空公司/货代有效报价为准。`,
-      risk: `锂电池/敏感货预审关注率估算 ${batteryRate}%；航班时效约 ${hours[0]}-${hours[1]} 小时，不含清关和派送。`,
+      updatedLabel: evidence.quote ? "近期业务样本" : "模型预算",
+      conclusion: evidence.quote ? `同航线 60 天内有效报价为 ${evidencePrice}，共 ${evidence.quotes.length} 条；正式以航空公司/货代当期舱位和附加费为准。` : `暂无同航线近期报价，只能先按 ${rate.label}、总价 ${rate.total} 做模型预算。`,
+      risk: `${assessment.level}；${evidence.transit ? `历史实际运输区间 ${evidenceTransit}` : `基础时效模型 ${hours[0]}-${hours[1]} 小时`}，不含清关和派送。`,
       cost: rate.basis,
       action,
-      source: "市场区间模型 + 航空公司/快件/货代公开入口；不是合约价或保证价。",
+      source: evidence.rows.length ? "同航线实际记录 + 航空公司/快件/货代公开入口；以记录日期和承运人为准。" : "市场区间模型 + 航空公司/快件/货代公开入口；不是合约价或保证价。",
       links: marketSourceLinks.air
     })}
-    <article class="market-rate-card primary"><span>参考空运价</span><strong>${escapeHtml(rate.label)}</strong><p>按 ${escapeHtml(String(weight))} kg 计费重估算，总价约 ${escapeHtml(rate.total)}。</p></article>
-    <article class="market-rate-card"><span>航程时效</span><strong>${hours[0]}-${hours[1]} 小时</strong><p>不含截仓、安检、清关、仓储和末端派送。</p></article>
-    <article class="market-rate-card warning"><span>敏感货风险</span><strong>${batteryRate}% 预审关注</strong><p>${escapeHtml(action)}</p></article>
+    <article class="market-rate-card primary"><span>${evidence.quote ? "近期业务报价" : "模型预算"}</span><strong>${escapeHtml(evidencePrice || rate.label)}</strong><p>${escapeHtml(evidence.quote ? `${evidence.quotes.length} 条同航线每公斤报价样本；最近日期 ${evidence.quote.latestDate || "待补"}。` : `按 ${weight} kg 计费重估算，总价约 ${rate.total}。`)}</p></article>
+    <article class="market-rate-card"><span>${evidence.transit ? "历史实绩时效" : "基础时效模型"}</span><strong>${escapeHtml(evidenceTransit || `${hours[0]}-${hours[1]} 小时`)}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : "不含截仓、安检、清关、仓储和末端派送。")}</p></article>
+    <article class="market-rate-card warning"><span>敏感货预审</span><strong>${escapeHtml(assessment.level)}</strong><p>${escapeHtml(action)}</p></article>
+    ${renderBusinessEvidenceRouteCard("air", evidence)}
     ${renderMarketQuoteTable("air", { origin, destination, rate, weight })}
   `;
 }
@@ -10150,6 +10552,16 @@ function renderRiskScoreCard(score = 0, label = "风险分") {
       <strong>${safe}</strong>
       <p>${escapeHtml(level.label)}</p>
       <div class="risk-score-meter"><i style="width:${safe}%"></i></div>
+    </article>
+  `;
+}
+
+function renderRiskLevelCard(level = {}, label = "模型关注等级", note = "") {
+  return `
+    <article class="risk-score-card ${escapeHtml(level.tone || "watch")}">
+      <span>${escapeHtml(label)}</span>
+      <strong class="risk-level-text">${escapeHtml(level.label || "待核验")}</strong>
+      <p>${escapeHtml(note || "该等级用于安排核验优先级，不是事故概率或官方评分。")}</p>
     </article>
   `;
 }
@@ -10322,9 +10734,11 @@ function renderRiskPortResult(event) {
   const cargo = $("riskPortCargo")?.value || "general";
   const days = routeDaysForPorts(origin, destination);
   const scheduleSource = routeScheduleSourceProfile(origin, destination, days);
-  const delay = ((origin.baseDelay || 1.8) + (destination.baseDelay || 1.8)) / 2 + (cargo === "dg" ? 1.2 : cargo === "reefer" ? 0.7 : cargo === "oog" ? 1.5 : cargo === "battery" ? 0.5 : 0);
-  const score = clampPercent(((origin.risk || 50) + (destination.risk || 50)) / 2 + (days ? delay * 3 : 0) + (cargo === "dg" ? 10 : cargo === "oog" ? 12 : cargo === "reefer" ? 7 : cargo === "battery" ? 5 : 0));
-  const level = riskLevelFromScore(score);
+  const evidence = businessEvidenceForRoute("sea", origin, destination);
+  const actualTransit = formatEvidenceTransit(evidence);
+  const actualDelay = formatEvidenceDelay(evidence);
+  const concernScore = clampPercent(((origin.risk || 50) + (destination.risk || 50)) / 2 + (cargo === "dg" ? 10 : cargo === "oog" ? 12 : cargo === "reefer" ? 7 : cargo === "battery" ? 5 : 0));
+  const modelLevel = riskLevelFromScore(concernScore);
   const actions = [
     "先确认是否直航、是否中转、船司挂靠和预计截关/开船/到港日期。",
     "把目的港免堆免箱、预约提柜、查验、港杂和内陆派送窗口一起核价。",
@@ -10334,20 +10748,21 @@ function renderRiskPortResult(event) {
   ].filter(Boolean);
   target.innerHTML = `
     ${renderResultBrief({
-      className: `risk-center-brief ${level.tone}`,
+      className: `risk-center-brief ${modelLevel.tone}`,
       kicker: "Port Risk Brief",
       title: `${origin.cn || origin.name} → ${destination.cn || destination.name}`,
-      updatedLabel: "风险模型估算",
-      conclusion: days ? `我的判断：这条港口路径是 ${level.label}，平均船期约 ${routeDaysText(days)}，平均延误约 ${delay.toFixed(1)} 天。` : `我的判断：两端港口已识别，但该组合未纳入平均船期表；不输出平均船期，只给单点风险参考。`,
-      risk: `${score}/100 · ${origin.cn || origin.name}：${origin.note || "待核验"}；${destination.cn || destination.name}：${destination.note || "待核验"}`,
+      updatedLabel: evidence.actuals.length ? "业务实绩 + 实时异常" : "模型初判 + 实时异常",
+      conclusion: evidence.transit ? `我的判断：已有 ${evidence.actuals.length} 票同航线实绩，实际运输区间 ${actualTransit}${actualDelay ? `，到港偏差 ${actualDelay}` : ""}；天气和管制仍需看下方实时扫描。` : days ? `我的判断：两端港口已识别，航程模型为 ${routeDaysText(days)}；暂无实际运输样本，不输出平均延误。` : "我的判断：两端港口已识别，但该组合没有航程模型或业务实绩，不输出默认天数。",
+      risk: `${modelLevel.label}（模型关注等级）· ${origin.cn || origin.name}：${origin.note || "待核验"}；${destination.cn || destination.name}：${destination.note || "待核验"}`,
       cost: "延误会影响改配、堆存、滞箱、拖车等待、客户交付承诺和可能的空运替代成本。",
       action: actions[0],
-      source: "航程/延误为模型估算；天气、海况、军演/管制只在官方公开来源命中且与常规航线相关时展示。"
+      source: evidence.rows.length ? "同航线实际记录 + 港口画像；天气、海况、军演/管制只在官方来源命中且与常规航线相关时展示。" : "航程模型 + 港口画像；暂无同航线实绩时不输出平均延误。"
     })}
-    ${renderRiskScoreCard(score, days ? "港口路线风险" : "港口单点风险")}
-    <article class="risk-center-card"><span>平均船期</span><strong>${escapeHtml(routeDaysText(days))}</strong><p>${escapeHtml(routeDaysNote(days))}</p></article>
-    <article class="risk-center-card"><span>平均延误</span><strong>${days ? `${delay.toFixed(1)} 天` : "覆盖不足"}</strong><p>${escapeHtml(days ? "这是港口画像与货型敏感度形成的操作缓冲，不等于官网已公告延误。" : "缺少该港口组合的历史时效表，不输出延误天数。")}</p></article>
+    ${renderRiskLevelCard(modelLevel, "模型关注等级", "用于安排港口、货型和天气核验优先级，不是事故概率。")}
+    <article class="risk-center-card"><span>${evidence.transit ? "历史实绩航程" : "航程模型"}</span><strong>${escapeHtml(actualTransit || routeDaysText(days))}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : routeDaysNote(days))}</p></article>
+    <article class="risk-center-card"><span>到港偏差证据</span><strong>${escapeHtml(actualDelay || "暂无实绩")}</strong><p>${escapeHtml(actualDelay ? "仅统计该航线已录入的计划到达与实际到达记录。" : "没有计划与实际到达记录时，不输出平均延误。")}</p></article>
     <article class="risk-center-card wide"><span>建议动作</span><ul>${actions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
+    ${renderBusinessEvidenceRouteCard("sea", evidence)}
     <div id="riskPortWeatherLayer" class="risk-center-result-grid weather-risk-layer"></div>
   `;
   schedulePortWeatherRisk(origin, destination);
@@ -10367,12 +10782,10 @@ function renderRiskAirportResult(event) {
   }
   const cargo = $("riskAirportCargo")?.value || "general";
   const hours = flightHoursForAirports(origin, destination);
-  const cargoAdd = cargo === "battery-alone" ? 14 : cargo === "battery-contained" ? 8 : cargo === "magnetic" ? 6 : cargo === "express" ? 4 : 0;
-  const batteryRate = clampPercent(((origin.batteryRate || 18) + (destination.batteryRate || 18)) / 2 + cargoAdd);
-  const delay = ((origin.baseDelay || 8) + (destination.baseDelay || 8)) / 2 + (cargoAdd / 3);
-  const score = clampPercent(((origin.risk || 50) + (destination.risk || 50)) / 2 + cargoAdd + delay / 2);
-  const level = riskLevelFromScore(score);
-  const curve = (origin.curve || [12, 14, 16, 18, 20, 18, 17, 19]).map((item) => clampPercent(item + cargoAdd));
+  const evidence = businessEvidenceForRoute("air", origin, destination, { unit: "KG" });
+  const actualTransit = formatEvidenceTransit(evidence);
+  const actualDelay = formatEvidenceDelay(evidence);
+  const assessment = airportPrecheckAssessment(cargo, evidence);
   const action = cargo === "battery-alone"
     ? "电池单独运输要先确认 PI965、SOC、UN38.3、MSDS/SDS、危包和航空公司接收。"
     : cargo === "battery-contained"
@@ -10382,21 +10795,21 @@ function renderRiskAirportResult(event) {
         : "普货仍需确认真实品名、品牌、用途、申报价值和目的国清关资料。";
   target.innerHTML = `
     ${renderResultBrief({
-      className: `risk-center-brief ${level.tone}`,
+      className: `risk-center-brief ${assessment.tone}`,
       kicker: "Airport Risk Brief",
       title: `${origin.iata || origin.cn} → ${destination.iata || destination.cn}`,
-      updatedLabel: "风险模型估算",
-      conclusion: `我的判断：这条机场路径是 ${level.label}，锂电池/敏感货预审关注率约 ${batteryRate}%，航程约 ${hours[0]}-${hours[1]} 小时。`,
-      risk: `${score}/100 · 出发机场：${origin.note || "待核验"}；目的机场：${destination.note || "待核验"}`,
+      updatedLabel: evidence.actuals.length || evidence.outcomes.length ? "业务实绩 + 官方规则" : "规则预审 + 时效模型",
+      conclusion: `我的判断：当前货物需要${assessment.level}。${evidence.transit ? `已有 ${evidence.actuals.length} 票实际运输，区间 ${actualTransit}` : `基础时效模型为 ${hours[0]}-${hours[1]} 小时`}；没有官方机场查验率，不输出百分比。`,
+      risk: `出发机场：${origin.note || "待核验"}；目的机场：${destination.note || "待核验"}${actualDelay ? `；历史到达偏差 ${actualDelay}` : ""}`,
       cost: "机场风险会影响退仓、重贴标签、重新订舱、仓储、安检、燃油和客户交期。",
       action,
-      source: "机场风险模型 + 航空公司/货站/快件规则入口；公开页暂不把它称为官方查验率。"
+      source: evidence.rows.length ? "同航线实际记录 + IATA/航空公司/货站规则入口；只展示实际结果，不外推官方查验率。" : "IATA/航空公司/货站规则入口 + 基础时效模型；没有业务样本时不输出查验率。"
     })}
-    ${renderRiskScoreCard(score, "机场路线风险")}
-    <article class="risk-center-card"><span>预审关注率</span><strong>${batteryRate}%</strong><p>这是业务预审模型，不是官方统计查验率。</p></article>
-    <article class="risk-center-card"><span>航程时效</span><strong>${hours[0]}-${hours[1]} 小时</strong><p>不含截仓、安检、清关、仓储和派送。</p></article>
-    <article class="risk-center-card wide"><span>预审关注曲线</span>${renderMiniCurve(curve, "锂电池关注率趋势")}<p>横轴：最近 8 个观察周；纵轴：锂电池/敏感货预审关注率（%）。这是业务预审模型，不是官方公布查验率。</p><p>${escapeHtml(action)}</p></article>
-    ${renderAirportRiskSourceCard(origin, destination, cargo, batteryRate)}
+    ${renderRiskLevelCard({ label: assessment.level, tone: assessment.tone }, "敏感货预审等级", "等级来自货物性质、规则要求和已录入业务结果，不是查验概率。")}
+    <article class="risk-center-card"><span>${evidence.transit ? "历史实绩时效" : "基础时效模型"}</span><strong>${escapeHtml(actualTransit || `${hours[0]}-${hours[1]} 小时`)}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : "不含截仓、安检、清关、仓储和派送。")}</p></article>
+    <article class="risk-center-card wide"><span>预审核验要点</span><strong>${escapeHtml(action)}</strong><p>${escapeHtml(actualDelay ? `业务记录显示：${actualDelay}。` : "暂无计划与实际到达记录，不判断平均延误。")}</p></article>
+    ${renderBusinessEvidenceRouteCard("air", evidence)}
+    ${renderAirportRiskSourceCard(origin, destination, cargo, evidence)}
   `;
 }
 
@@ -15427,6 +15840,19 @@ function bindEvents() {
     $(id)?.addEventListener("input", () => renderAirMarketRate({ preventDefault() {} }));
     $(id)?.addEventListener("change", () => renderAirMarketRate({ preventDefault() {} }));
   });
+  $("evidenceLedgerForm")?.addEventListener("submit", addBusinessEvidence);
+  $("evidenceMode")?.addEventListener("change", syncEvidenceFormMode);
+  ["evidenceOrigin", "evidenceDestination", "evidenceUnit"].forEach((id) => {
+    $(id)?.addEventListener("input", renderEvidenceLedgerRouteSummary);
+    $(id)?.addEventListener("change", renderEvidenceLedgerRouteSummary);
+  });
+  $("evidencePrice")?.addEventListener("input", () => $("evidencePrice")?.setCustomValidity(""));
+  $("evidenceLedgerList")?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-evidence-delete]");
+    if (button) deleteBusinessEvidence(button.dataset.evidenceDelete || "");
+  });
+  $("exportEvidenceLedger")?.addEventListener("click", exportBusinessEvidence);
+  $("importEvidenceLedger")?.addEventListener("change", importBusinessEvidence);
 	  $("loadAirExample")?.addEventListener("click", loadAirExample);
 	  $("airGuideForm")?.addEventListener("submit", evaluateAirGuide);
 	  $("loadAirGuideExample")?.addEventListener("click", loadAirGuideExample);
@@ -15621,6 +16047,8 @@ renderSeaOpsFees();
 renderAirOpsFees();
 renderSeaMarketRate({ preventDefault() {} });
 renderAirMarketRate({ preventDefault() {} });
+if ($("evidenceDate")) $("evidenceDate").value = new Date().toISOString().slice(0, 10);
+renderEvidenceLedger();
 renderSeaSpecialGuide();
 renderGlobalSearchLiveAssist($("globalSearchInput")?.value || "");
 renderRiskPortResult({ preventDefault() {} });
