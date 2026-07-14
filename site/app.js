@@ -363,7 +363,7 @@ const workspaceModules = {
   hotspots: { title: "热点快报", selectors: ["hotspots"] },
   codes: { title: "港口/机场代码查询", selectors: ["codes"] },
   "risk-center": { title: "风险预警中心", selectors: ["risk-center"] },
-  "evidence-ledger": { title: "报价、时效与查验记录", selectors: ["evidence-ledger"] },
+  "evidence-ledger": { title: "实单数据", selectors: ["evidence-ledger"] },
   "ops-fees": { title: "海运码头费用参考", selectors: ["sea-fees"] },
   "sea-fees": { title: "海运码头费用参考", selectors: ["sea-fees"] },
   "sea-market": { title: "海运市场价格参考", selectors: ["sea-market"] },
@@ -8856,7 +8856,7 @@ function evidenceStateLabel(intel = {}) {
     const destination = mode === "air" ? findAirportRiskProfile(intel.route.destination) : findPortRiskProfile(intel.route.destination);
     if (origin && destination) {
       const evidence = businessEvidenceForRoute(mode, origin, destination);
-      if (evidence.actuals.length || evidence.quotes.length) return `有真实记录 · ${evidence.rows.length} 条`;
+      if (evidence.actuals.length || evidence.quotes.length) return `有实单记录 · ${evidence.rows.length} 条`;
       return "路线已识别 · 模型初判";
     }
   }
@@ -8864,7 +8864,7 @@ function evidenceStateLabel(intel = {}) {
 }
 
 function evidenceTypeLabel(type = "") {
-  return ({ quote: "有效报价", schedule: "承运人船期/航班", actual: "实际运输结果", inspection: "查验/预审结果" })[type] || "业务记录";
+  return ({ quote: "有效报价", schedule: "承运人船期/航班", actual: "实际运输结果", inspection: "查验/预审结果" })[type] || "实单记录";
 }
 
 function evidenceOutcomeLabel(outcome = "") {
@@ -8873,6 +8873,55 @@ function evidenceOutcomeLabel(outcome = "") {
 
 function evidenceRouteText(sample = {}) {
   return `${sample.origin || "起点待补"} → ${sample.destination || "终点待补"}`;
+}
+
+function renderEvidenceDataCoverage() {
+  const target = $("evidenceDataCoverage");
+  if (!target) return;
+  const sources = logisticsSourceRegistry;
+  const apiOrDownload = sources.filter((source) => /api|download|rss|gis/.test(normalize(`${source.access || ""} ${source.apiStatus || ""} ${source.evidenceMode || ""}`)));
+  const noApiFallback = sources.filter((source) => /public|manual|query|download/.test(normalize(`${source.access || ""} ${source.apiStatus || ""}`)));
+  const officialSources = sources.filter((source) => /official|port-official|terminal|standard/.test(source.sourceType || ""));
+  const priorityNames = [
+    "中国国际贸易单一窗口",
+    "中国海关税目税号查询",
+    "国家认监委强制性产品认证",
+    "商务部贸易救济调查局",
+    "中国海事局",
+    "中央气象台",
+    "UN/LOCODE Publications",
+    "AviationWeather Data API"
+  ];
+  const prioritySources = priorityNames
+    .map((name) => sources.find((source) => source.name === name))
+    .filter(Boolean);
+  target.innerHTML = `
+    <article>
+      <span>基础地点库</span>
+      <strong>${majorPortRiskProfiles.length} 港口 · ${airportRiskProfiles.length} 机场</strong>
+      <p>覆盖中国主要沿海港口及全球主要港口、机场；小港或模糊名称不会套默认值。</p>
+    </article>
+    <article>
+      <span>公开信息源</span>
+      <strong>${sources.length} 个登记来源</strong>
+      <p>包含海关、认证、海事、气象、船司、航空和大型货代入口。</p>
+    </article>
+    <article>
+      <span>可自动或下载</span>
+      <strong>${apiOrDownload.length} 个来源</strong>
+      <p>优先使用公开 API、RSS、GIS 或官方可下载数据，并保留更新时间。</p>
+    </article>
+    <article>
+      <span>无 API 备用</span>
+      <strong>${noApiFallback.length} 个来源</strong>
+      <p>接口不可用时仍提供官网查询、PDF/数据下载和人工核验路径。</p>
+    </article>
+    <div class="evidence-data-source-row">
+      <span>中国优先与全球补充</span>
+      ${prioritySources.map((source) => `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.name)}</a>`).join("")}
+      <small>${officialSources.length} 个官方/标准/码头级来源；来源目录用于核验，不等于已经读取到本次查询正文。</small>
+    </div>
+  `;
 }
 
 function renderEvidenceLedgerRouteSummary() {
@@ -8947,11 +8996,12 @@ function renderEvidenceLedger() {
       `;
     }).join("") : `
       <article class="evidence-ledger-empty">
-        <strong>还没有报价、时效或查验记录</strong>
+        <strong>还没有实单数据</strong>
         <p>先录入一条真实报价或实际运输结果。页面不会预置虚构数据。</p>
       </article>
     `;
   }
+  renderEvidenceDataCoverage();
   renderEvidenceLedgerRouteSummary();
 }
 
@@ -9024,7 +9074,7 @@ async function importBusinessEvidence(event) {
     saveBusinessEvidence();
     refreshEvidenceDrivenViews();
   } catch (error) {
-    openResultDialog("导入失败", "报价、时效与查验记录", `<p>${escapeHtml(error.message || "无法读取该备份文件。")}</p>`);
+    openResultDialog("导入失败", "实单数据", `<p>${escapeHtml(error.message || "无法读取该备份文件。")}</p>`);
   } finally {
     event.target.value = "";
   }

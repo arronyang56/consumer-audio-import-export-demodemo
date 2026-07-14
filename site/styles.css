@@ -15847,6 +15847,99 @@ body[data-active-module="hotspots"] .hotspot-column {
   align-items: start;
 }
 
+.evidence-data-coverage {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid #d9e3ec;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.evidence-data-coverage-head {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.evidence-data-coverage-head > div {
+  display: grid;
+  gap: 3px;
+}
+
+.evidence-data-coverage-head span,
+.evidence-data-coverage-grid article span,
+.evidence-data-source-row > span {
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.evidence-data-coverage-head strong {
+  color: #172334;
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.evidence-data-coverage-head p,
+.evidence-data-coverage-grid article p {
+  margin: 0;
+  color: #5d6b7c;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.evidence-data-coverage-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.evidence-data-coverage-grid article {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid #dfe6ee;
+  border-radius: 8px;
+  background: #f8fafb;
+}
+
+.evidence-data-coverage-grid article strong {
+  color: #172334;
+  font-size: 17px;
+  line-height: 1.3;
+}
+
+.evidence-data-source-row {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding-top: 2px;
+}
+
+.evidence-data-source-row a {
+  padding: 5px 7px;
+  border: 1px solid #cfe0dc;
+  border-radius: 6px;
+  background: #f2faf7;
+  color: #14594f;
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.evidence-data-source-row small {
+  width: 100%;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .evidence-ledger-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -16080,10 +16173,15 @@ body[data-active-module="hotspots"] .hotspot-column {
   .evidence-ledger-workspace {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .evidence-data-coverage-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
   .evidence-ledger-summary,
+  .evidence-data-coverage-head,
   .evidence-ledger-form,
   .evidence-ledger-list,
   .business-evidence-facts {
@@ -16096,6 +16194,10 @@ body[data-active-module="hotspots"] .hotspot-column {
 
   .evidence-ledger-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .evidence-data-coverage-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .evidence-form-heading,

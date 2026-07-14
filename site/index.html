@@ -15,7 +15,7 @@
         display: none !important;
       }
     </style>
-    <link rel="stylesheet" href="./styles.css?v=20260714-evidence-db-v76" />
+    <link rel="stylesheet" href="./styles.css?v=20260714-evidence-db-v77" />
   </head>
   <body class="auth-pending is-public-home">
     <button type="button" class="login-trigger" id="openLoginDialog">登录</button>
@@ -93,7 +93,7 @@
 
           <details class="nav-group">
             <summary>数据与证据</summary>
-            <a href="#evidence-ledger"><span class="nav-icon nav-icon-decision" aria-hidden="true"></span><span>报价、时效与查验记录</span></a>
+            <a href="#evidence-ledger"><span class="nav-icon nav-icon-decision" aria-hidden="true"></span><span>实单数据</span></a>
           </details>
 
           <details class="nav-group">
@@ -2309,8 +2309,8 @@
         <section id="evidence-ledger" class="panel evidence-ledger-panel">
           <div class="workspace-title">
             <div>
-              <p class="eyebrow">Rate, Transit & Inspection Records</p>
-              <h2>报价、时效与查验记录</h2>
+              <p class="eyebrow">Actual Shipment Data</p>
+              <h2>实单数据</h2>
             </div>
             <span>真实报价 · 实际时效 · 查验结果 · 本机保存</span>
           </div>
@@ -2321,8 +2321,19 @@
               <h2>保存实际结果，让页面优先使用真实记录</h2>
               <p>录入真实报价、实际出发和到达时间、查验或补件结果。海运价格、空运价格和风险预警会优先采用同航线近期记录；没有记录时，页面会明确标注“模型估算”。</p>
             </div>
-            <div id="evidenceLedgerStats" class="evidence-ledger-stats" aria-label="报价、时效与查验记录统计"></div>
+            <div id="evidenceLedgerStats" class="evidence-ledger-stats" aria-label="实单数据统计"></div>
           </div>
+
+          <section class="evidence-data-coverage" aria-label="数据来源与无 API 备用能力">
+            <div class="evidence-data-coverage-head">
+              <div>
+                <span>没有 API 也能查</span>
+                <strong>接口、下载数据、官网查询和实单记录分层使用</strong>
+              </div>
+              <p>自动接口失败或需要授权时，页面仍会使用内置基础库、可下载官方数据和船司/货代官网入口；查不到就明确写“待核验”，不会编造实时结果。</p>
+            </div>
+            <div id="evidenceDataCoverage" class="evidence-data-coverage-grid"></div>
+          </section>
 
           <div class="evidence-ledger-workspace">
             <form id="evidenceLedgerForm" class="query-card evidence-ledger-form">
@@ -2420,7 +2431,7 @@
               <button type="submit" class="primary-button">保存这条记录</button>
             </form>
 
-            <section class="evidence-ledger-results" aria-label="报价、时效与查验记录">
+            <section class="evidence-ledger-results" aria-label="实单数据记录">
               <div class="evidence-ledger-toolbar">
                 <div>
                   <span>近期记录</span>
@@ -2666,6 +2677,6 @@
     <script src="./china-tariff-2026.js?v=20260610-logistics-intel-v12"></script>
     <script src="./trade-measures-data.js?v=20260610-logistics-intel-v12"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="./app.js?v=20260714-evidence-db-v93"></script>
+    <script src="./app.js?v=20260714-evidence-db-v94"></script>
   </body>
 </html>
