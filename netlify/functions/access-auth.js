@@ -167,3 +167,11 @@ exports.handler = async (event) => {
     { "Set-Cookie": sessionCookie(makeSessionToken(), event) }
   );
 };
+
+exports._private = {
+  SESSION_COOKIE,
+  accessConfigured,
+  headerValue,
+  readCookies,
+  verifySessionToken
+};

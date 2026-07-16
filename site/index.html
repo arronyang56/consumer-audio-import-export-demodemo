@@ -15,7 +15,7 @@
         display: none !important;
       }
     </style>
-    <link rel="stylesheet" href="./styles.css?v=20260715-calc-review-v80" />
+    <link rel="stylesheet" href="./styles.css?v=20260716-evidence-store-v81" />
   </head>
   <body class="auth-pending is-public-home">
     <button type="button" class="login-trigger" id="openLoginDialog">登录</button>
@@ -93,6 +93,7 @@
 
           <details class="nav-group">
             <summary>数据与证据</summary>
+            <a href="#data-health"><span class="nav-icon nav-icon-decision" aria-hidden="true"></span><span>数据健康</span></a>
             <a href="#evidence-ledger"><span class="nav-icon nav-icon-decision" aria-hidden="true"></span><span>实单数据</span></a>
           </details>
 
@@ -140,6 +141,7 @@
         <a href="#air-market"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>空价</span></a>
         <a href="#air-fees"><span class="nav-icon nav-icon-air" aria-hidden="true"></span><span>货站</span></a>
         <a href="#risk-center"><span class="nav-icon nav-icon-port" aria-hidden="true"></span><span>风险</span></a>
+        <a href="#data-health"><span class="nav-icon nav-icon-decision" aria-hidden="true"></span><span>数据</span></a>
         <a href="#evidence-ledger"><span class="nav-icon nav-icon-decision" aria-hidden="true"></span><span>记录</span></a>
         <a href="#customs"><span class="nav-icon nav-icon-customs" aria-hidden="true"></span><span>通关</span></a>
         <a href="#docs-invoice"><span class="nav-icon nav-icon-docs" aria-hidden="true"></span><span>单证</span></a>
@@ -2394,13 +2396,70 @@
 
         </section>
 
+        <section id="data-health" class="panel data-health-panel">
+          <div class="workspace-title">
+            <div>
+              <p class="eyebrow">Data Health</p>
+              <h2>数据健康</h2>
+            </div>
+            <span>覆盖 · 时效 · 自动化 · 待复核</span>
+          </div>
+
+          <div class="data-health-intro">
+            <div>
+              <span>先看数据能不能支撑结论</span>
+              <strong>哪些模块有数据，哪些还要人工核验</strong>
+              <p>这里检查来源覆盖、自动采集能力和最近目录核验日期。网站能打开只代表入口可访问，不代表已经读取到本次查询所需正文。</p>
+            </div>
+            <button type="button" id="runSourceHealthCheck" class="primary-button">检查关键来源</button>
+          </div>
+
+          <div id="dataHealthSummary" class="data-health-summary" aria-label="数据健康概况"></div>
+
+          <section class="data-health-section" aria-labelledby="moduleHealthTitle">
+            <div class="data-health-heading">
+              <div>
+                <span>按业务模块</span>
+                <strong id="moduleHealthTitle">覆盖和自动化缺口</strong>
+              </div>
+              <small>数量表示已登记来源，不代表所有来源都已自动读取。</small>
+            </div>
+            <div id="dataHealthModules" class="data-health-module-grid"></div>
+          </section>
+
+          <section class="data-health-section" aria-labelledby="sourceHealthTitle">
+            <div class="data-health-heading data-health-source-heading">
+              <div>
+                <span>来源明细</span>
+                <strong id="sourceHealthTitle">逐个查看来源状态</strong>
+              </div>
+              <div id="sourceHealthCheckStatus" class="source-health-check-status">尚未检查在线状态</div>
+            </div>
+            <div class="data-health-toolbar">
+              <div class="data-health-filters" role="group" aria-label="来源状态筛选">
+                <button type="button" class="active" data-data-health-filter="all">全部</button>
+                <button type="button" data-data-health-filter="automatic">可自动</button>
+                <button type="button" data-data-health-filter="manual">需人工</button>
+                <button type="button" data-data-health-filter="review">待复核</button>
+                <button type="button" data-data-health-filter="china">中国优先</button>
+              </div>
+              <label class="data-health-search">
+                <span>搜索来源</span>
+                <input id="dataHealthSearch" type="search" lang="zh-CN" placeholder="例如：海关、船期、气象、空运" />
+              </label>
+            </div>
+            <div id="dataHealthSourceCount" class="data-health-source-count"></div>
+            <div id="dataHealthSources" class="data-health-source-list"></div>
+          </section>
+        </section>
+
         <section id="evidence-ledger" class="panel evidence-ledger-panel">
           <div class="workspace-title">
             <div>
               <p class="eyebrow">Actual Shipment Data</p>
               <h2>实单数据</h2>
             </div>
-            <span>真实报价 · 实际时效 · 查验结果 · 本机保存</span>
+            <span>真实报价 · 实际时效 · 查验结果 · 登录后共享</span>
           </div>
 
           <div class="evidence-ledger-summary">
@@ -2430,7 +2489,7 @@
                   <span>新增记录</span>
                   <strong>每票保存一条，写清来源和日期</strong>
                 </div>
-                <small>数据只保存在当前浏览器</small>
+                <small>登录后同步到服务器，并保留本机缓存</small>
               </div>
               <label>
                 运输方式
@@ -2533,7 +2592,7 @@
                   </label>
                 </div>
               </div>
-              <small class="evidence-backup-note">记录只保存在当前浏览器。换电脑、重装或清理浏览器前，请先下载备份；需要恢复时再导入。</small>
+              <small id="evidenceSyncStatus" class="evidence-backup-note">正在检查共享证据库；下载备份仍可用于离线留档。</small>
               <div id="evidenceLedgerRouteSummary" class="evidence-route-summary"></div>
               <div id="evidenceLedgerList" class="evidence-ledger-list"></div>
             </section>
@@ -2761,11 +2820,11 @@
     </div>
 
     <script src="./company-hs-data.js?v=20260610-logistics-intel-v12"></script>
-    <script src="./source-catalog.js?v=20260714-evidence-db-v17"></script>
-    <script src="./schedule-database.js?v=20260715-schedule-db-v2"></script>
+    <script src="./source-catalog.js?v=20260716-source-policy-v19"></script>
+    <script src="./schedule-database.js?v=20260716-source-policy-v4"></script>
     <script src="./china-tariff-2026.js?v=20260610-logistics-intel-v12"></script>
     <script src="./trade-measures-data.js?v=20260610-logistics-intel-v12"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="./app.js?v=20260715-calc-review-v130"></script>
+  <script src="./app.js?v=20260716-source-policy-v138"></script>
   </body>
 </html>

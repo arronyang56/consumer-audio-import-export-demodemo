@@ -50,3 +50,10 @@ printf '%s' 'your-access-code' | shasum -a 256
 ## Notes
 
 This public version does not contain real company data. API-based results are for workflow testing and should be verified against official customs, carrier, forwarder, and compliance sources before business use.
+
+Persistent runtime records are stored under `LOCAL_DATA_DIR` (defaults to `.data`):
+
+- `schedule-records.json` stores validated carrier schedule snapshots.
+- `business-evidence-records.json` stores authenticated, sanitized quote and shipment evidence.
+
+The deployment archive excludes `.data`, so releases do not overwrite runtime records. Back up this directory with the application backup and never commit it to Git.

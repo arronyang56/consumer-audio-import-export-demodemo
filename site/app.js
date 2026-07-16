@@ -513,6 +513,7 @@ const workspaceModules = {
   hotspots: { title: "热点快报", selectors: ["hotspots"] },
   codes: { title: "港口/机场代码查询", selectors: ["codes"] },
   "risk-center": { title: "风险预警中心", selectors: ["risk-center"] },
+  "data-health": { title: "数据健康", selectors: ["data-health"] },
   "evidence-ledger": { title: "实单数据", selectors: ["evidence-ledger"] },
   "ops-fees": { title: "海运码头费用参考", selectors: ["sea-fees"] },
   "sea-fees": { title: "海运码头费用参考", selectors: ["sea-fees"] },
@@ -1729,6 +1730,12 @@ const supplementalAirports = [
   { iata: "SYX", icao: "ZJSY", name: "Sanya Phoenix International Airport", cn: "三亚凤凰国际机场", city: "三亚", country: "中国", aliases: ["三亚", "凤凰", "syx"], note: "海南南部机场，货运能力和航班密度需提前确认。" },
   { iata: "LHW", icao: "ZLLL", name: "Lanzhou Zhongchuan International Airport", cn: "兰州中川国际机场", city: "兰州", country: "中国", aliases: ["兰州", "中川", "lhw"], note: "西北空运口岸，铁路/航空联运和中转安排需确认。" },
   { iata: "INC", icao: "ZLIC", name: "Yinchuan Hedong International Airport", cn: "银川河东国际机场", city: "银川", country: "中国", aliases: ["银川", "河东", "inc"], note: "西北区域口岸，空运资源和航班密度需逐票确认。" },
+  { iata: "EHU", icao: "ZHEC", name: "Ezhou Huahu International Airport", cn: "鄂州花湖国际机场", city: "鄂州", country: "中国", aliases: ["鄂州", "花湖", "鄂州花湖", "ehu"], note: "华中专业货运枢纽，适合快件和货机路线识别；实际班次、舱位和转运时效需查承运人。" },
+  { iata: "YNT", icao: "ZSYT", name: "Yantai Penglai International Airport", cn: "烟台蓬莱国际机场", city: "烟台", country: "中国", aliases: ["烟台", "蓬莱", "烟台蓬莱", "ynt"], note: "山东半岛空运口岸，日韩方向和制造业货源需确认实际货班与货站窗口。" },
+  { iata: "NTG", icao: "ZSNT", name: "Nantong Xingdong International Airport", cn: "南通兴东国际机场", city: "南通", country: "中国", aliases: ["南通", "兴东", "南通兴东", "ntg"], note: "长三角制造业货源机场，可作为上海口岸补充；国际货班与卡车转运需逐票确认。" },
+  { iata: "ZUH", icao: "ZGSD", name: "Zhuhai Jinwan Airport", cn: "珠海金湾机场", city: "珠海", country: "中国", aliases: ["珠海", "金湾", "珠海金湾", "zuh"], note: "珠江西岸机场，国际货运通常需要结合 CAN、SZX 或 HKG 的卡车转运方案核验。" },
+  { iata: "YIW", icao: "ZSYW", name: "Yiwu Airport", cn: "义乌机场", city: "义乌", country: "中国", aliases: ["义乌", "义乌机场", "yiw"], note: "小商品和跨境电商货源地机场，实际国际货班、包机和卡车转运需按日期确认。" },
+  { iata: "HIA", icao: "ZSSH", name: "Huai'an Lianshui International Airport", cn: "淮安涟水国际机场", city: "淮安", country: "中国", aliases: ["淮安", "涟水", "淮安涟水", "hia"], note: "苏北区域机场，货运能力、航线密度和跨机场转运需逐票核验。" },
   { iata: "KIX", icao: "RJBB", name: "Kansai International Airport", cn: "大阪关西机场", city: "大阪", country: "日本", aliases: ["大阪", "关西", "kix"], note: "日本关西国际货运口岸。" },
   { iata: "TPE", icao: "RCTP", name: "Taiwan Taoyuan International Airport", cn: "台北桃园机场", city: "台北", country: "中国台湾", aliases: ["台北", "桃园", "tpe"], note: "东亚空运枢纽，电子货和转运较常见。" },
   { iata: "KUL", icao: "WMKK", name: "Kuala Lumpur International Airport", cn: "吉隆坡国际机场", city: "吉隆坡", country: "马来西亚", aliases: ["吉隆坡", "kul"], note: "东南亚空运枢纽，电商和转运货需确认。" },
@@ -1758,7 +1765,7 @@ appendUniqueBy(airportCodeData, supplementalAirports, (item) => item.iata);
 
 const supplementalAirportRiskProfiles = supplementalAirports.map((airport) => {
   const text = normalize(`${airport.iata} ${airport.cn} ${airport.city} ${airport.country}`);
-  const region = /中国|pvg|sha|can|szx|pek|pkx|cgo|hgh|tao|xmn|tfu|ctu|wuh|nkg|xiy|ckg|kmg|dlc|tsn|ngb|foc|urc|she|hrb|cgq|tna|hfe|wux|wnz|jjn|csx|kwe|nng|hak|syx|lhw|inc/.test(text) ? (/can|szx|xmn|foc|jjn|kmg|nng|hak|syx/.test(text) ? "china-south" : /pek|pkx|tao|dlc|tsn|she|hrb|cgq|tna/.test(text) ? "china-north" : /xiy|ckg|tfu|ctu|urc|kwe|lhw|inc/.test(text) ? "china-west" : /cgo|wuh|csx/.test(text) ? "china-central" : "china-east")
+  const region = /中国|pvg|sha|can|szx|pek|pkx|cgo|hgh|tao|xmn|tfu|ctu|wuh|nkg|xiy|ckg|kmg|dlc|tsn|ngb|foc|urc|she|hrb|cgq|tna|hfe|wux|wnz|jjn|csx|kwe|nng|hak|syx|lhw|inc|ehu|ynt|ntg|zuh|yiw|hia/.test(text) ? (/can|szx|xmn|foc|jjn|kmg|nng|hak|syx|zuh/.test(text) ? "china-south" : /pek|pkx|tao|dlc|tsn|she|hrb|cgq|tna|ynt/.test(text) ? "china-north" : /xiy|ckg|tfu|ctu|urc|kwe|lhw|inc/.test(text) ? "china-west" : /cgo|wuh|csx|ehu/.test(text) ? "china-central" : "china-east")
     : /日本|韩国|台湾|新加坡|香港|kix|nrt|icn|tpe|sin|hkg/.test(text) ? "asia-hub"
       : /越南|泰国|马来|印尼|菲律宾|sgn|han|bkk|kul|cgk|mnl/.test(text) ? "southeast-asia"
         : /印度|del|bom/.test(text) ? "south-asia"
@@ -1772,29 +1779,19 @@ const supplementalAirportRiskProfiles = supplementalAirports.map((airport) => {
                         : /澳大利亚|syd|mel/.test(text) ? "oceania"
                           : /南非|jnb/.test(text) ? "africa"
                             : "generic-air";
-  const baseByRegion = {
-    "china-east": [19, 8, 51],
-    "china-south": [21, 9, 54],
-    "china-north": [18, 8, 50],
-    "china-central": [20, 9, 53],
-    "china-west": [18, 9, 52],
-    "asia-hub": [14, 6, 43],
-    "southeast-asia": [17, 8, 50],
-    "south-asia": [24, 13, 65],
-    "middle-east": [18, 8, 53],
-    europe: [19, 9, 56],
-    uk: [20, 10, 58],
-    "us-west": [24, 11, 64],
-    "us-east": [23, 12, 65],
-    "us-central": [21, 10, 59],
-    canada: [21, 10, 58],
-    oceania: [20, 10, 57],
-    africa: [27, 16, 74],
-    "generic-air": [18, 9, 52]
+  return {
+    iata: airport.iata,
+    cn: airport.cn,
+    region,
+    aliases: airport.aliases || [],
+    batteryRate: null,
+    baseDelay: null,
+    risk: null,
+    curve: [],
+    coverage: "directory",
+    modelBasis: "regional-route-only",
+    note: airport.note
   };
-  const [batteryRate, baseDelay, risk] = baseByRegion[region] || baseByRegion["generic-air"];
-  const curve = [batteryRate - 5, batteryRate - 3, batteryRate - 2, batteryRate, batteryRate + 2, batteryRate + 3, batteryRate + 1, batteryRate + 2].map(clampPercent);
-  return { iata: airport.iata, cn: airport.cn, region, aliases: airport.aliases || [], batteryRate, baseDelay, risk, curve, coverage: "major", note: airport.note };
 });
 
 appendUniqueBy(airportRiskProfiles, supplementalAirportRiskProfiles, (item) => item.iata);
@@ -2469,6 +2466,15 @@ const airportEvidenceSourceIds = {
   PVG: ["caac", "iata-dgr", "flightaware-aeroapi", "opensky"],
   CAN: ["caac", "iata-dgr", "flightaware-aeroapi"],
   SZX: ["caac", "iata-dgr", "flightaware-aeroapi"],
+  PEK: ["caac", "iata-dgr", "flightaware-aeroapi", "opensky"],
+  PKX: ["caac", "iata-dgr", "flightaware-aeroapi"],
+  CGO: ["caac", "iata-dgr", "flightaware-aeroapi"],
+  EHU: ["caac", "iata-dgr", "flightaware-aeroapi"],
+  YNT: ["caac", "iata-dgr", "flightaware-aeroapi"],
+  NTG: ["caac", "iata-dgr", "flightaware-aeroapi"],
+  ZUH: ["caac", "iata-dgr", "flightaware-aeroapi"],
+  YIW: ["caac", "iata-dgr", "flightaware-aeroapi"],
+  HIA: ["caac", "iata-dgr", "flightaware-aeroapi"],
   HKG: ["iata-dgr", "flightaware-aeroapi"],
   LAX: ["faa-lithium", "flightaware-aeroapi", "opensky"],
   JFK: ["faa-lithium", "flightaware-aeroapi", "opensky"],
@@ -2517,7 +2523,7 @@ const freeApiOptions = [
   ["CMA CGM API Portal", "船司 API", "需注册/授权", "接入候选", "可评估船期、订舱、提单、货件状态等接口；账号权限决定可用范围。", "https://api-portal.cma-cgm.com/"],
   ["Hapag-Lloyd Developer / Online Business", "船司 API/查询", "需账号/授权", "接入候选", "可评估船期、跟踪和订舱能力；无授权时用官网船期入口做人工核验。", "https://www.hapag-lloyd.com/en/online-business.html"],
   ["FlightAware AeroAPI", "航班状态/位置", "商业 API", "接入候选", "适合接空运航班状态、ETA、延误、位置类信息；不直接提供货物报价。", "https://www.flightaware.com/commercial/aeroapi/"],
-  ["OpenSky Network API", "航班位置/状态", "开放/限流", "可评估", "适合做航班位置和状态观察，货运业务结论仍需航司/货代订舱信息补强。", "https://openskynetwork.github.io/opensky-api/"],
+  ["OpenSky Network API", "ADS-B 航班事实", "OAuth/账号限制", "仅研究评估", "官方不提供商业航班计划、延误或货运订舱数据；只可辅助核验航班位置与到离港事实，商用需另行确认许可。", "https://openskynetwork.github.io/opensky-api/"],
   ["Cirium APIs", "航班时刻/状态", "商业 API", "接入候选", "适合做全球航班计划、取消、延误和历史准点数据；需商业授权。", "https://www.cirium.com/"],
   ["IATA / ICAO 官方入口", "空运规则/危险品", "公开网页", "已加入来源", "用于空运锂电池、危险品、航空货运市场和操作规则的人工核验；真正自动状态查询仍需承运商 API。", "https://www.iata.org/en/programs/cargo/"],
   ["DHL/UPS/FedEx/SF 官方追踪", "快件状态", "免费网页/可能验证码", "已加入入口", "适合快件单号核验。若需要在平台内直接返回状态，需要承运商账号 API 或授权接口。", "#air"],
@@ -3483,7 +3489,9 @@ const vesselMapState = {
 
 const $ = (id) => document.getElementById(id);
 const ACCESS_AUTH_ENDPOINT = "/.netlify/functions/access-auth";
+const EVIDENCE_RECORDS_ENDPOINT = "/.netlify/functions/evidence-records";
 let accessGateInitialized = false;
+let serverEvidenceLoadedAt = 0;
 
 function markAccessReady() {
   document.body.classList.remove("auth-pending");
@@ -3530,8 +3538,12 @@ function initAccessGate() {
     document.body.classList.toggle("is-public-home", !granted);
     if (loginButton) loginButton.textContent = "登录";
     if (logoutButton) logoutButton.hidden = !granted;
-    if (granted) sessionStorage.setItem("caAccessGranted", "1");
-    else sessionStorage.removeItem("caAccessGranted");
+    if (granted) {
+      sessionStorage.setItem("caAccessGranted", "1");
+      window.setTimeout(() => loadServerBusinessEvidence(), 0);
+    } else {
+      sessionStorage.removeItem("caAccessGranted");
+    }
   };
   const openLogin = (message = "") => {
     if (error) error.textContent = message || "";
@@ -3740,6 +3752,71 @@ function loadBusinessEvidence() {
 
 function saveBusinessEvidence() {
   localStorage.setItem("businessEvidenceLedgerV1", JSON.stringify(state.evidenceSamples.slice(0, 500)));
+}
+
+async function loadServerBusinessEvidence(force = false) {
+  if (!isAccessGranted()) return { ok: false, skipped: true };
+  if (!force && Date.now() - serverEvidenceLoadedAt < 30000) return { ok: true, cached: true };
+  try {
+    const response = await fetch(EVIDENCE_RECORDS_ENDPOINT, { credentials: "same-origin", cache: "no-store" });
+    const data = await response.json();
+    if (!response.ok || !data.ok || !Array.isArray(data.records)) throw new Error(data.message || "实单证据库读取失败");
+    const byId = new Map([...data.records, ...state.evidenceSamples].map((sample) => [sample.id || `${sample.mode}-${sample.origin}-${sample.destination}-${sample.evidenceDate}-${sample.carrier}`, sample]));
+    state.evidenceSamples = Array.from(byId.values()).slice(0, 500);
+    saveBusinessEvidence();
+    serverEvidenceLoadedAt = Date.now();
+    document.documentElement.dataset.evidenceStore = `loaded:${data.records.length}`;
+    renderEvidenceSyncStatus();
+    refreshEvidenceDrivenViews();
+    return { ok: true, count: data.records.length, total: data.total || data.records.length };
+  } catch (error) {
+    document.documentElement.dataset.evidenceStore = "unavailable";
+    renderEvidenceSyncStatus();
+    return { ok: false, message: error.message || "实单证据库读取失败" };
+  }
+}
+
+async function persistBusinessEvidenceToServer(records = []) {
+  if (!isAccessGranted() || !records.length) return { ok: false, skipped: true };
+  try {
+    const response = await fetch(EVIDENCE_RECORDS_ENDPOINT, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ records })
+    });
+    const data = await response.json();
+    if (!response.ok || !data.ok) throw new Error(data.message || "实单证据库写入失败");
+    serverEvidenceLoadedAt = Date.now();
+    document.documentElement.dataset.evidenceStore = `saved:${data.accepted || 0}`;
+    renderEvidenceSyncStatus();
+    return data;
+  } catch (error) {
+    document.documentElement.dataset.evidenceStore = "local-only";
+    renderEvidenceSyncStatus();
+    return { ok: false, message: error.message || "实单证据库写入失败" };
+  }
+}
+
+async function deleteBusinessEvidenceFromServer(id = "") {
+  if (!isAccessGranted() || !id) return { ok: false, skipped: true };
+  try {
+    const response = await fetch(EVIDENCE_RECORDS_ENDPOINT, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", id })
+    });
+    const data = await response.json();
+    if (!response.ok || !data.ok) throw new Error(data.message || "实单证据删除失败");
+    document.documentElement.dataset.evidenceStore = `deleted:${data.deleted || 0}`;
+    renderEvidenceSyncStatus();
+    return data;
+  } catch (error) {
+    document.documentElement.dataset.evidenceStore = "delete-pending";
+    renderEvidenceSyncStatus();
+    return { ok: false, message: error.message || "实单证据删除失败" };
+  }
 }
 
 function addHistory(type, query, result) {
@@ -9429,11 +9506,13 @@ function findAirportRiskProfile(query = "") {
     cn: code.cn,
     region: "generic-air",
     aliases: code.aliases || [],
-    batteryRate: 18,
-    baseDelay: 8,
-    risk: 52,
-    curve: [12, 13, 15, 16, 18, 19, 17, 18],
-    note: code.note || "未接入专门机场风险曲线，先按国际空运常规口径估算。"
+    batteryRate: null,
+    baseDelay: null,
+    risk: null,
+    curve: [],
+    coverage: "directory",
+    modelBasis: "location-only",
+    note: code.note || "仅完成机场代码识别；尚无该机场的专属业务实绩或官方风险数据，不输出默认风险值。"
   };
 }
 
@@ -9450,10 +9529,12 @@ function findPortRiskProfile(query = "") {
     cn: code.cn,
     region: "generic-port",
     aliases: code.aliases || [],
-    baseDelay: 1.8,
-    risk: 54,
-    dwell: 2.8,
-    note: code.note || "未接入专门港口风险模型，先按全球主要集装箱港常规口径估算。"
+    baseDelay: null,
+    risk: null,
+    dwell: null,
+    coverage: "directory",
+    modelBasis: "location-only",
+    note: code.note || "仅完成港口代码识别；尚无该港口的专属业务实绩或官方异常证据，不输出默认延误或风险值。"
   };
 }
 
@@ -9745,13 +9826,19 @@ function routeScheduleSourceProfile(origin = {}, destination = {}, days = null) 
 }
 
 function flightHoursForAirports(origin = {}, destination = {}) {
-  const pair = `${origin.region || ""}->${destination.region || ""}`;
+  const originRegion = origin.region || "";
+  const destinationRegion = destination.region || "";
+  if (!originRegion || !destinationRegion || /generic/.test(`${originRegion}->${destinationRegion}`)) return null;
   if (/china|asia/.test(origin.region || "") && /us-west/.test(destination.region || "")) return [10, 15];
   if (/china|asia/.test(origin.region || "") && /us-east|us-central/.test(destination.region || "")) return [15, 23];
   if (/china|asia/.test(origin.region || "") && /europe|uk/.test(destination.region || "")) return [12, 20];
   if (/china|asia/.test(origin.region || "") && /latin-america/.test(destination.region || "")) return [28, 44];
-  if ((origin.region || "") === (destination.region || "")) return [2, 8];
-  return [10, 24];
+  if (originRegion === destinationRegion) return [2, 8];
+  return null;
+}
+
+function flightHoursText(hours) {
+  return hours ? `${hours[0]}-${hours[1]} 小时` : "覆盖不足";
 }
 
 function evidenceEndpointKey(value = "", mode = "sea") {
@@ -9793,17 +9880,77 @@ function scheduleTransitDuration(hours = 0) {
   return `${days ? `${days}天` : ""}${remain ? `${remain}小时` : ""}`;
 }
 
+function scheduleDateTime(value = "", endOfDay = false) {
+  const text = String(value || "").trim();
+  if (!text) return null;
+  const dateOnly = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateOnly) {
+    const year = Number(dateOnly[1]);
+    const month = Number(dateOnly[2]);
+    const day = Number(dateOnly[3]);
+    const candidate = new Date(Date.UTC(year, month - 1, day));
+    if (
+      candidate.getUTCFullYear() !== year
+      || candidate.getUTCMonth() !== month - 1
+      || candidate.getUTCDate() !== day
+    ) return null;
+  }
+  const normalized = dateOnly
+    ? `${text}T${endOfDay ? "23:59:59" : "00:00:00"}+08:00`
+    : text;
+  const time = new Date(normalized).getTime();
+  return Number.isFinite(time) ? time : null;
+}
+
+function auditCarrierScheduleRecord(record = {}, database = {}, now = Date.now()) {
+  const sources = Array.isArray(database.sources) ? database.sources : [];
+  const policy = database.updatePolicy || {};
+  const mode = record.mode === "air" ? "air" : record.mode === "sea" ? "sea" : "";
+  const freshnessDays = mode === "air"
+    ? Math.max(1, Number(policy.airFreshnessDays) || 2)
+    : Math.max(1, Number(policy.seaFreshnessDays) || 14);
+  const futureWindowDays = mode === "air" ? 45 : 180;
+  const departureTime = scheduleDateTime(record.departureDate);
+  const arrivalTime = scheduleDateTime(record.arrivalDate, true);
+  const capturedTime = scheduleDateTime(record.capturedAt, true);
+  const transitHours = Number(record.transitHours);
+  const reasons = [];
+  if (!mode) reasons.push("运输方式缺失");
+  if (!record.originCode || !record.destinationCode) reasons.push("起终点代码缺失");
+  if (!record.sourceId || !sources.some((source) => source.id === record.sourceId)) reasons.push("来源未登记");
+  if (!departureTime || !arrivalTime || arrivalTime <= departureTime) reasons.push("ETD/ETA 无效");
+  if (!Number.isFinite(transitHours) || transitHours <= 0 || transitHours > 24 * 120) reasons.push("计划时长无效");
+  if (!capturedTime) {
+    reasons.push("抓取日期缺失");
+  } else {
+    const ageDays = (now - capturedTime) / 86400000;
+    if (ageDays > freshnessDays) reasons.push(`抓取已超过 ${freshnessDays} 天`);
+    if (ageDays < -1) reasons.push("抓取日期晚于当前时间");
+  }
+  if (arrivalTime && arrivalTime < now - 86400000) reasons.push("航次已结束");
+  if (departureTime && departureTime > now + futureWindowDays * 86400000) reasons.push("超出当前计划窗口");
+  return {
+    valid: reasons.length === 0,
+    reasons,
+    freshnessDays,
+    capturedAgeDays: capturedTime ? Math.max(0, Math.floor((now - capturedTime) / 86400000)) : null
+  };
+}
+
 function carrierScheduleEvidenceForRoute(mode = "sea", origin = {}, destination = {}) {
   const database = window.LOGISTICS_SCHEDULE_DATABASE || {};
   const records = Array.isArray(database.records) ? database.records : [];
   const sources = Array.isArray(database.sources) ? database.sources : [];
   const originKey = evidenceEndpointKey(origin, mode);
   const destinationKey = evidenceEndpointKey(destination, mode);
-  const routeRecords = records
+  const allRouteRecords = records
     .filter((record) => record.mode === mode)
     .filter((record) => evidenceEndpointKey(record.originCode || record.origin, mode) === originKey)
     .filter((record) => evidenceEndpointKey(record.destinationCode || record.destination, mode) === destinationKey)
     .sort((a, b) => String(a.departureDate || "").localeCompare(String(b.departureDate || "")));
+  const auditedRecords = allRouteRecords.map((record) => ({ record, audit: auditCarrierScheduleRecord(record, database) }));
+  const routeRecords = auditedRecords.filter((item) => item.audit.valid).map((item) => item.record);
+  const excludedRecords = auditedRecords.filter((item) => !item.audit.valid);
   const transitHours = routeRecords.map((record) => Number(record.transitHours)).filter((value) => value > 0);
   const sourceRows = routeRecords
     .map((record) => sources.find((source) => source.id === record.sourceId))
@@ -9811,6 +9958,9 @@ function carrierScheduleEvidenceForRoute(mode = "sea", origin = {}, destination 
   const lastCaptured = routeRecords.map((record) => record.capturedAt || "").filter(Boolean).sort().reverse()[0] || "";
   return {
     records: routeRecords,
+    allRecords: allRouteRecords,
+    excludedRecords,
+    excludedCount: excludedRecords.length,
     sources: sourceRows,
     count: routeRecords.length,
     carriers: Array.from(new Set(routeRecords.map((record) => record.carrier).filter(Boolean))),
@@ -9818,11 +9968,47 @@ function carrierScheduleEvidenceForRoute(mode = "sea", origin = {}, destination 
     maxHours: transitHours.length ? Math.max(...transitHours) : null,
     medianHours: transitHours.length ? medianNumber(transitHours) : null,
     lastCaptured,
+    freshnessText: routeRecords.length
+      ? `当前有效 · ${lastCaptured || "抓取日期待补"}`
+      : excludedRecords.length
+        ? "仅有旧班期，不进入当前结论"
+        : "暂无承运人班期",
     rangeText: transitHours.length
       ? `${scheduleTransitDuration(Math.min(...transitHours))}-${scheduleTransitDuration(Math.max(...transitHours))}`
       : "班期时长待核验"
   };
 }
+
+async function loadDynamicScheduleRecords() {
+  const database = window.LOGISTICS_SCHEDULE_DATABASE || {};
+  if (!Array.isArray(database.records)) database.records = [];
+  const data = await fetchJsonOrFallback("/.netlify/functions/schedule-records", { ok: false, records: [], total: 0 }, { timeoutMs: 8000 });
+  const incoming = Array.isArray(data.records) ? data.records : [];
+  const before = database.records.length;
+  appendUniqueBy(database.records, incoming, (record) => record.id);
+  database.dynamicSnapshot = {
+    loaded: Boolean(data.ok),
+    count: incoming.length,
+    total: Number(data.total || incoming.length),
+    updatedAt: data.updatedAt || ""
+  };
+  document.documentElement.dataset.dynamicScheduleRecords = String(database.records.length - before);
+  const audit = runScheduleDatabaseQualityAudit();
+  document.documentElement.dataset.scheduleDatabaseAudit = encodeURIComponent(JSON.stringify({
+    passed: audit.passed,
+    total: audit.total,
+    failed: audit.failed,
+    recordFailures: audit.recordFailures
+  }));
+  renderSeaMarketRate({ preventDefault() {} });
+  renderAirMarketRate({ preventDefault() {} });
+  renderRiskPortResult({ preventDefault() {} });
+  renderRiskAirportResult({ preventDefault() {} });
+  renderEvidenceLedgerRouteSummary();
+  return database.dynamicSnapshot;
+}
+
+window.reloadLogisMasterScheduleRecords = loadDynamicScheduleRecords;
 
 function businessEvidenceForRoute(mode = "sea", origin = {}, destination = {}, options = {}) {
   const originKey = evidenceEndpointKey(origin, mode);
@@ -9912,6 +10098,227 @@ function formatEvidenceDelay(evidence = {}) {
   return `${value > 0 ? "晚于" : "早于"}计划 ${Math.abs(value).toFixed(1)} ${unit}（${evidence.delay.count} 票）`;
 }
 
+const dataHealthState = {
+  filter: "all",
+  search: "",
+  liveResults: new Map(),
+  checkedAt: ""
+};
+
+const dataHealthModuleProfiles = [
+  {
+    id: "china",
+    title: "中国关务与合规",
+    description: "税则、监管条件、CCC、贸易救济和口岸业务。",
+    minimum: 10,
+    match: (source) => /china|中国|gacc|mofcom|cnca/i.test(`${source.coverage || ""} ${source.authority || ""} ${source.name || ""}`)
+      && (source.modules || []).some((module) => /hs|customs|matrix|policy|decision/.test(module))
+  },
+  {
+    id: "schedule",
+    title: "海运船期与价格",
+    description: "船司班期、航程、跟踪和市场报价核验。",
+    minimum: 12,
+    match: (source) => (source.modules || []).some((module) => /shipment|sea-market/.test(module))
+  },
+  {
+    id: "air",
+    title: "空运与航班",
+    description: "航班状态、航空天气、危险品和运价入口。",
+    minimum: 8,
+    match: (source) => (source.modules || []).some((module) => /air|air-market/.test(module))
+  },
+  {
+    id: "risk",
+    title: "航线与口岸风险",
+    description: "天气、海况、航行警告、港口公告和运行异常。",
+    minimum: 20,
+    match: (source) => (source.modules || []).includes("risk-center")
+  },
+  {
+    id: "policy",
+    title: "政策与热点",
+    description: "官方政策、贸易措施和经过相关性判断的公开动态。",
+    minimum: 12,
+    match: (source) => (source.modules || []).some((module) => /policy|trends/.test(module))
+  },
+  {
+    id: "documents",
+    title: "单证与申报",
+    description: "发票、箱单、报关资料和危险品文件依据。",
+    minimum: 5,
+    match: (source) => (source.modules || []).some((module) => /docs-invoice|docs-declaration|customs/.test(module))
+  }
+];
+
+function dataHealthSourceIsAutomatic(source = {}) {
+  if (source.supportsAutomation === true) return true;
+  if (source.supportsAutomation === false) return false;
+  return /api|rss|download|gis|open-data/.test(normalize(`${source.access || ""} ${source.apiStatus || ""} ${source.evidenceMode || ""}`));
+}
+
+function dataHealthFreshnessWindowDays(source = {}) {
+  const cadence = normalize(source.updateCadence || "");
+  if (/live|near-real-time|daily/.test(cadence)) return 30;
+  if (/weekly/.test(cadence)) return 45;
+  if (/official|carrier/.test(cadence)) return 90;
+  return 180;
+}
+
+function dataHealthSourceStatus(source = {}) {
+  const live = dataHealthState.liveResults.get(source.id);
+  if (live && live.reachable === false) {
+    return { id: "unavailable", label: "当前不可达", tone: "danger", review: true };
+  }
+  if (!source.lastVerified) {
+    return { id: "unverified", label: "未记核验日期", tone: "warn", review: true };
+  }
+  const verifiedAt = Date.parse(`${source.lastVerified}T00:00:00Z`);
+  const ageDays = Number.isFinite(verifiedAt) ? Math.max(0, (Date.now() - verifiedAt) / 86400000) : Infinity;
+  if (ageDays > dataHealthFreshnessWindowDays(source)) {
+    return { id: "stale", label: "目录待复核", tone: "warn", review: true };
+  }
+  if (live?.reachable) {
+    return { id: "reachable", label: "入口可访问", tone: "ok", review: false };
+  }
+  return { id: "verified", label: "目录已核验", tone: "ok", review: false };
+}
+
+function dataHealthIsChinaSource(source = {}) {
+  return /china|中国|gacc|mofcom|cnca|caac|shanghai|ningbo|xiamen|shenzhen|guangzhou/i.test(
+    `${source.coverage || ""} ${source.authority || ""} ${source.name || ""}`
+  );
+}
+
+function dataHealthModuleNextStep(total, automatic, verified, minimum) {
+  if (total < minimum) return `先补 ${minimum - total} 个核心来源`;
+  if (verified < Math.ceil(total * 0.5)) return "优先补核验日期和采集证据";
+  if (automatic < Math.ceil(total * 0.35)) return "优先增加 API、RSS 或下载采集";
+  return "继续补正文抽取和交叉验证";
+}
+
+function renderDataHealthSummary() {
+  const target = $("dataHealthSummary");
+  if (!target) return;
+  const total = logisticsSourceRegistry.length;
+  const automatic = logisticsSourceRegistry.filter(dataHealthSourceIsAutomatic).length;
+  const verified = logisticsSourceRegistry.filter((source) => !dataHealthSourceStatus(source).review).length;
+  const review = logisticsSourceRegistry.filter((source) => dataHealthSourceStatus(source).review).length;
+  const liveRows = Array.from(dataHealthState.liveResults.values());
+  const reachable = liveRows.filter((row) => row.reachable).length;
+  target.innerHTML = `
+    <article><span>登记来源</span><strong>${total}</strong><p>已进入结构化目录，可按模块和数据类型检索。</p></article>
+    <article><span>可自动处理</span><strong>${automatic}</strong><p>具备 API、RSS、下载或结构化采集条件。</p></article>
+    <article><span>目录已核验</span><strong>${verified}</strong><p>在各自核验窗口内记录过入口和用途。</p></article>
+    <article class="${review ? "needs-review" : ""}"><span>待复核</span><strong>${review}</strong><p>缺核验日期、已过期或本次在线检查失败。</p></article>
+    <article><span>在线抽查</span><strong>${liveRows.length ? `${reachable}/${liveRows.length}` : "未检查"}</strong><p>只判断关键入口可访问，不代表正文已读取。</p></article>
+  `;
+}
+
+function renderDataHealthModules() {
+  const target = $("dataHealthModules");
+  if (!target) return;
+  target.innerHTML = dataHealthModuleProfiles.map((profile) => {
+    const rows = logisticsSourceRegistry.filter(profile.match);
+    const automatic = rows.filter(dataHealthSourceIsAutomatic).length;
+    const verified = rows.filter((source) => !dataHealthSourceStatus(source).review).length;
+    const coveragePercent = Math.min(100, Math.round((rows.length / profile.minimum) * 100));
+    const label = rows.length < profile.minimum ? "来源不足" : verified < Math.ceil(rows.length * 0.5) ? "需补核验" : automatic < Math.ceil(rows.length * 0.35) ? "需补采集" : "基础可用";
+    const tone = label === "基础可用" ? "ok" : label === "来源不足" ? "danger" : "warn";
+    return `
+      <article class="data-health-module-card">
+        <header><span>${escapeHtml(profile.title)}</span><b class="health-badge ${tone}">${label}</b></header>
+        <p>${escapeHtml(profile.description)}</p>
+        <div class="data-health-module-metrics">
+          <span><b>${rows.length}</b>来源</span>
+          <span><b>${automatic}</b>可自动</span>
+          <span><b>${verified}</b>已核验</span>
+        </div>
+        <i class="data-health-bar" style="--health-progress: ${coveragePercent}%"><b></b></i>
+        <small>${escapeHtml(dataHealthModuleNextStep(rows.length, automatic, verified, profile.minimum))}</small>
+      </article>
+    `;
+  }).join("");
+}
+
+function renderDataHealthSources() {
+  const target = $("dataHealthSources");
+  if (!target) return;
+  const query = normalize(dataHealthState.search);
+  const rows = logisticsSourceRegistry
+    .filter((source) => {
+      const status = dataHealthSourceStatus(source);
+      if (dataHealthState.filter === "automatic" && !dataHealthSourceIsAutomatic(source)) return false;
+      if (dataHealthState.filter === "manual" && dataHealthSourceIsAutomatic(source)) return false;
+      if (dataHealthState.filter === "review" && !status.review) return false;
+      if (dataHealthState.filter === "china" && !dataHealthIsChinaSource(source)) return false;
+      if (!query) return true;
+      return normalize(`${source.name || ""} ${source.authority || ""} ${source.coverage || ""} ${(source.modules || []).join(" ")} ${(source.dataKinds || []).join(" ")} ${source.summary || ""}`).includes(query);
+    })
+    .sort((a, b) => Number(dataHealthSourceStatus(b).review) - Number(dataHealthSourceStatus(a).review) || Number(b.credibility || 0) - Number(a.credibility || 0));
+  if ($("dataHealthSourceCount")) {
+    $("dataHealthSourceCount").textContent = `显示 ${rows.length} / ${logisticsSourceRegistry.length} 个来源`;
+  }
+  target.innerHTML = rows.map((source) => {
+    const status = dataHealthSourceStatus(source);
+    const automatic = dataHealthSourceIsAutomatic(source);
+    const live = dataHealthState.liveResults.get(source.id);
+    const kinds = (source.dataKinds || []).slice(0, 3);
+    return `
+      <article class="data-health-source-card ${status.review ? "needs-review" : ""}">
+        <header>
+          <div><span>${escapeHtml(source.authority || source.sourceType || "来源")}</span><strong>${escapeHtml(source.name || "未命名来源")}</strong></div>
+          <b class="health-badge ${status.tone}">${escapeHtml(status.label)}</b>
+        </header>
+        <p>${escapeHtml(source.summary || "尚未补充用途说明。")}</p>
+        <div class="data-health-source-tags">
+          <span>${automatic ? "可自动/下载" : "人工查询"}</span>
+          <span>${escapeHtml(source.coverage || "覆盖待补")}</span>
+          <span>可信度 ${Number(source.credibility || 0) || "--"}</span>
+          ${kinds.map((kind) => `<span>${escapeHtml(kind)}</span>`).join("")}
+        </div>
+        <footer>
+          <small>目录核验：${escapeHtml(source.lastVerified || "未记录")}${live ? ` · 在线 ${Number(live.latencyMs || 0)}ms` : ""}</small>
+          <a href="${escapeHtml(source.url || "#")}" target="_blank" rel="noreferrer">打开来源</a>
+        </footer>
+      </article>
+    `;
+  }).join("") || `<article class="data-health-empty"><strong>没有匹配来源</strong><p>换一个关键词或状态筛选。</p></article>`;
+}
+
+function renderDataHealth() {
+  renderDataHealthSummary();
+  renderDataHealthModules();
+  renderDataHealthSources();
+}
+
+async function checkCriticalSourceHealth() {
+  const button = $("runSourceHealthCheck");
+  const status = $("sourceHealthCheckStatus");
+  if (button) {
+    button.disabled = true;
+    button.textContent = "正在检查...";
+  }
+  if (status) status.textContent = "正在检查关键入口";
+  try {
+    const response = await fetch(`/.netlify/functions/source-health?refresh=1&_t=${Date.now()}`);
+    const data = await response.json();
+    if (!response.ok || !data.ok || !Array.isArray(data.sources)) throw new Error(data.message || "在线检查失败");
+    dataHealthState.liveResults = new Map(data.sources.map((row) => [row.id, row]));
+    dataHealthState.checkedAt = data.checkedAt || "";
+    const reachable = data.sources.filter((row) => row.reachable).length;
+    if (status) status.textContent = `刚刚检查：${reachable}/${data.sources.length} 个入口可访问`;
+    renderDataHealth();
+  } catch (error) {
+    if (status) status.textContent = `检查失败：${error.message || "服务器暂不可用"}`;
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = "重新检查关键来源";
+    }
+  }
+}
+
 function airportPrecheckAssessment(cargo = "general", evidence = {}) {
   const outcomeSummary = evidence.outcomes.reduce((summary, sample) => {
     summary[sample.outcome] = (summary[sample.outcome] || 0) + 1;
@@ -9967,7 +10374,9 @@ function renderEvidenceDataCoverage() {
   const specificallyMappedChinaPorts = Object.entries(portEvidenceSourceIds).filter(([, ids]) => ids.some((id) => !/china-msa|china-nmc/.test(id))).length;
   const priorityNames = [
     "中国国际贸易单一窗口",
+    "中国电子口岸",
     "中国海关税目税号查询",
+    "全国标准信息公共服务平台",
     "国家认监委强制性产品认证",
     "商务部贸易救济调查局",
     "中国海事局",
@@ -10031,16 +10440,126 @@ function runDataCoverageQualityAudit() {
     { name: "主流港口库", actual: majorPortRiskProfiles.length, minimum: 80 },
     { name: "主流机场库", actual: airportRiskProfiles.length, minimum: 70 },
     { name: "中国沿海港口库", actual: chinaPorts.length, minimum: 25 },
-    { name: "中国主要机场库", actual: chinaAirports.length, minimum: 30 },
-    { name: "结构化来源目录", actual: logisticsSourceRegistry.length, minimum: 55 },
+    { name: "中国主要机场库", actual: chinaAirports.length, minimum: 36 },
+    { name: "结构化来源目录", actual: logisticsSourceRegistry.length, minimum: 65 },
     { name: "船司/航司班期来源", actual: scheduleSources.length, minimum: 10 },
-    { name: "中国核心政策来源", actual: ["china-customs-tariff", "china-tariff-commission", "china-mofcom-trade-remedy", "china-cnca"].filter((id) => sourceIds.has(id)).length, minimum: 4 },
+    { name: "中国核心政策来源", actual: ["china-customs-tariff", "china-tariff-commission", "china-mofcom-trade-remedy", "china-cnca", "china-e-port", "china-national-standards", "china-mofcom-license-platform"].filter((id) => sourceIds.has(id)).length, minimum: 7 },
     { name: "公共天气来源", actual: ["china-nmc", "jtwc", "noaa-marine", "aviationweather-api", "nhc-gis-rss"].filter((id) => sourceIds.has(id)).length, minimum: 5 }
   ].map((item) => ({ ...item, pass: item.actual >= item.minimum }));
   return { passed: cases.filter((item) => item.pass).length, total: cases.length, failed: cases.filter((item) => !item.pass), results: cases };
 }
 
 window.runLogisMasterDataCoverageAudit = runDataCoverageQualityAudit;
+
+function runChinaDatabaseQualityAudit() {
+  const locationCases = [
+    ["鄂州花湖机场", "EHU"],
+    ["烟台蓬莱机场", "YNT"],
+    ["南通兴东机场", "NTG"],
+    ["珠海金湾机场", "ZUH"],
+    ["义乌机场", "YIW"],
+    ["淮安涟水机场", "HIA"]
+  ].map(([query, expected]) => {
+    const profile = findAirportRiskProfile(query);
+    return { name: `${query}可识别`, pass: profile?.iata === expected };
+  });
+  const domesticCases = [
+    ["厦门", "上海"],
+    ["大连", "广州"],
+    ["天津", "宁波"]
+  ].map(([originQuery, destinationQuery]) => {
+    const origin = findPortRiskProfile(originQuery);
+    const destination = findPortRiskProfile(destinationQuery);
+    const days = origin && destination ? routeDaysForPorts(origin, destination) : null;
+    return {
+      name: `${originQuery}到${destinationQuery}进入国内沿海库`,
+      pass: Boolean(days && /^domestic/.test(days.confidence || ""))
+    };
+  });
+  const directoryAirport = findAirportRiskProfile("EHU");
+  const directoryPortCode = seaPortCodeData.find((port) => !majorPortRiskProfiles.some((profile) => profile.code === port.code));
+  const directoryPort = directoryPortCode ? findPortRiskProfile(directoryPortCode.code) : null;
+  const precisionCases = [
+    {
+      name: "目录机场不伪造查验率或风险值",
+      pass: Boolean(directoryAirport && directoryAirport.batteryRate == null && directoryAirport.risk == null)
+    },
+    {
+      name: "目录港口不伪造延误或风险值",
+      pass: !directoryPortCode || Boolean(directoryPort && directoryPort.baseDelay == null && directoryPort.risk == null)
+    },
+    {
+      name: "未知机场组合不输出默认时效",
+      pass: flightHoursForAirports({ region: "generic-air" }, { region: "generic-air" }) === null
+    }
+  ];
+  const sourceIds = new Set(logisticsSourceRegistry.map((source) => source.id));
+  const sourceCases = ["china-e-port", "china-national-standards", "china-mofcom-license-platform"].map((id) => ({
+    name: `${id} 已登记`,
+    pass: sourceIds.has(id)
+  }));
+  const results = [...locationCases, ...domesticCases, ...precisionCases, ...sourceCases];
+  return {
+    passed: results.filter((item) => item.pass).length,
+    total: results.length,
+    failed: results.filter((item) => !item.pass),
+    results
+  };
+}
+
+window.runLogisMasterChinaDatabaseAudit = runChinaDatabaseQualityAudit;
+
+function runScheduleDatabaseQualityAudit() {
+  const database = window.LOGISTICS_SCHEDULE_DATABASE || {};
+  const sources = Array.isArray(database.sources) ? database.sources : [];
+  const downloads = Array.isArray(database.downloads) ? database.downloads : [];
+  const records = Array.isArray(database.records) ? database.records : [];
+  const audits = records.map((record) => ({ record, audit: auditCarrierScheduleRecord(record, database) }));
+  const sourceIds = new Set(sources.map((source) => source.id));
+  const firstRecord = records[0] || {};
+  const staleProbe = auditCarrierScheduleRecord({
+    ...firstRecord,
+    mode: firstRecord.mode || "sea",
+    originCode: firstRecord.originCode || "CNXMN",
+    destinationCode: firstRecord.destinationCode || "THLCH",
+    carrier: firstRecord.carrier || "Carrier",
+    sourceId: firstRecord.sourceId || "maersk-point-to-point",
+    departureDate: "2099-01-01",
+    arrivalDate: "2099-01-02",
+    transitHours: 24,
+    capturedAt: "2000-01-01"
+  }, database);
+  const invalidDateProbe = auditCarrierScheduleRecord({
+    ...firstRecord,
+    mode: firstRecord.mode || "sea",
+    originCode: firstRecord.originCode || "CNXMN",
+    destinationCode: firstRecord.destinationCode || "THLCH",
+    carrier: firstRecord.carrier || "Carrier",
+    sourceId: firstRecord.sourceId || "maersk-point-to-point",
+    departureDate: "2099-02-30",
+    arrivalDate: "2099-03-02",
+    transitHours: 24,
+    capturedAt: new Date().toISOString().slice(0, 10)
+  }, database);
+  const cases = [
+    { name: "班期来源目录", actual: sources.length, minimum: 10 },
+    { name: "官方可下载文件", actual: downloads.length, minimum: 15 },
+    { name: "当前有效承运人班期", actual: audits.filter((item) => item.audit.valid).length, minimum: 2 },
+    { name: "班期字段完整", actual: audits.filter((item) => item.audit.reasons.every((reason) => !/缺失|无效/.test(reason))).length, minimum: records.length },
+    { name: "班期来源已登记", actual: records.filter((record) => sourceIds.has(record.sourceId)).length, minimum: records.length },
+    { name: "过期记录不进入结论", actual: !staleProbe.valid && staleProbe.reasons.some((reason) => /抓取已超过/.test(reason)) ? 1 : 0, minimum: 1 },
+    { name: "非法日期不进入结论", actual: !invalidDateProbe.valid && invalidDateProbe.reasons.some((reason) => /ETD\/ETA 无效/.test(reason)) ? 1 : 0, minimum: 1 }
+  ].map((item) => ({ ...item, pass: item.actual >= item.minimum }));
+  return {
+    passed: cases.filter((item) => item.pass).length,
+    total: cases.length,
+    failed: cases.filter((item) => !item.pass),
+    recordFailures: audits.filter((item) => !item.audit.valid).map((item) => ({ id: item.record.id, reasons: item.audit.reasons })),
+    results: cases
+  };
+}
+
+window.runLogisMasterScheduleDatabaseAudit = runScheduleDatabaseQualityAudit;
 
 function renderEvidenceLedgerRouteSummary() {
   const target = $("evidenceLedgerRouteSummary");
@@ -10073,6 +10592,26 @@ function renderEvidenceLedgerRouteSummary() {
       <span>${escapeHtml(delayText || "暂无计划与实际到达偏差")}</span>
     </div>
   `;
+}
+
+function renderEvidenceSyncStatus() {
+  const target = $("evidenceSyncStatus");
+  if (!target) return;
+  const status = document.documentElement.dataset.evidenceStore || "checking";
+  if (/^(loaded|saved|deleted):/.test(status)) {
+    const count = status.split(":")[1] || "0";
+    target.textContent = status.startsWith("loaded:")
+      ? `共享证据库已连接，本次读取 ${count} 条服务器记录；本机同时保留缓存。`
+      : status.startsWith("saved:")
+        ? `已同步 ${count} 条记录到共享证据库；下载备份仍可用于离线留档。`
+        : `共享证据库删除已同步；本机记录已刷新。`;
+    target.classList.remove("is-warning");
+    return;
+  }
+  target.textContent = status === "local-only" || status === "delete-pending" || status === "unavailable"
+    ? "共享证据库暂不可用，当前修改已保留在本机；恢复连接后需要再次同步。"
+    : "正在检查共享证据库；下载备份仍可用于离线留档。";
+  target.classList.toggle("is-warning", status !== "checking");
 }
 
 function renderEvidenceLedger() {
@@ -10119,6 +10658,7 @@ function renderEvidenceLedger() {
       </article>
     `;
   }
+  renderEvidenceSyncStatus();
   renderEvidenceDataCoverage();
   renderEvidenceLedgerRouteSummary();
 }
@@ -10163,6 +10703,7 @@ function addBusinessEvidence(event) {
   };
   state.evidenceSamples.unshift(sample);
   saveBusinessEvidence();
+  persistBusinessEvidenceToServer([sample]);
   ["evidencePrice", "evidencePlannedDeparture", "evidenceActualDeparture", "evidencePlannedArrival", "evidenceActualArrival", "evidenceNote"].forEach((id) => {
     if ($(id)) $(id).value = "";
   });
@@ -10173,6 +10714,7 @@ function addBusinessEvidence(event) {
 function deleteBusinessEvidence(id = "") {
   state.evidenceSamples = state.evidenceSamples.filter((sample) => sample.id !== id);
   saveBusinessEvidence();
+  deleteBusinessEvidenceFromServer(id);
   refreshEvidenceDrivenViews();
 }
 
@@ -10190,6 +10732,7 @@ async function importBusinessEvidence(event) {
     const byId = new Map([...accepted, ...state.evidenceSamples].map((sample) => [sample.id || `${sample.mode}-${sample.origin}-${sample.destination}-${sample.evidenceDate}-${sample.carrier}`, sample]));
     state.evidenceSamples = Array.from(byId.values()).slice(0, 500);
     saveBusinessEvidence();
+    persistBusinessEvidenceToServer(accepted);
     refreshEvidenceDrivenViews();
   } catch (error) {
     openResultDialog("导入失败", "实单数据", `<p>${escapeHtml(error.message || "无法读取该备份文件。")}</p>`);
@@ -10389,10 +10932,11 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
     const cargo = primaryProduct?.airCargo || (/电池|battery|锂/.test(text) ? "battery-contained" : "general");
     const rate = airMarketRateEstimate(origin, destination, 300, cargo);
     const hours = flightHoursForAirports(origin, destination);
+    const modeledFlightTime = flightHoursText(hours);
     const evidence = businessEvidenceForRoute("air", origin, destination, { unit: "KG" });
     const assessment = airportPrecheckAssessment(cargo, evidence);
     metrics.push([evidence.quote ? "近期业务报价" : "空运模型预算", evidence.quote ? formatEvidencePrice(evidence) : rate.label]);
-    metrics.push([evidence.transit ? "历史实绩时效" : "基础时效模型", evidence.transit ? formatEvidenceTransit(evidence) : `${hours[0]}-${hours[1]} 小时`]);
+    metrics.push([evidence.transit ? "历史实绩时效" : "基础时效模型", evidence.transit ? formatEvidenceTransit(evidence) : modeledFlightTime]);
     metrics.push(["敏感货预审", assessment.level]);
   }
   if (mode === "Sea" && hasRoutePair && originPort && destinationPort) {
@@ -10938,11 +11482,12 @@ function buildLiveIntentInsights(query = "", intel = {}, options = []) {
     const origin = routeOriginAir;
     const destination = routeDestinationAir;
     const hours = flightHoursForAirports(origin, destination);
+    const modeledFlightTime = flightHoursText(hours);
     add(
       "risk-center",
       `${origin.cn || origin.iata} → ${destination.cn || destination.iata}`,
-      `机场路线已识别，基础航程模型 ${hours[0]}-${hours[1]} 小时`,
-      [`模型时效 ${hours[0]}-${hours[1]} 小时`, "机场风险", "空运费用", "航班/运单状态"],
+      hours ? `机场路线已识别，基础航程模型 ${modeledFlightTime}` : "机场路线已识别，但该组合不猜飞行时效",
+      [hours ? `模型时效 ${modeledFlightTime}` : "时效覆盖不足", "机场风险", "空运费用", "航班/运单状态"],
       "risk-airport-panel"
     );
   }
@@ -11891,7 +12436,7 @@ function renderBusinessEvidenceRouteCard(mode = "sea", evidence = {}) {
       <article class="market-rate-card wide business-evidence-card empty">
         <span>同航线实际记录</span>
         <strong>该航线暂无真实样本</strong>
-        <p>${evidence.schedule?.records?.length ? "已有承运人计划班期，但还没有实际出发/到达或有效报价记录，因此不能称为市场实时价、实际平均船期或平均延误。" : "当前只能给模型预算或航程窗口，不能称为市场实时价、平均船期或平均延误。"}</p>
+        <p>${evidence.schedule?.records?.length ? "已有当前有效的承运人计划班期，但还没有实际出发/到达或有效报价记录，因此不能称为市场实时价、实际平均船期或平均延误。" : evidence.schedule?.excludedCount ? "数据库里只有已过期或字段不完整的旧班期，已从当前结论排除；页面只能给模型窗口。" : "当前只能给模型预算或航程窗口，不能称为市场实时价、平均船期或平均延误。"}</p>
         <a href="#evidence-ledger">录入有效报价或实际运输结果</a>
       </article>
     `;
@@ -11912,6 +12457,17 @@ function renderBusinessEvidenceRouteCard(mode = "sea", evidence = {}) {
 }
 
 function renderCarrierScheduleEvidenceCard(schedule = {}) {
+  if (!schedule.records?.length && schedule.excludedCount) {
+    const reasons = Array.from(new Set((schedule.excludedRecords || []).flatMap((item) => item.audit?.reasons || []))).slice(0, 4);
+    return `
+      <article class="market-rate-card wide business-evidence-card empty carrier-schedule-evidence-card">
+        <span>旧班期已隔离 · ${escapeHtml(String(schedule.excludedCount))} 条</span>
+        <strong>不进入当前船期结论</strong>
+        <p>${escapeHtml(reasons.length ? reasons.join("；") : "抓取日期或航次有效期已不满足当前班期门槛。")}</p>
+        <small>旧记录仅保留审计，不替代当前承运人查询，也不计算平均延误。</small>
+      </article>
+    `;
+  }
   if (!schedule.records?.length) return "";
   const source = schedule.sources?.[0];
   return `
@@ -11927,7 +12483,7 @@ function renderCarrierScheduleEvidenceCard(schedule = {}) {
           </p>
         `).join("")}
       </div>
-      <small>${escapeHtml(`抓取/录入日期 ${schedule.lastCaptured || "待补"}；计划可能调整，订舱前重查当前航次。`)}</small>
+      <small>${escapeHtml(`${schedule.freshnessText || `抓取/录入日期 ${schedule.lastCaptured || "待补"}`}；计划可能调整，订舱前重查当前航次。`)}</small>
       ${source?.url ? `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">打开 ${escapeHtml(source.name || "承运人船期")}</a>` : ""}
     </article>
   `;
@@ -12022,6 +12578,7 @@ function renderAirMarketRate(event) {
     return;
   }
   const hours = flightHoursForAirports(origin, destination);
+  const modeledFlightTime = flightHoursText(hours);
   const rate = airMarketRateEstimate(origin, destination, weight, cargo);
   const evidence = businessEvidenceForRoute("air", origin, destination, { unit: "KG" });
   const evidencePrice = formatEvidencePrice(evidence);
@@ -12041,19 +12598,19 @@ function renderAirMarketRate(event) {
       title: `${origin.iata || origin.cn} → ${destination.iata || destination.cn} · ${weight} kg`,
       updatedLabel: evidence.quote ? "近期业务样本" : "模型预算",
       conclusion: evidence.quote ? `同航线 60 天内有效报价为 ${evidencePrice}，共 ${evidence.quotes.length} 条；正式以航空公司/货代当期舱位和附加费为准。` : `暂无同航线近期报价，只能先按 ${rate.label}、总价 ${rate.total} 做模型预算。`,
-      risk: `${assessment.level}；${evidence.transit ? `历史实际运输区间 ${evidenceTransit}` : `基础时效模型 ${hours[0]}-${hours[1]} 小时`}，不含清关和派送。`,
+      risk: `${assessment.level}；${evidence.transit ? `历史实际运输区间 ${evidenceTransit}` : hours ? `基础时效模型 ${modeledFlightTime}` : "该机场组合的时效覆盖不足"}，不含清关和派送。`,
       cost: rate.basis,
       action,
       source: evidence.rows.length ? "同航线实际记录 + 航空公司/快件/货代公开入口；以记录日期和承运人为准。" : "市场区间模型 + 航空公司/快件/货代公开入口；不是合约价或保证价。",
       evidenceLabel: evidence.rows.length ? "实单支持" : "模型估算",
       evidenceTone: evidence.rows.length ? "verified" : "model",
-      evidenceBasis: evidence.rows.length ? `${evidence.rows.length} 条同航线实际记录；最近报价 ${evidence.quote?.latestDate || "日期待补"}` : "空运市场区间模型 + 基础时效模型",
+      evidenceBasis: evidence.rows.length ? `${evidence.rows.length} 条同航线实际记录；最近报价 ${evidence.quote?.latestDate || "日期待补"}` : hours ? "空运市场区间模型 + 基础时效模型" : "空运市场区间模型；路线时效覆盖不足",
       scope: `${origin.iata || origin.cn} → ${destination.iata || destination.cn} · ${weight} kg · ${cargo}`,
       pending: "当前舱位、计费重、燃油与安检附加费、敏感货接收和目的港清关",
       links: marketSourceLinks.air
     })}
     <article class="market-rate-card primary"><span>${evidence.quote ? "近期业务报价" : "模型预算"}</span><strong>${escapeHtml(evidencePrice || rate.label)}</strong><p>${escapeHtml(evidence.quote ? `${evidence.quotes.length} 条同航线每公斤报价样本；最近日期 ${evidence.quote.latestDate || "待补"}。` : `按 ${weight} kg 计费重估算，总价约 ${rate.total}。`)}</p></article>
-    <article class="market-rate-card"><span>${evidence.transit ? "历史实绩时效" : "基础时效模型"}</span><strong>${escapeHtml(evidenceTransit || `${hours[0]}-${hours[1]} 小时`)}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : "不含截仓、安检、清关、仓储和末端派送。")}</p></article>
+    <article class="market-rate-card"><span>${evidence.transit ? "历史实绩时效" : hours ? "基础时效模型" : "时效覆盖"}</span><strong>${escapeHtml(evidenceTransit || modeledFlightTime)}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : hours ? "不含截仓、安检、清关、仓储和末端派送。" : "未命中可适用的区域时效模型，不输出默认小时数。")}</p></article>
     <article class="market-rate-card warning"><span>敏感货预审</span><strong>${escapeHtml(assessment.level)}</strong><p>${escapeHtml(action)}</p></article>
     ${renderBusinessEvidenceRouteCard("air", evidence)}
     ${renderMarketQuoteTable("air", { origin, destination, rate, weight, evidence })}
@@ -12269,8 +12826,13 @@ function renderRiskPortResult(event) {
   const actualTransit = formatEvidenceTransit(evidence);
   const actualDelay = formatEvidenceDelay(evidence);
   const carrierSchedule = evidence.schedule || { records: [] };
-  const concernScore = clampPercent(((origin.risk || 50) + (destination.risk || 50)) / 2 + (cargo === "dg" ? 10 : cargo === "oog" ? 12 : cargo === "reefer" ? 7 : cargo === "battery" ? 5 : 0));
-  const modelLevel = riskLevelFromScore(concernScore);
+  const evidenceLevel = evidence.transit
+    ? { label: "实绩可核验", tone: "ok" }
+    : carrierSchedule.records.length
+      ? { label: "班期待复核", tone: "watch" }
+      : days
+        ? { label: "模型待复核", tone: "warn" }
+        : { label: "资料不足", tone: "warn" };
   const actions = [
     "先确认是否直航、是否中转、船司挂靠和预计截关/开船/到港日期。",
     "把目的港免堆免箱、预约提柜、查验、港杂和内陆派送窗口一起核价。",
@@ -12280,12 +12842,12 @@ function renderRiskPortResult(event) {
   ].filter(Boolean);
   target.innerHTML = `
     ${renderResultBrief({
-      className: `risk-center-brief ${modelLevel.tone}`,
+      className: `risk-center-brief ${evidenceLevel.tone}`,
       kicker: "Port Risk Brief",
       title: `${origin.cn || origin.name} → ${destination.cn || destination.name}`,
       updatedLabel: evidence.actuals.length ? "业务实绩 + 实时异常" : carrierSchedule.records.length ? "承运人班期 + 实时异常" : "模型初判 + 实时异常",
       conclusion: evidence.transit ? `我的判断：已有 ${evidence.actuals.length} 票同航线实绩，实际运输区间 ${actualTransit}${actualDelay ? `，到港偏差 ${actualDelay}` : ""}；天气和管制仍需看下方实时扫描。` : carrierSchedule.records.length ? `我的判断：查到 ${carrierSchedule.records.length} 条${carrierSchedule.carriers.join("、") || "承运人"}计划航次，计划航程 ${carrierSchedule.rangeText}；这是计划船期，不是实际履约，因此不输出平均延误。` : days ? `我的判断：两端港口已识别，航程模型为 ${routeDaysText(days)}；暂无实际运输样本，不输出平均延误。` : "我的判断：两端港口已识别，但该组合没有航程模型或业务实绩，不输出默认天数。",
-      risk: `${modelLevel.label}（模型关注等级）· ${origin.cn || origin.name}：${origin.note || "待核验"}；${destination.cn || destination.name}：${destination.note || "待核验"}`,
+      risk: `${evidenceLevel.label}（路线证据状态）· ${origin.cn || origin.name}：${origin.note || "待核验"}；${destination.cn || destination.name}：${destination.note || "待核验"}`,
       cost: "延误会影响改配、堆存、滞箱、拖车等待、客户交付承诺和可能的空运替代成本。",
       action: actions[0],
       source: evidence.rows.length ? "同航线实际记录 + 港口画像；天气、海况、军演/管制只在官方来源命中且与常规航线相关时展示。" : carrierSchedule.records.length ? "承运人计划船期 + 港口画像；计划变化需回到船司页面重查。" : "航程模型 + 港口画像；暂无同航线实绩时不输出平均延误。",
@@ -12295,7 +12857,7 @@ function renderRiskPortResult(event) {
       scope: `${origin.cn || origin.name} → ${destination.cn || destination.name} · ${cargo}`,
       pending: "实时天气/海况、码头公告、航行管制、实际挂靠、转运港和当前船期"
     })}
-    ${renderRiskLevelCard(modelLevel, "模型关注等级", "用于安排港口、货型和天气核验优先级，不是事故概率。")}
+    ${renderRiskLevelCard(evidenceLevel, "路线证据状态", "只反映是否有同航线实绩、承运人班期或可适用模型，不是事故概率或港口评分。")}
     <article class="risk-center-card"><span>${evidence.transit ? "历史实绩航程" : carrierSchedule.records.length ? "承运人计划航程" : "航程模型"}</span><strong>${escapeHtml(actualTransit || (carrierSchedule.records.length ? carrierSchedule.rangeText : routeDaysText(days)))}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : carrierSchedule.records.length ? `${carrierSchedule.records.length} 个计划航次；订舱前重查 ETD/ETA。` : routeDaysNote(days))}</p></article>
     <article class="risk-center-card"><span>到港偏差证据</span><strong>${escapeHtml(actualDelay || "暂无实绩")}</strong><p>${escapeHtml(actualDelay ? "仅统计该航线已录入的计划到达与实际到达记录。" : "没有计划与实际到达记录时，不输出平均延误。")}</p></article>
     <article class="risk-center-card wide"><span>建议动作</span><ul>${actions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
@@ -12320,6 +12882,7 @@ function renderRiskAirportResult(event) {
   }
   const cargo = $("riskAirportCargo")?.value || "general";
   const hours = flightHoursForAirports(origin, destination);
+  const modeledFlightTime = flightHoursText(hours);
   const evidence = businessEvidenceForRoute("air", origin, destination, { unit: "KG" });
   const actualTransit = formatEvidenceTransit(evidence);
   const actualDelay = formatEvidenceDelay(evidence);
@@ -12337,19 +12900,19 @@ function renderRiskAirportResult(event) {
       kicker: "Airport Risk Brief",
       title: `${origin.iata || origin.cn} → ${destination.iata || destination.cn}`,
       updatedLabel: evidence.actuals.length || evidence.outcomes.length ? "业务实绩 + 官方规则" : "规则预审 + 时效模型",
-      conclusion: `我的判断：当前货物需要${assessment.level}。${evidence.transit ? `已有 ${evidence.actuals.length} 票实际运输，区间 ${actualTransit}` : `基础时效模型为 ${hours[0]}-${hours[1]} 小时`}；没有官方机场查验率，不输出百分比。`,
+      conclusion: `我的判断：当前货物需要${assessment.level}。${evidence.transit ? `已有 ${evidence.actuals.length} 票实际运输，区间 ${actualTransit}` : hours ? `基础时效模型为 ${modeledFlightTime}` : "该机场组合只有地点识别，暂无可适用的时效模型"}；没有官方机场查验率，不输出百分比。`,
       risk: `出发机场：${origin.note || "待核验"}；目的机场：${destination.note || "待核验"}${actualDelay ? `；历史到达偏差 ${actualDelay}` : ""}`,
       cost: "机场风险会影响退仓、重贴标签、重新订舱、仓储、安检、燃油和客户交期。",
       action,
-      source: evidence.rows.length ? "同航线实际记录 + IATA/航空公司/货站规则入口；只展示实际结果，不外推官方查验率。" : "IATA/航空公司/货站规则入口 + 基础时效模型；没有业务样本时不输出查验率。",
+      source: evidence.rows.length ? "同航线实际记录 + IATA/航空公司/货站规则入口；只展示实际结果，不外推官方查验率。" : hours ? "IATA/航空公司/货站规则入口 + 基础时效模型；没有业务样本时不输出查验率。" : "机场目录 + IATA/航空公司/货站规则入口；没有业务样本或适用模型时不输出时效和查验率。",
       evidenceLabel: evidence.rows.length ? "实单支持" : "规则与模型初判",
       evidenceTone: evidence.rows.length ? "verified" : "model",
-      evidenceBasis: evidence.rows.length ? `${evidence.rows.length} 条同航线实际记录 + 敏感货规则` : "敏感货规则 + 基础时效模型",
+      evidenceBasis: evidence.rows.length ? `${evidence.rows.length} 条同航线实际记录 + 敏感货规则` : hours ? "敏感货规则 + 基础时效模型" : "机场目录识别 + 敏感货规则",
       scope: `${origin.iata || origin.cn} → ${destination.iata || destination.cn} · ${cargo}`,
       pending: "实际航班、承运人接收、货站预审、安检结果、目的国清关和当期舱位"
     })}
     ${renderRiskLevelCard({ label: assessment.level, tone: assessment.tone }, "敏感货预审等级", "等级来自货物性质、规则要求和已录入业务结果，不是查验概率。")}
-    <article class="risk-center-card"><span>${evidence.transit ? "历史实绩时效" : "基础时效模型"}</span><strong>${escapeHtml(actualTransit || `${hours[0]}-${hours[1]} 小时`)}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : "不含截仓、安检、清关、仓储和派送。")}</p></article>
+    <article class="risk-center-card"><span>${evidence.transit ? "历史实绩时效" : hours ? "基础时效模型" : "时效覆盖"}</span><strong>${escapeHtml(actualTransit || modeledFlightTime)}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : hours ? "不含截仓、安检、清关、仓储和派送。" : "未命中可适用的区域时效模型，不输出默认小时数。")}</p></article>
     <article class="risk-center-card wide"><span>预审核验要点</span><strong>${escapeHtml(action)}</strong><p>${escapeHtml(actualDelay ? `业务记录显示：${actualDelay}。` : "暂无计划与实际到达记录，不判断平均延误。")}</p></article>
     ${renderBusinessEvidenceRouteCard("air", evidence)}
     ${renderAirportRiskSourceCard(origin, destination, cargo, evidence)}
@@ -18004,6 +18567,18 @@ function bindEvents() {
   $("runHsSelfTest")?.addEventListener("click", runHsValidationSuite);
   $("userSelect")?.addEventListener("change", updateRole);
   $("sourceSearch")?.addEventListener("input", () => renderSources($("sourceSearch").value));
+  $("runSourceHealthCheck")?.addEventListener("click", checkCriticalSourceHealth);
+  $("dataHealthSearch")?.addEventListener("input", () => {
+    dataHealthState.search = $("dataHealthSearch")?.value || "";
+    renderDataHealthSources();
+  });
+  document.querySelectorAll("[data-data-health-filter]").forEach((button) => {
+    button.addEventListener("click", () => {
+      dataHealthState.filter = button.dataset.dataHealthFilter || "all";
+      document.querySelectorAll("[data-data-health-filter]").forEach((item) => item.classList.toggle("active", item === button));
+      renderDataHealthSources();
+    });
+  });
   $("decisionForm")?.addEventListener("submit", evaluateDecisionSupport);
   $("loadDecisionExample")?.addEventListener("click", loadDecisionExample);
   $("clearDecision")?.addEventListener("click", clearDecisionSupport);
@@ -18300,6 +18875,7 @@ renderSeaOpsFees();
 renderAirOpsFees();
 renderSeaMarketRate({ preventDefault() {} });
 renderAirMarketRate({ preventDefault() {} });
+renderDataHealth();
 if ($("evidenceDate")) $("evidenceDate").value = new Date().toISOString().slice(0, 10);
 renderEvidenceLedger();
 renderSeaSpecialGuide();
@@ -18332,3 +18908,17 @@ document.documentElement.dataset.dataCoverageAudit = encodeURIComponent(JSON.str
   total: initialDataCoverageAudit.total,
   failed: initialDataCoverageAudit.failed
 }));
+const initialChinaDatabaseAudit = runChinaDatabaseQualityAudit();
+document.documentElement.dataset.chinaDatabaseAudit = encodeURIComponent(JSON.stringify({
+  passed: initialChinaDatabaseAudit.passed,
+  total: initialChinaDatabaseAudit.total,
+  failed: initialChinaDatabaseAudit.failed
+}));
+const initialScheduleDatabaseAudit = runScheduleDatabaseQualityAudit();
+document.documentElement.dataset.scheduleDatabaseAudit = encodeURIComponent(JSON.stringify({
+  passed: initialScheduleDatabaseAudit.passed,
+  total: initialScheduleDatabaseAudit.total,
+  failed: initialScheduleDatabaseAudit.failed,
+  recordFailures: initialScheduleDatabaseAudit.recordFailures
+}));
+loadDynamicScheduleRecords();

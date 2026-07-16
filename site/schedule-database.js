@@ -1,6 +1,6 @@
 window.LOGISTICS_SCHEDULE_DATABASE = {
-  schemaVersion: "1.0",
-  updatedAt: "2026-07-15T00:00:00+08:00",
+  schemaVersion: "1.1",
+  updatedAt: "2026-07-16T00:00:00+08:00",
   sources: [
     {
       id: "maersk-point-to-point",
@@ -19,8 +19,8 @@ window.LOGISTICS_SCHEDULE_DATABASE = {
       url: "https://www.oocl.com/eng/ourservices/eservices/sailingschedule/pages/vss.aspx",
       format: "xls/pdf",
       cadence: "daily/weekly",
-      automation: "download-ingestion",
-      note: "按区域和服务下载船期；适合中国港口周度批量入库。"
+      automation: "browser-assisted-download",
+      note: "按区域和服务下载船期，覆盖中国主要出口港；服务器直连可能触发 Cloudflare，需用正常浏览器下载后再入库。"
     },
     {
       id: "hapag-schedule-download",
@@ -69,8 +69,8 @@ window.LOGISTICS_SCHEDULE_DATABASE = {
       url: "https://www.lufthansa-cargo.com/en/network/schedule-routings",
       format: "csv/xlsx/xml",
       cadence: "daily",
-      automation: "download-ingestion",
-      note: "未来 21 天货运路线；结构化文件每日更新，最适合自动入库。"
+      automation: "browser-assisted-download",
+      note: "未来 21 天货运路线，结构化文件每日更新；服务器直连可能触发 Cloudflare，下载成功并通过字段校验后才入库。"
     },
     {
       id: "cathay-cargo-download",
@@ -79,8 +79,8 @@ window.LOGISTICS_SCHEDULE_DATABASE = {
       url: "https://www.cathaycargo.com/en-us/flight-schedule.html",
       format: "query/xlsx",
       cadence: "1st/16th monthly",
-      automation: "download-ingestion",
-      note: "月度 Excel 每月 1 日发布、16 日更新；实时查询优先。"
+      automation: "browser-assisted-download",
+      note: "月度 Excel 每月 1 日发布、16 日更新；文件下载后可入库，实时查询仍优先。"
     },
     {
       id: "cargolux-schedule",
@@ -109,8 +109,8 @@ window.LOGISTICS_SCHEDULE_DATABASE = {
       url: "https://openskynetwork.github.io/opensky-api/rest.html",
       format: "rest/json",
       cadence: "live/historical",
-      automation: "account-limits",
-      note: "用于航班位置和机场到离港实绩，不代表货运订舱或舱位。"
+      automation: "oauth-account-required",
+      note: "仅用于 ADS-B 航班位置和到离港事实。官方不提供商业航班计划、延误或货运订舱数据；研究用途有账号限制，商用需另行确认许可。"
     },
     {
       id: "aviationweather",
@@ -130,6 +130,12 @@ window.LOGISTICS_SCHEDULE_DATABASE = {
     airFreshnessDays: 2,
     conclusionRule: "只有承运人文件中同时命中起点、终点和有效日期时才输出计划时长；旧快照、区域航线图和预测模型不能冒充当前班期。",
     actualPerformanceRule: "计划班期不能计算平均延误；平均延误只使用已记录的实际离港/到港时间。"
+  },
+  retrievalPolicy: {
+    unattended: "仅在固定官方地址返回成功状态、预期文件类型且字段校验通过时自动入库。",
+    browserAssisted: "遇 Cloudflare、验证码或登录页时不绕过验证；用正常浏览器下载官方文件，再进入同一校验流程。",
+    apiAccess: "DCSA 是数据标准而不是公共船期数据源；船司或商业航班 API 获批后可作为实时增量，不作为基础可用性的前提。",
+    lastGoodSnapshot: "新文件失败、为空或字段异常时继续使用最近一次未过期的有效快照，并明确显示抓取日期。"
   },
   downloads: [
     {
