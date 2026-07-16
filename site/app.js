@@ -59,6 +59,66 @@ const defaultCases = [
     notes: "需确认是否为独立播放设备或整机配件。"
   },
   {
+    code: "8527990000",
+    name: "其他无线电广播接收设备 / 无线电收音机方向",
+    keywords: "无线电收音机,收音机,广播接收机,radio receiver,radio broadcast receiver,fm radio,am radio",
+    regulation: "中国 2026 税则方向：无线电广播接收设备属于 8527；需按供电方式、车载用途、是否组合录放音或时钟功能继续细分。",
+    lastUsed: "中国2026税则",
+    source: "财政部：中国2026进出口税则",
+    role: "finished-radio-receiver",
+    notes: "先确认是否为完整接收设备、是否依靠内置电源、是否车载、是否组合录放音或时钟；不得因能播放声音归入 8518。"
+  },
+  {
+    code: "8529906000",
+    name: "无线电收音机及其组合机用零件 / 功能板方向",
+    keywords: "无线电收音机用功能板,收音机功能板,收音机用pcba,收音机用电路板,radio receiver board,radio pcba,radio receiver part",
+    regulation: "中国 2026 税则 8529 零件方向：专用于或主要用于无线电收音机及其组合机的已装配功能板，应先按 8529 核验；裸 PCB 仍需另看 8534。",
+    lastUsed: "中国2026税则",
+    source: "财政部：中国2026进出口税则",
+    role: "radio-receiver-part",
+    notes: "确认已装配 PCBA、专用性、对应收音机型号、能否独立工作及是否只是天线；不得按 851890 音频设备零件。"
+  },
+  {
+    code: "8525500000",
+    name: "无线电广播或电视发送设备方向",
+    keywords: "无线电发送设备,无线电发射机,广播发射机,radio transmitter,broadcast transmitter,transmission apparatus",
+    regulation: "中国 2026 税则 8525 方向：无线电广播或电视发送设备按发送/发射功能判断，不与 8527 接收设备或 8518 音频设备混同。",
+    lastUsed: "中国2026税则",
+    source: "财政部：中国2026进出口税则",
+    role: "finished-radio-transmitter",
+    notes: "确认是否发送或发射、频段、功率、是否带接收功能，以及是否为完整设备或专用零件。"
+  },
+  {
+    code: "8517130000",
+    name: "智能手机",
+    keywords: "智能手机,手机,移动电话,smartphone,mobile phone,cellular phone",
+    regulation: "中国 2026 税则 851713：智能手机；其他无线电话机仍需按设备形态和网络功能继续细分。",
+    lastUsed: "中国2026税则",
+    source: "财政部：中国2026进出口税则",
+    role: "finished-smartphone",
+    notes: "确认是否完整智能手机、蜂窝网络制式、双卡/eSIM、是否含电池和适配器、是否为维修件。"
+  },
+  {
+    code: "8517629900",
+    name: "具备独立数据通信功能的智能手表（边界候选）",
+    keywords: "智能手表,蜂窝智能手表,数据通信手表,smart watch,smartwatch,cellular watch,connected wearable",
+    regulation: "智能手表必须先判断主要功能：具备独立接收、转换并发送数据的通信设备可复核 851762；仅计时或普通电子表需转看 9102。",
+    lastUsed: "归类边界规则",
+    source: "中国2026税则 + 归类边界补充",
+    role: "finished-connected-wearable",
+    notes: "确认是否可独立联网/通话、蜂窝或 Wi-Fi/Bluetooth 功能、是否依赖手机、主要用途、显示方式和电池参数。"
+  },
+  {
+    code: "9102120000",
+    name: "仅有光电显示器的电子手表（非通信边界候选）",
+    keywords: "电子手表,数字手表,光电显示手表,digital watch,electronic watch,普通手表",
+    regulation: "中国 2026 税则 9102 手表方向：以计时为主要功能且不构成独立数据通信设备时，按手表结构和显示方式细分。",
+    lastUsed: "中国2026税则",
+    source: "财政部：中国2026进出口税则",
+    role: "finished-watch",
+    notes: "确认主要功能、显示方式、机芯、表壳材质、是否具有独立通信功能；智能手表不能只凭外形归入 9102。"
+  },
+  {
     code: "8543709990",
     name: "其他具有独立功能的电气设备",
     keywords: "遥控器,remote controller,module,adapter,控制器,独立功能,accessory",
@@ -285,6 +345,96 @@ const hsValidationCases = [
       destination: "中国",
       originCountry: "中国",
       modelInfo: "独立设备，有收音机功能，无内置扬声器。"
+    }
+  },
+  {
+    id: "radio-receiver-finished",
+    title: "无线电收音机成品",
+    expected: "8527 无线电广播接收设备方向",
+    allowed: [/^8527/],
+    boundary: "无线电收音机属于 8527 广播接收设备方向；能播放声音不等于 8518 扬声器、音箱或音频扩大器。",
+    values: {
+      productName: "无线电收音机",
+      englishName: "FM/AM radio receiver",
+      productCategory: "Radio / Broadcast Receiver",
+      tradeDirection: "进口",
+      material: "塑料外壳、电路板、扬声器",
+      usage: "接收 FM/AM 无线电广播并播放声音",
+      destination: "中国",
+      originCountry: "越南",
+      modelInfo: "完整成品，可独立接收广播，内置扬声器，非音箱。"
+    }
+  },
+  {
+    id: "radio-receiver-board",
+    title: "无线电收音机用功能板",
+    expected: "8529 无线电收音机专用零件方向",
+    allowed: [/^8529/, /^853400/],
+    boundary: "无线电收音机用已装配功能板应先看 8529 专用零件；只有裸 PCB 才转看 8534，不得按 851890 音频设备零件。",
+    values: {
+      productName: "无线电收音机用功能板",
+      englishName: "Radio receiver PCBA",
+      productCategory: "Radio / Video Equipment Part",
+      tradeDirection: "进口",
+      material: "已装配 PCBA、调谐芯片、电子元器件",
+      usage: "专用于无线电收音机接收和解调广播信号",
+      destination: "中国",
+      originCountry: "马来西亚",
+      modelInfo: "已装配功能板，专用于指定收音机型号，不能独立工作，不是裸 PCB。"
+    }
+  },
+  {
+    id: "radio-transmitter-finished",
+    title: "无线电广播发射设备",
+    expected: "8525 无线电广播发送设备方向",
+    allowed: [/^8525/],
+    boundary: "设备的主要功能是发送/发射广播信号时应先看 8525，不按 8527 接收机或 8518 音频设备处理。",
+    values: {
+      productName: "无线电广播发射机",
+      englishName: "Radio broadcast transmitter",
+      productCategory: "Radio / Broadcast Transmitter",
+      tradeDirection: "进口",
+      material: "金属外壳、射频电路、电源模块",
+      usage: "发送 FM 广播信号",
+      destination: "中国",
+      originCountry: "德国",
+      modelInfo: "完整发射设备，输出功率 100W，不带广播接收功能。"
+    }
+  },
+  {
+    id: "smartphone-finished",
+    title: "智能手机成品",
+    expected: "851713 智能手机方向",
+    allowed: [/^851713/],
+    boundary: "完整智能手机应先匹配税则中智能手机列名，不因含摄像头、扬声器、电池或显示屏而转到这些内部部件税号。",
+    values: {
+      productName: "智能手机",
+      englishName: "5G smartphone",
+      productCategory: "Mobile Phone / Communication Device",
+      tradeDirection: "进口",
+      material: "玻璃、金属、显示屏、锂电池、电路板",
+      usage: "蜂窝网络通话、数据通信和应用运行",
+      destination: "中国",
+      originCountry: "越南",
+      modelInfo: "完整成品，5G，eSIM，内置锂电池，零售包装。"
+    }
+  },
+  {
+    id: "connected-smartwatch",
+    title: "独立联网智能手表",
+    expected: "851762 数据通信设备方向，需与 9102 手表反证",
+    allowed: [/^851762/],
+    boundary: "可独立联网并接收、转换、发送数据的智能手表，应优先判断通信功能；不能只按手表外形套 9102。",
+    values: {
+      productName: "蜂窝网络智能手表",
+      englishName: "Cellular smart watch",
+      productCategory: "Smart Watch / Wearable",
+      tradeDirection: "进口",
+      material: "金属表壳、触控屏、锂电池、无线通信模块",
+      usage: "可独立通过 eSIM 通话、联网并发送接收数据",
+      destination: "中国",
+      originCountry: "中国",
+      modelInfo: "完整成品，可脱离手机独立联网，支持蜂窝、Wi-Fi 和蓝牙。"
     }
   },
   {
@@ -698,6 +848,62 @@ const learningState = {
 
 const hsAssistProfiles = [
   {
+    match: /无线电收音机.*(?:功能板|电路板|线路板|控制板|主板|pcba|pcb|模块|零件|配件|部件)|(?:功能板|电路板|线路板|控制板|主板|pcba|pcb|模块|零件|配件|部件).{0,12}(?:无线电收音机|收音机)|radio\s*(?:receiver\s*)?(?:board|pcba|pcb|module|part)/i,
+    category: "Radio / Video Equipment Part",
+    material: ["已装配 PCBA", "调谐/解调芯片", "射频元器件", "连接器", "裸 PCB"],
+    usage: ["无线电收音机接收功能板", "广播信号调谐/解调", "指定收音机维修备件"],
+    spec: ["裸 PCB/已装配 PCBA", "是否专用于收音机", "能否独立工作", "对应整机型号", "频段"],
+    questions: ["是裸 PCB 还是已装配 PCBA？", "是否专用于无线电收音机？", "是否能脱离主机独立工作？", "对应整机型号和频段是什么？"]
+  },
+  {
+    match: /无线电.*(?:发射|发送)|广播发射|radio[\s/]*(?:broadcast[\s/]*)?(?:transmitter|transmission)|broadcast\s*transmitter/i,
+    category: "Radio / Broadcast Transmitter",
+    material: ["射频发射电路", "功率放大模块", "金属外壳", "电源模块", "天线接口"],
+    usage: ["发送无线电广播信号", "无线电/电视信号发射", "专业广播传输"],
+    spec: ["发射频段", "输出功率", "是否带接收功能", "调制方式", "是否完整设备"],
+    questions: ["核心功能是发送还是接收？", "发射频段和输出功率是多少？", "是否同时带接收功能？", "是完整设备还是专用零件？"]
+  },
+  {
+    match: /无线电收音机|广播接收机|收音机|radio[\s/]*(?:broadcast[\s/]*)?receiver|fm\s*radio|am\s*radio/i,
+    category: "Radio / Broadcast Receiver",
+    material: ["塑料/金属外壳", "调谐接收电路", "扬声器", "显示/控制组件", "电池/电源模块"],
+    usage: ["接收 AM/FM/数字广播", "无线电广播接收和播放", "车载或便携广播接收"],
+    spec: ["是否完整接收设备", "内置电源/外接电源", "是否车载", "是否组合录放音", "是否带时钟"],
+    questions: ["是完整收音机还是功能板/零件？", "依靠内置电源还是外接电源？", "是否车载？", "是否组合录放音或时钟？"]
+  },
+  {
+    match: /智能手机|移动电话|smartphone|mobile\s*phone|cellular\s*phone/i,
+    category: "Mobile Phone / Communication Device",
+    material: ["玻璃显示屏", "金属/塑料外壳", "通信主板", "摄像头模组", "锂电池"],
+    usage: ["蜂窝网络通话", "移动数据通信", "运行应用和拍摄", "无线网络连接"],
+    spec: ["网络制式/频段", "SIM/eSIM", "是否完整成品", "存储容量", "电池 Wh", "是否随附适配器"],
+    questions: ["是完整手机还是维修零件？", "网络制式和频段是什么？", "是否支持 SIM/eSIM？", "电池和随附适配器参数是什么？"]
+  },
+  {
+    match: /智能手表|智慧手表|smart\s*watch|smartwatch|connected\s*wearable|电子手表|digital\s*watch/i,
+    category: "Smart Watch / Wearable",
+    material: ["金属/塑料表壳", "触控/光电显示屏", "通信/传感器模块", "锂电池", "表带"],
+    usage: ["独立通信和数据收发", "健康/运动监测", "手机伴侣设备", "普通电子计时"],
+    spec: ["能否独立联网/通话", "蜂窝/Wi-Fi/蓝牙", "是否依赖手机", "主要功能", "显示方式", "电池 Wh"],
+    questions: ["能否脱离手机独立联网或通话？", "主要功能是通信、健康监测还是计时？", "支持哪些无线制式？", "显示方式和电池参数是什么？"]
+  },
+  {
+    match: /摄像机|照相机|相机|摄像头|camera|camcorder|video\s*camera/i,
+    category: "Camera / Video Equipment",
+    material: ["镜头", "图像传感器", "电路板", "显示屏", "锂电池"],
+    usage: ["数字拍摄", "视频摄录", "监控取像", "图像传输"],
+    spec: ["相机/摄像机/取像模块", "是否可独立拍摄", "传感器类型", "是否联网", "是否含存储/电池"],
+    questions: ["是完整相机、摄像机还是取像模块？", "能否独立拍摄和存储？", "是否具有网络传输功能？", "传感器和镜头参数是什么？"]
+  },
+  {
+    match: /路由器|交换机|网关|网络设备|network\s*(?:device|gateway)|router|switch/i,
+    category: "Computer / Network Equipment",
+    material: ["通信主板", "网络接口", "塑料/金属外壳", "电源模块", "天线"],
+    usage: ["数据接收/转换/发送", "网络交换和路由", "无线接入", "局域网/广域网连接"],
+    spec: ["网络功能", "端口数量/速率", "有线/无线", "频段", "是否带调制解调功能"],
+    questions: ["主要功能是交换、路由、无线接入还是调制解调？", "端口数量和速率？", "是否带无线频段？", "是否完整设备？"]
+  },
+  {
     match: /扬声器单元|喇叭单元|高音单元|低音单元|中音单元|发声单元|speaker driver|tweeter|woofer|midrange/i,
     category: "Loudspeaker Driver / Speaker Unit",
     material: ["金属磁路", "纸盆/振膜", "音圈", "塑料/金属支架"],
@@ -796,6 +1002,76 @@ const hsAssistProfiles = [
 ];
 
 const dynamicHsParamProfiles = [
+  {
+    match: /无线电收音机.*(?:功能板|电路板|线路板|控制板|主板|pcba|pcb|模块|零件|配件|部件)|(?:功能板|电路板|线路板|控制板|主板|pcba|pcb|模块|零件|配件|部件).{0,12}(?:无线电收音机|收音机)|radio\s*(?:receiver\s*)?(?:board|pcba|pcb|module|part)/i,
+    fields: [
+      ["板件状态", ["已装配 PCBA", "裸 PCB", "独立功能模块", "不确定"]],
+      ["对应设备", ["无线电收音机", "收录音组合机", "车载收音机", "其他"]],
+      ["是否专用零件", ["是", "否/通用", "不确定"]],
+      ["能否独立工作", ["否，仅主机内部使用", "是", "不确定"]],
+      ["接收频段", ["AM", "FM", "数字广播", "多频段", "不确定"]]
+    ]
+  },
+  {
+    match: /无线电.*(?:发射|发送)|广播发射|radio\s*(?:broadcast\s*)?(?:transmitter|transmission)|broadcast\s*transmitter/i,
+    fields: [
+      ["核心功能", ["仅发送/发射", "收发一体", "仅接收", "不确定"]],
+      ["信号类型", ["无线电广播", "电视广播", "其他无线电", "不确定"]],
+      ["发射频段", ["AM", "FM", "VHF/UHF", "其他"]],
+      ["输出功率", ["1W 以下", "1-100W", "100W 以上", "不确定"]],
+      ["货物形态", ["完整设备", "专用零件", "模块", "不确定"]]
+    ]
+  },
+  {
+    match: /无线电收音机|广播接收机|收音机|radio\s*(?:broadcast\s*)?receiver|fm\s*radio|am\s*radio/i,
+    fields: [
+      ["货物形态", ["完整收音机", "功能板/零件", "收录音组合机", "不确定"]],
+      ["供电方式", ["内置电池", "外接电源", "车载电源", "多种供电", "不确定"]],
+      ["使用场景", ["便携", "家用", "车载", "专业", "不确定"]],
+      ["组合功能", ["仅广播接收", "带录放音", "带时钟", "其他"]],
+      ["接收频段", ["AM", "FM", "数字广播", "多频段", "不确定"]]
+    ]
+  },
+  {
+    match: /智能手机|移动电话|手机|smartphone|mobile\s*phone|cellular\s*phone/i,
+    fields: [
+      ["货物形态", ["完整智能手机", "维修零件", "样机", "不确定"]],
+      ["网络制式", ["5G", "4G/LTE", "其他蜂窝网络", "不确定"]],
+      ["SIM 方式", ["实体 SIM", "eSIM", "双卡/多卡", "不确定"]],
+      ["随附部件", ["仅手机", "含适配器", "含耳机", "零售套装"]],
+      ["电池", ["内置锂电池", "可拆电池", "不含电池", "不确定"]]
+    ]
+  },
+  {
+    match: /智能手表|智慧手表|smart\s*watch|smartwatch|connected\s*wearable|电子手表|digital\s*watch/i,
+    fields: [
+      ["主要功能", ["独立数据通信", "健康/运动监测", "手机伴侣", "普通计时", "不确定"]],
+      ["独立联网/通话", ["是", "否，依赖手机", "不确定"]],
+      ["无线方式", ["蜂窝/eSIM", "Wi-Fi + 蓝牙", "仅蓝牙", "无无线"]],
+      ["显示方式", ["OLED/LCD 光电显示", "机械指示", "混合", "不确定"]],
+      ["电池", ["内置锂电池", "纽扣电池", "其他", "不确定"]]
+    ]
+  },
+  {
+    match: /摄像机|照相机|相机|摄像头|camera|camcorder|video\s*camera/i,
+    fields: [
+      ["货物形态", ["数字照相机", "视频摄录一体机", "电视/监控摄像机", "取像模块", "不确定"]],
+      ["能否独立工作", ["是", "否，仅模块", "不确定"]],
+      ["图像传感器", ["CMOS", "CCD", "其他", "不确定"]],
+      ["联网/传输", ["有线", "Wi-Fi/蜂窝", "无", "不确定"]],
+      ["存储/电池", ["内置存储和电池", "外部供电", "模块无电池", "不确定"]]
+    ]
+  },
+  {
+    match: /路由器|交换机|网关|网络设备|network\s*(?:device|gateway)|router|switch/i,
+    fields: [
+      ["网络功能", ["路由", "交换", "无线接入", "调制解调", "其他"]],
+      ["连接方式", ["有线", "无线", "有线 + 无线", "不确定"]],
+      ["端口速率", ["百兆", "千兆", "2.5G 以上", "不确定"]],
+      ["无线频段", ["2.4GHz", "5GHz", "双频/多频", "无无线"]],
+      ["货物形态", ["完整设备", "接口卡", "模块/零件", "不确定"]]
+    ]
+  },
   {
     match: /扬声器单元|喇叭单元|高音单元|低音单元|中音单元|发声单元|speaker driver|tweeter|woofer|midrange/i,
     fields: [
@@ -1212,6 +1488,8 @@ const marketSourceLinks = {
     ["COSCO Shipping Lines", "https://elines.coscoshipping.com/"],
     ["Hapag-Lloyd Schedule", "https://www.hapag-lloyd.com/en/online-business/schedule/interactive-schedule.html"],
     ["ONE Schedule", "https://ecomm.one-line.com/one-ecom/schedule/point-to-point-schedule"],
+    ["OOCL Sailing Schedules", "https://www.oocl.com/eng/ourservices/eservices/sailingschedule/Pages/default.aspx"],
+    ["Evergreen ShipmentLink", "https://www.shipmentlink.com/"],
     ["Kuehne+Nagel", "https://www.kuehne-nagel.com/"],
     ["DHL Global Forwarding", "https://www.dhl.com/global-en/home/our-divisions/global-forwarding.html"],
     ["DSV", "https://www.dsv.com/"]
@@ -1223,8 +1501,10 @@ const marketSourceLinks = {
     ["FedEx Developer", "https://developer.fedex.com/"],
     ["Kuehne+Nagel", "https://www.kuehne-nagel.com/"],
     ["DSV", "https://www.dsv.com/"],
-    ["Cathay Cargo", "https://www.cathaycargo.com/"],
-    ["Lufthansa Cargo", "https://lufthansa-cargo.com/"],
+    ["Cathay Cargo Flight Schedule", "https://www.cathaycargo.com/en-us/flight-schedule.html"],
+    ["Lufthansa Cargo Schedule & Routings", "https://www.lufthansa-cargo.com/en/network/schedule-routings/-/schedule-routings/"],
+    ["China Cargo Airlines", "https://www.ckair.com/"],
+    ["China Airlines Cargo Schedule", "https://cargo.china-airlines.com/ccnetv2/content/manage/ScheduleDisplay.aspx"],
     ["Emirates SkyCargo", "https://www.skycargo.com/"],
     ["IATA Cargo", "https://www.iata.org/en/programs/cargo/"]
   ]
@@ -1239,6 +1519,7 @@ const marketInquiryRows = {
     ["CMA CGM Schedules", "船司船期/报价入口", "部分需登录", "适合交叉核验达飞服务、转运港、ETD/ETA 和附加费。", "https://www.cma-cgm.com/ebusiness/schedules"],
     ["Hapag-Lloyd Interactive Schedule", "船司船期", "公开查询", "适合核验赫伯罗特服务、转运、cut-off 和预计航程。", "https://www.hapag-lloyd.com/en/online-business/schedule/interactive-schedule.html"],
     ["ONE Point-to-Point Schedule", "船司船期", "公开查询", "适合核验 ONE 航线、服务名、转运港和预计到港。", "https://ecomm.one-line.com/one-ecom/schedule/point-to-point-schedule"],
+    ["OOCL Sailing Schedules", "船司船期/下载", "公开查询/下载", "适合核验东方海外点到点船期、服务环线和可下载班期表。", "https://www.oocl.com/eng/ourservices/eservices/sailingschedule/Pages/default.aspx"],
     ["Evergreen ShipmentLink", "船司船期/货件入口", "部分需登录", "适合复核长荣航线、船名航次和订舱后货件状态。", "https://www.shipmentlink.com/"],
     ["Kuehne+Nagel Sea Logistics", "大型货代询价", "企业账号优先", "适合拿货代实盘价和市场判断，与船司报价交叉验证。", "https://home.kuehne-nagel.com/-/services/sea-freight"],
     ["DHL Global Forwarding Ocean", "大型货代询价", "企业账号/表单", "适合拿门到门、目的港费用和多承运人方案。", "https://www.dhl.com/global-en/home/our-divisions/global-forwarding.html"],
@@ -1252,8 +1533,10 @@ const marketInquiryRows = {
     ["FedEx Developer / Rate", "快件 API/报价", "账号 API", "适合快件/小货费率、追踪和标签；大货空运合同价仍需商务账号。", "https://developer.fedex.com/"],
     ["UPS Developer / Air Cargo", "快件 API/空运入口", "账号 API/查询", "适合快件费率和追踪；UPS Air Cargo 需按航线、账号和货型核价。", "https://developer.ups.com/"],
     ["DHL API Developer Portal", "快件 API", "可申请", "适合快件费率、运单、追踪；Global Forwarding 空运价仍需账号或询价。", "https://developer.dhl.com/"],
-    ["Cathay Cargo", "航司货运入口", "需账号/查询", "适合核验香港/亚洲航线、锂电池限制、航班和舱位规则。", "https://www.cathaycargo.com/"],
-    ["Lufthansa Cargo", "航司货运入口", "需账号/查询", "适合核验欧洲线航班、特货接收和附加费口径。", "https://lufthansa-cargo.com/"],
+    ["Cathay Cargo Flight Schedule", "航司货运班期", "公开查询/下载", "适合核验香港/亚洲货运航班；月度班期可下载，实时查询优先。", "https://www.cathaycargo.com/en-us/flight-schedule.html"],
+    ["Lufthansa Cargo Schedule & Routings", "航司货运班期", "公开查询/CSV-XLSX-XML", "适合核验欧洲线未来航班和路线，并可下载结构化班期。", "https://www.lufthansa-cargo.com/en/network/schedule-routings/-/schedule-routings/"],
+    ["China Cargo Airlines", "中国货运航司", "公开官网", "适合核验中国始发货运航线和业务公告；舱位及价格仍需逐票确认。", "https://www.ckair.com/"],
+    ["China Airlines Cargo Schedule", "航司货运班期", "公开查询", "适合补充亚洲转运和货机班期核验。", "https://cargo.china-airlines.com/ccnetv2/content/manage/ScheduleDisplay.aspx"],
     ["Emirates SkyCargo", "航司货运入口", "需账号/查询", "适合核验中东中转、特殊货物、航班和温控/危险品服务。", "https://www.skycargo.com/"],
     ["FlightAware AeroAPI", "航班状态/位置 API", "商业 API", "适合接航班状态、ETA、位置和预警，不直接给空运价格。", "https://www.flightaware.com/commercial/aeroapi/"]
   ]
@@ -1275,6 +1558,7 @@ const carrierScheduleSources = {
     ["CMA CGM Schedules", "https://www.cma-cgm.com/ebusiness/schedules"],
     ["Hapag-Lloyd Interactive Schedule", "https://www.hapag-lloyd.com/en/online-business/schedule/interactive-schedule.html"],
     ["ONE Point-to-Point Schedule", "https://ecomm.one-line.com/one-ecom/schedule/point-to-point-schedule"],
+    ["OOCL Sailing Schedules", "https://www.oocl.com/eng/ourservices/eservices/sailingschedule/Pages/default.aspx"],
     ["Evergreen ShipmentLink", "https://www.shipmentlink.com/"]
   ],
   domestic: [
@@ -2170,8 +2454,12 @@ const portEvidenceSourceIds = {
   CNNGB: ["ningbo-port", "china-msa", "china-nmc"],
   CNYTN: ["yantian", "china-msa", "china-nmc"],
   CNTAO: ["qingdao-port", "china-msa", "china-nmc"],
+  CNTSN: ["tianjin-port", "china-msa", "china-nmc"],
   CNXMN: ["xiamen-port", "china-msa", "china-nmc"],
+  CNFOC: ["fuzhou-port-center", "china-msa", "china-nmc"],
   CNGZG: ["guangzhou-port", "china-msa", "china-nmc"],
+  CNLYG: ["lianyungang-port", "china-msa", "china-nmc"],
+  CNTXG: ["taicang-port", "china-msa", "china-nmc"],
   SGSIN: ["singapore-mpa"],
   USLAX: ["noaa-marine"],
   USLGB: ["noaa-marine"]
@@ -2699,6 +2987,42 @@ const hsInterpretationOverrides = {
     boundary: "如果只是音视频信号处理、解码或转换，无收音机功能、无功率放大和无扬声功能，通常应回到 8543709990 方向复核。",
     caution: "需要规格书、功能说明和菜单/接口资料证明是否具备收音机功能。"
   },
+  "85279900": {
+    legalName: "其他无线电广播接收设备方向",
+    scope: "适用于未落入更具体组合功能、供电或车载子目的无线电广播接收设备方向；最终子目需结合供电、车载用途、录放音和时钟功能确认。",
+    boundary: "无线电收音机的列名品目是 8527；内置扬声器只用于输出接收到的广播声音，不使整机归入 8518。",
+    caution: "通用输入只能确定 8527 品目方向，不能在缺少供电方式、车载用途和组合功能时宣称 85279900 是最终税号。"
+  },
+  "85299060": {
+    legalName: "无线电收音机及其组合机用零件",
+    scope: "适用于专用于或主要用于无线电收音机及其组合机的零件方向，例如经证实专用的已装配接收/调谐功能板。",
+    boundary: "完整收音机回到 8527；裸 PCB 先看 8534；天线可能落入 852910；能独立工作的通用模块按自身功能另判。",
+    caution: "需证明专用性、对应主机、已装配状态和不能独立工作，不能只凭“收音机用”四个字定税号。"
+  },
+  "85255000": {
+    legalName: "无线电广播或电视发送设备",
+    scope: "适用于主要功能为发送/发射无线电广播或电视信号且未装接收装置的设备方向。",
+    boundary: "装有接收装置的发送设备需转看 852560；仅接收广播的设备属于 8527；音频输入和功率放大只是发送系统组成时不按 8518。",
+    caution: "需确认发送信号类型、频段、功率、是否带接收装置以及是否涉及无线电发射设备型号核准。"
+  },
+  "85171300": {
+    legalName: "智能手机",
+    scope: "适用于蜂窝网络或其他无线网络用的完整智能手机。",
+    boundary: "维修主板、显示模组、摄像头、电池和外壳按零件或自身功能另判；完整手机不因包含这些组件而改按组件税号。",
+    caution: "需确认是完整成品、网络制式、SIM/eSIM、是否翻新/维修件、随附适配器和电池状态。"
+  },
+  "85176299": {
+    legalName: "其他接收、转换并发送或再生数据用设备方向",
+    scope: "智能穿戴设备若能独立接收、转换并发送数据，且通信构成主要功能，可在 851762 方向继续核验。",
+    boundary: "仅蓝牙连接手机、以健康监测或计时为主要功能的手表不能仅凭“智能”二字自动归入 851762；需与 9102 反证。",
+    caution: "该结果是功能边界候选，不是所有智能手表的统一税号；必须核对独立联网、通话、数据收发和主要功能。"
+  },
+  "91021200": {
+    legalName: "仅有光电显示器的电力驱动手表方向",
+    scope: "适用于以计时为主要功能、仅有光电显示器且不构成独立数据通信设备的手表方向。",
+    boundary: "能独立联网、通话并收发数据的智能手表应先判断 8517 通信功能；贵金属表壳还需先判断 9101。",
+    caution: "需确认主要功能、显示方式、表壳材质、机芯及独立通信能力。"
+  },
   "85437099": {
     legalName: "其他具有独立功能的电气设备及装置",
     tariffOriginal: "8543.7099 其他（税目 8543：本章其他税目未列名的具有独立功能的电气设备及装置）",
@@ -2762,6 +3086,42 @@ const hsTariffFullTextOverrides = {
     "品目 85.26：雷达设备、无线电导航设备及无线电遥控设备。",
     "子目 8526.92：无线电遥控设备。",
     "中国 8 位税号 85269200：无线电遥控设备。"
+  ],
+  "85279900": [
+    "第 85 章：电机、电气设备及其零件。",
+    "品目 85.27：无线电广播接收设备，不论是否与声音的录制、重放装置或时钟组合在同一机壳内。",
+    "子目需继续按供电方式、车载用途、是否组合录放音或时钟功能细分。",
+    "当前 85279900 仅作为“其他”方向候选，信息不足时不作为最终申报税号。"
+  ],
+  "85299060": [
+    "第 85 章：电机、电气设备及其零件。",
+    "品目 85.29：专用于或主要用于税目 85.24 至 85.28 所列装置或设备的零件。",
+    "中国 8 位税号 85299060：无线电收音机及其组合机用零件方向。",
+    "裸 PCB、天线和具有独立功能的模块需要分别按更具体税目反证。"
+  ],
+  "85255000": [
+    "第 85 章：电机、电气设备及其零件。",
+    "品目 85.25：无线电广播、电视发送设备，不论是否装有接收装置；电视摄像机、数字照相机及视频摄录一体机。",
+    "子目 8525.50：发送设备。",
+    "是否装有接收装置会影响进一步细分。"
+  ],
+  "85171300": [
+    "第 85 章：电机、电气设备及其零件。",
+    "品目 85.17：电话机及其他发送或接收声音、图像或其他数据用的通信设备。",
+    "子目 8517.13：智能手机。",
+    "中国 8 位税号 85171300：智能手机。"
+  ],
+  "85176299": [
+    "第 85 章：电机、电气设备及其零件。",
+    "子目 8517.62：接收、转换并且发送或再生声音、图像或其他数据用的设备。",
+    "智能手表只有在独立数据通信构成主要功能时才进入该方向。",
+    "需与 9102 手表税目按主要功能进行反证。"
+  ],
+  "91021200": [
+    "第 91 章：钟表及其零件。",
+    "品目 91.02：其他手表、怀表及其他表，包括秒表。",
+    "子目 9102.12：仅有光电显示器的电力驱动手表。",
+    "具备独立数据通信主要功能的智能手表需先与 8517 反证。"
   ],
   "85340090": [
     "第 85 章：电机、电气设备及其零件；录音机及放声机、电视图像和声音的录制及重放设备及其零件、附件。",
@@ -3526,10 +3886,55 @@ function hasDisplayPanelIntent(text = "") {
 
 function hasPositiveRadioSignal(text = "") {
   const value = normalize(text);
-  if (/是否.{0,8}(收音|广播|radio|fm|am).{0,6}(否|无|不|no|none)|(?:无|不带|没有|未带|不支持).{0,8}(收音|广播接收|radio|fm|am)|(收音|广播|radio|fm|am)(?:功能)?[:：]?(否|无|不支持|no|none)/i.test(value)) {
+  if (/是否.{0,8}(收音|广播|radio|fm|am).{0,6}(否|无|不|no|none)|(?:无(?!线电)|不带|没有|未带|不支持).{0,8}(收音|广播接收|radio|fm|am)|(收音|广播|radio|fm|am)(?:功能)?[:：]?(否|无|不支持|no|none)/i.test(value)) {
     return false;
   }
   return /(?:带|有|具有|内置|支持|含).{0,8}(收音|广播接收|radio|fm|am)|收音机功能|广播接收功能|radio\s*receiver|fm\/am/i.test(value);
+}
+
+function hasRadioReceiverIntent(text = "") {
+  const value = normalize(text);
+  if (/无线电遥控|radio\s*remote|遥控设备/i.test(value)) return false;
+  if (/(?:无(?!线电)|不带|没有|未带|不支持).{0,8}(?:收音机|广播接收|radio\s*receiver)/i.test(value)) return false;
+  return /无线电收音机|广播接收机|收音机|radio\s*(?:broadcast\s*)?receiver|fm\s*radio|am\s*radio/i.test(value);
+}
+
+function hasRadioTransmitterIntent(text = "") {
+  const value = normalize(text);
+  return /无线电.*(?:发射|发送)|广播发射|radio[\s/]*(?:broadcast[\s/]*)?(?:transmitter|transmission)|broadcast\s*transmitter/i.test(value);
+}
+
+function hasRadioEquipmentPartIntent(text = "") {
+  const value = normalize(text);
+  if (!hasRadioReceiverIntent(value)) return false;
+  const partWord = "功能板|电路板|线路板|控制板|主板|板卡|pcba|pcb|模块|零件|配件|部件|维修件|天线|board|module|part|component|spare";
+  const explicitRadioPart = new RegExp(
+    `(?:无线电收音机|广播接收机|收音机)(?:专用|用|维修|替换|更换|的)?[^，,;。\\n]{0,10}(?:${partWord})|(?:${partWord})[^，,;。\\n]{0,10}(?:无线电收音机|广播接收机|收音机)|radio\\s*(?:broadcast\\s*)?receiver\\s*(?:${partWord})`,
+    "i"
+  ).test(value);
+  const explicitPartRole = new RegExp(
+    `(?:货物|产品|商品|本品|品名|形态)?[^，,;。\\n]{0,8}(?:${partWord}).{0,20}(?:专用于|适用于|不能独立工作|维修|替换|对应整机|已装配|裸板|bare|assembled)|(?:专用于|适用于|不能独立工作|维修|替换|对应整机|已装配|裸板|bare|assembled).{0,20}(?:${partWord})`,
+    "i"
+  ).test(value);
+  const explicitFinishedRadio = /(?:完整|成品|整机|可独立使用|complete|finished).{0,8}(?:无线电收音机|广播接收机|收音机)|(?:无线电收音机|广播接收机|收音机).{0,8}(?:完整|成品|整机|可独立使用|complete|finished)/i.test(value);
+  if (explicitFinishedRadio && !explicitRadioPart && !explicitPartRole) return false;
+  return explicitRadioPart || explicitPartRole;
+}
+
+function hasSmartphoneIntent(text = "") {
+  const value = normalize(text);
+  if (hasSmartWatchIntent(value)) return false;
+  return /智能手机|移动电话|(?:^|[\s,，;；:：])手机(?:成品|整机|[\s,，;；。.]|$)|smartphone|mobile\s*phone|cellular\s*phone/i.test(value);
+}
+
+function hasSmartWatchIntent(text = "") {
+  return /智能手表|智慧手表|smart\s*watch|smartwatch|connected\s*wearable|电子手表|digital\s*watch/i.test(normalize(text));
+}
+
+function hasIndependentWatchCommunication(text = "") {
+  const value = normalize(text);
+  if (!hasSmartWatchIntent(value)) return false;
+  return /独立(?:联网|通话|通信)|脱离手机|蜂窝|cellular|e\s*sim|sim\s*卡|独立.*(?:发送|接收).*数据/i.test(value);
 }
 
 function hasExplicitHeadphonePartIntent(text = "") {
@@ -3550,9 +3955,46 @@ function hasStandaloneChargingCaseIntent(text = "") {
 
 function getCargoShape(text = "") {
   const value = normalize(text);
-  const usedFor = /(?:用于|适用于|专用于|配套|维修|替换|更换|for\s+|use\s+for)|(?:音箱|扬声器|喇叭|功放|扩大器|耳机|麦克风|speaker|loudspeaker|amplifier|headphone|microphone)\s*用/i.test(value);
+  const usedFor = /(?:用于|适用于|专用于|配套|维修|替换|更换|for\s+|use\s+for)|(?:音箱|扬声器|喇叭|功放|扩大器|耳机|麦克风|收音机|手机|手表|相机|摄像机|speaker|loudspeaker|amplifier|headphone|microphone|radio|phone|watch|camera)\s*用/i.test(value);
   const audioHostSignal = /音箱|扬声器|喇叭|功放|扩大器|耳机|麦克风|speaker|loudspeaker|amplifier|headphone|microphone/i.test(value);
   const headphoneFinishedSignal = /耳机|耳塞|headphone|headset|earbud|tws/i.test(value);
+	  if (hasRadioEquipmentPartIntent(value)) {
+	    return {
+	      type: "radio-part",
+	      label: "无线电收音机专用功能板/零件",
+	      reason: "税则先看货物对应的列名设备：收音机属于 8527，其专用或主要使用零件先看 8529；不得因含扬声器或音频电路套用 8518。"
+	    };
+	  }
+	  if (hasRadioTransmitterIntent(value)) {
+	    return {
+	      type: "radio-transmitter",
+	      label: "无线电广播发送/发射设备",
+	      reason: "核心功能是发送或发射无线电广播信号，先按 8525 发送设备方向核验。"
+	    };
+	  }
+	  if (hasRadioReceiverIntent(value)) {
+	    return {
+	      type: "radio-receiver",
+	      label: "无线电广播接收设备",
+	      reason: "产品名称和功能指向无线电收音机/广播接收机，先按 8527 税则列名核验，不按 8518 音箱或音频设备判断。"
+	    };
+	  }
+	  if (hasSmartWatchIntent(value)) {
+	    return {
+	      type: hasIndependentWatchCommunication(value) ? "connected-watch" : "watch",
+	      label: hasIndependentWatchCommunication(value) ? "独立通信智能手表" : "手表/穿戴设备边界",
+	      reason: hasIndependentWatchCommunication(value)
+	        ? "输入明确可独立联网、通话或收发数据，先判断 8517 通信功能，再以 9102 手表方向作为反证。"
+	        : "尚未证明独立数据通信功能，不能只凭“智能”二字套用通信设备；需在 8517 与 9102 之间按主要功能复核。"
+	    };
+	  }
+	  if (hasSmartphoneIntent(value)) {
+	    return {
+	      type: "smartphone",
+	      label: "智能手机/移动通信设备",
+	      reason: "完整智能手机在税则中有明确列名，应先看 851713；摄像头、扬声器、显示屏和电池是内部组成，不能取代整机主要功能。"
+	    };
+	  }
 	  const explicitHeadphonePartSignal = hasExplicitHeadphonePartIntent(value);
 	  if (headphoneFinishedSignal && !explicitHeadphonePartSignal) {
 	    return {
@@ -3674,9 +4116,13 @@ function getCargoShape(text = "") {
   };
 }
 
+function isFinishedCargoShapeType(type = "") {
+  return ["finished", "speaker-no-enclosure", "radio-receiver", "radio-transmitter", "smartphone", "connected-watch", "watch"].includes(type);
+}
+
 function hasPartIntent(text = "") {
   const shape = getCargoShape(text).type;
-  return shape !== "finished" && shape !== "speaker-no-enclosure";
+  return !isFinishedCargoShapeType(shape);
 }
 
 function hasBoardIntent(text = "") {
@@ -3773,11 +4219,45 @@ function isDisplayPanelCandidate(item = {}) {
 function isLikelyFinishedGoodsCandidate(item = {}) {
   if (/^finished-|^headphone$|^microphone$|speaker-without-enclosure/.test(String(item.role || ""))) return true;
   const text = normalize([item.code, item.name, item.keywords].join(" "));
-  return /^851840|^851821|^851822|^851829|^851830|^851810|^852791|^851762/.test(String(item.code || "")) || /功率放大器|音频扩大器|整机|音箱|耳机|麦克风|接收机|amplifier|receiver|speaker|headphone/.test(text);
+  return /^851713|^851714|^851840|^851821|^851822|^851829|^851830|^851810|^8525|^8527|^851762|^9102/.test(String(item.code || "")) || /功率放大器|音频扩大器|智能手机|手机|智能手表|手表|收音机|广播接收|发射设备|整机|音箱|耳机|麦克风|接收机|amplifier|receiver|transmitter|smartphone|smartwatch|speaker|headphone/.test(text);
 }
 
 function getHostFamily(text = "") {
   const value = normalize(text);
+  if (hasRadioReceiverIntent(value)) {
+    return {
+      type: "radio-8527",
+      label: "8527 无线电广播接收设备",
+      partCode: "8529906000",
+      reason: "税则明确列名无线电广播接收设备；完整收音机先看 8527，专用或主要使用的功能板/零件先看 8529。"
+    };
+  }
+  if (hasRadioTransmitterIntent(value)) {
+    return {
+      type: "radio-8525",
+      label: "8525 无线电广播/电视发送设备",
+      partCode: "8529900000",
+      reason: "主要功能为无线电广播或电视信号发送/发射时先看 8525，并按是否带接收装置继续细分。"
+    };
+  }
+  if (hasSmartWatchIntent(value)) {
+    return {
+      type: hasIndependentWatchCommunication(value) ? "communication-8517" : "watch-boundary",
+      label: hasIndependentWatchCommunication(value) ? "8517 数据通信设备方向" : "8517/9102 智能手表边界",
+      partCode: "",
+      reason: hasIndependentWatchCommunication(value)
+        ? "已说明可独立联网或收发数据，应优先判断通信功能。"
+        : "需先确认能否独立通信和主要功能，再决定通信设备或手表方向。"
+    };
+  }
+  if (hasSmartphoneIntent(value)) {
+    return {
+      type: "phone-8517",
+      label: "8517 智能手机/通信设备",
+      partCode: "8517790000",
+      reason: "智能手机在 851713 有明确列名；零件需另按 8517 零件或自身功能核验。"
+    };
+  }
   if (hasAudioProcessorIntent(value)) {
     return {
       type: "electrical-8543",
@@ -3858,6 +4338,48 @@ function getExpectedHsProfile(formText = "") {
 	  const audioProcessor = hasAudioProcessorIntent(value);
 	  const audioProcessorWithRadio = audioProcessor && hasPositiveRadioSignal(value);
 	  const rules = [
+    {
+      hit: shape.type === "radio-part",
+      label: "无线电收音机用功能板/零件",
+      expected: "8529 无线电收音机及其组合机用零件方向；裸 PCB 另看 8534",
+      allowed: [/^8529/, /^853400/],
+      conflict: "税则先按列名主机判断：收音机属于 8527，其专用零件属于 8529 方向；不得因含音频电路、扬声器或“功能板”字样套用 851890。"
+    },
+    {
+      hit: shape.type === "radio-transmitter",
+      label: "无线电广播发送/发射设备",
+      expected: "8525 无线电广播或电视发送设备方向",
+      allowed: [/^8525/],
+      conflict: "设备主要功能是发送/发射无线电广播信号，应先看 8525，不应按 8527 接收设备或 8518 音频设备使用。"
+    },
+    {
+      hit: shape.type === "radio-receiver",
+      label: "无线电广播接收设备/收音机成品",
+      expected: "8527 无线电广播接收设备方向",
+      allowed: [/^8527/],
+      conflict: "无线电收音机在税则中属于 8527 广播接收设备；内置扬声器或播放声音不构成归入 8518 的理由。"
+    },
+    {
+      hit: shape.type === "smartphone",
+      label: "智能手机成品",
+      expected: "851713 智能手机方向",
+      allowed: [/^851713/],
+      conflict: "完整智能手机有明确税则列名，不能因含摄像头、显示屏、扬声器或电池按内部部件税号使用。"
+    },
+    {
+      hit: shape.type === "connected-watch",
+      label: "独立通信智能手表",
+      expected: "851762 数据通信设备方向，并以 9102 手表方向作反证",
+      allowed: [/^851762/],
+      conflict: "已明确可独立联网、通话或收发数据时，应先判断通信功能；不能只按手表外形套用 9102。"
+    },
+    {
+      hit: shape.type === "watch",
+      label: "手表/智能穿戴边界",
+      expected: "先补独立通信与主要功能；无独立通信证据时复核 9102，不能强行给 8517",
+      allowed: [/^9101/, /^9102/, /^851762/],
+      conflict: "当前没有足够信息确定智能手表的主要功能，需在通信设备和手表方向之间补资料复核。"
+    },
     {
       hit: /蓝牙耳机|无线耳机|tws|bluetooth\s*(earbud|headset|headphone)|wireless\s*(earbud|headset|headphone)/i.test(value) && !headphonePart,
       label: "蓝牙/无线耳机成品",
@@ -3994,6 +4516,87 @@ function getCandidateInputConflict(best = {}, formText = "") {
   };
 }
 
+function getOfficialTariffDescriptionProfile(formText = "") {
+  const shape = getCargoShape(formText);
+  const profiles = {
+    "radio-part": {
+      label: "税则名称先匹配：无线电收音机用零件",
+      allowed: [/^8529/, /^853400/],
+      preferred: [/^85299060/],
+      blocked: [/^8518/],
+      terms: ["无线电收音机", "组合机用", "零件"],
+      reason: "品名先命中无线电收音机及其零件描述，再判断已装配 PCBA、裸 PCB 和专用性。"
+    },
+    "radio-transmitter": {
+      label: "税则名称先匹配：无线电广播发送设备",
+      allowed: [/^8525/],
+      preferred: [/^852550/, /^852560/],
+      blocked: [/^8518/, /^8527/],
+      terms: ["发送设备", "无线电广播", "发射"],
+      reason: "先按发送/发射功能匹配 8525 税则描述，再按是否装有接收装置细分。"
+    },
+    "radio-receiver": {
+      label: "税则名称先匹配：无线电广播接收设备",
+      allowed: [/^8527/],
+      preferred: [/^8527/],
+      blocked: [/^8518/, /^8525/, /^8529/],
+      terms: ["收音机", "广播接收", "收录"],
+      reason: "先匹配 8527 无线电广播接收设备描述，再按供电、车载、录放音和时钟功能细分。"
+    },
+    smartphone: {
+      label: "税则名称先匹配：智能手机",
+      allowed: [/^851713/],
+      preferred: [/^851713/],
+      blocked: [/^8518/, /^8525/, /^8527/, /^8529/],
+      terms: ["智能手机"],
+      reason: "税则已有智能手机明确列名，整机优先匹配 851713。"
+    },
+    "connected-watch": {
+      label: "税则功能先匹配：独立数据通信",
+      allowed: [/^851762/],
+      preferred: [/^851762/],
+      blocked: [/^8518/],
+      terms: ["接收", "转换", "发送", "数据"],
+      reason: "已说明可独立收发数据，先按通信功能匹配 8517，再用 9102 进行主要功能反证。"
+    },
+    watch: {
+      label: "税则边界匹配：手表或通信设备",
+      allowed: [/^9101/, /^9102/, /^851762/],
+      preferred: [/^9102/],
+      blocked: [/^8518/],
+      terms: ["手表", "光电显示"],
+      reason: "未证明独立通信时先保留 9102 手表方向，同时要求补充主要功能后再决定是否转入 8517。"
+    }
+  };
+  return profiles[shape.type] || null;
+}
+
+function officialTariffDescriptionEvidence(item = {}, formText = "") {
+  const profile = getOfficialTariffDescriptionProfile(formText);
+  if (!profile) return { score: 0, matched: false, label: "", reason: "", terms: [] };
+  const code = compactHs(item.code);
+  const name = normalize(item.name || "");
+  const termMatches = profile.terms.filter((term) => name.includes(normalize(term)));
+  const allowed = profile.allowed.some((pattern) => pattern.test(code));
+  const preferred = profile.preferred.some((pattern) => pattern.test(code));
+  const blocked = profile.blocked.some((pattern) => pattern.test(code));
+  let score = 0;
+  if (allowed) score += 240;
+  if (preferred) score += 180;
+  if (termMatches.length) score += 80 + Math.min(120, termMatches.length * 40);
+  if (blocked) score -= 720;
+  return {
+    score,
+    matched: allowed || termMatches.length > 0,
+    label: profile.label,
+    reason: profile.reason,
+    terms: termMatches,
+    allowed,
+    preferred,
+    blocked
+  };
+}
+
 function shapeFitScore(item = {}, cargoShape = {}, formText = "") {
   const code = String(item.code || "");
   const role = getCandidateRole(item);
@@ -4001,9 +4604,73 @@ function shapeFitScore(item = {}, cargoShape = {}, formText = "") {
   let score = 0;
   const reasons = [];
 
-  if (cargoShape.type !== "finished" && cargoShape.type !== "speaker-no-enclosure" && role === "finished" && !isExplicitFinishedGoodsText(formText)) {
+  if (!isFinishedCargoShapeType(cargoShape.type) && role === "finished" && !isExplicitFinishedGoodsText(formText)) {
     score -= 210;
     reasons.push("输入表现为零件/备件/功能件，整机税号强降权。");
+  }
+  if (cargoShape.type === "radio-part") {
+    if (/^8529/.test(code)) {
+      score += 360;
+      reasons.push("无线电收音机属于 8527，其专用或主要使用零件先按 8529 税则方向核验。");
+    }
+    if (/^853400/.test(code) && /裸\s*pcb|裸板|未装配/i.test(formText)) {
+      score += 250;
+      reasons.push("输入明确为裸 PCB 时，8534 印刷电路方向保留。 ");
+    }
+    if (/^8518/.test(code)) {
+      score -= 680;
+      reasons.push("8518 列名传声器、扬声器、耳机、音频扩大器及其零件，不覆盖无线电收音机专用功能板。");
+    }
+  }
+  if (cargoShape.type === "radio-receiver") {
+    if (/^8527/.test(code)) {
+      score += 360;
+      reasons.push("无线电收音机/广播接收机先按 8527 税则列名判断。");
+    }
+    if (/^8518|^8525|^8529/.test(code)) {
+      score -= 520;
+      reasons.push("当前货物是完整广播接收设备，不是音频设备、发送设备或零件。");
+    }
+  }
+  if (cargoShape.type === "radio-transmitter") {
+    if (/^8525/.test(code)) {
+      score += 360;
+      reasons.push("主要功能是发送/发射无线电广播信号，8525 方向优先。");
+    }
+    if (/^8518|^8527/.test(code)) {
+      score -= 520;
+      reasons.push("发送设备不能按音频设备或广播接收设备归类。");
+    }
+  }
+  if (cargoShape.type === "smartphone") {
+    if (/^851713/.test(code)) {
+      score += 380;
+      reasons.push("完整智能手机已被 851713 明确列名。");
+    }
+    if (/^8518|^8525|^8527|^8529/.test(code)) {
+      score -= 560;
+      reasons.push("摄像、发声、显示或电池只是智能手机组成，不取代整机通信功能。");
+    }
+  }
+  if (cargoShape.type === "connected-watch") {
+    if (/^851762/.test(code)) {
+      score += 330;
+      reasons.push("已明确可独立联网/通话并收发数据，8517 通信功能方向优先。 ");
+    }
+    if (/^9101|^9102/.test(code)) {
+      score -= 120;
+      reasons.push("9101/9102 作为手表外形反证保留，但独立数据通信是当前更强功能信号。");
+    }
+  }
+  if (cargoShape.type === "watch") {
+    if (/^9101|^9102/.test(code)) {
+      score += 250;
+      reasons.push("尚未证明独立通信功能，先保留手表税目并要求补主要功能。 ");
+    }
+    if (/^851762/.test(code)) {
+      score += 80;
+      reasons.push("若补充证明确可独立收发数据，才进一步转入 8517 通信设备方向。 ");
+    }
   }
   if (cargoShape.type === "speaker-part") {
     if (role === "speaker-part" || /^851890/.test(code)) {
@@ -4098,7 +4765,7 @@ function shapeFitScore(item = {}, cargoShape = {}, formText = "") {
     score -= 185;
     reasons.push("电池本体输入下，非电池税号降权；如为内置电池，应在品名里写明整机。");
   }
-  if (cargoShape.type === "finished" && role === "battery" && /(耳机|音箱|功放|设备|整机|headphone|earbud|speaker|amplifier|device)/i.test(formText)) {
+  if (isFinishedCargoShapeType(cargoShape.type) && role === "battery" && /(耳机|音箱|功放|设备|整机|headphone|earbud|speaker|amplifier|device)/i.test(formText)) {
     score -= 155;
     reasons.push("整机含电池不等于货物本体为电池，电池税号降权。");
   }
@@ -4125,7 +4792,7 @@ function productAliasScore(item = {}, formText = "") {
   const text = normalize([item.code, item.name, item.keywords, item.notes, item.regulation].join(" "));
   const code = String(item.code || "");
   const cargoShape = getCargoShape(formText);
-  const partLike = cargoShape.type !== "finished";
+  const partLike = !isFinishedCargoShapeType(cargoShape.type);
   const finishedWirelessHeadset = /蓝牙耳机|无线耳机|tws|bluetooth\s*(earbud|headset|headphone)|wireless\s*(earbud|headset|headphone)/i.test(formText) && !hasExplicitHeadphonePartIntent(formText);
   const finishedWiredHeadset = /有线|wired|线控/i.test(formText) && /耳机|耳塞|headphone|headset|earbud|earphone/i.test(formText) && !hasExplicitHeadphonePartIntent(formText);
   const wirelessHeadsetCandidate = /耳机|耳塞|headphone|headset|earbud|earphone|tws/.test(text);
@@ -4199,6 +4866,7 @@ function getFormText() {
       $("productName").value,
       $("englishName").value,
       category,
+      $("tradeDirection")?.value || "",
       $("material").value,
       $("usage").value,
       $("spec").value,
@@ -4221,7 +4889,7 @@ function scoreCase(item, formText) {
   const codeHit = item.code && formText.includes(item.code);
   const chapterHit = /^第\d{2}章$/.test(String(item.code || ""));
   const cargoShape = getCargoShape(formText);
-  const partIntent = cargoShape.type !== "finished" && cargoShape.type !== "speaker-no-enclosure";
+  const partIntent = !isFinishedCargoShapeType(cargoShape.type);
   const boardIntent = hasBoardIntent(formText);
   const accessoryIntent = hasAccessoryIntent(formText);
   const standaloneChargingCase = hasStandaloneChargingCaseIntent(formText);
@@ -4235,9 +4903,11 @@ function scoreCase(item, formText) {
   const barePcbCandidate = isBarePcbCandidate(item);
   const finishedGoodsCandidate = isLikelyFinishedGoodsCandidate(item);
   const shapeFit = shapeFitScore(item, cargoShape, formText);
+  const tariffDescriptionEvidence = officialTariffDescriptionEvidence(item, formText);
   let score = matches.length * (chapterHit ? 8 : 18) + (nameHit ? 12 : 0) + (codeHit ? 35 : 0) - (chapterHit ? 12 : 0);
   score += productAliasScore(item, formText);
   score += shapeFit.score;
+  score += tariffDescriptionEvidence.score;
 	  if (partIntent && partCandidate) score += 42;
 	  if (cargoShape.type === "independent-function" && independentCandidate) score += 88;
   if (cargoShape.type === "display-panel" && displayPanelCandidate) score += 120;
@@ -4258,7 +4928,7 @@ function scoreCase(item, formText) {
   if (accessoryIntent && partCandidate && !remoteCandidate && !batteryCandidate) score -= 70;
 	  if (!partIntent && partCandidate && !remoteCandidate && !packagingCandidate && !batteryCandidate && !independentCandidate && !isExplicitFinishedGoodsText(formText)) score -= 120;
   if (cargoShape.type === "display-panel" && !displayPanelCandidate) score -= 120;
-  if (cargoShape.type === "finished" && partCandidate && /音箱|功放|耳机|麦克风|speaker|amplifier|headphone/.test(formText)) score -= 80;
+  if (isFinishedCargoShapeType(cargoShape.type) && partCandidate && /音箱|功放|耳机|麦克风|speaker|amplifier|headphone/.test(formText)) score -= 80;
   if (/遥控器|遥控|remote\s*control|remote controller/.test(formText) && !remoteCandidate) score -= 190;
   if (packagingIntent && finishedGoodsCandidate && !packagingCandidate) score -= 60;
   if (cargoShape.type === "mechanical-part" && finishedGoodsCandidate && !partCandidate) score -= 82;
@@ -4273,7 +4943,7 @@ function scoreCase(item, formText) {
   if (inputSubtype && itemSubtype && inputSubtype === itemSubtype) score += 92;
   if (inputSubtype && itemSubtype && inputSubtype !== itemSubtype && partCandidate) score -= 96;
   const rankScore = Math.max(0, score);
-  return { ...item, rankScore, score: Math.min(rankScore, 94), matches, cargoShape, shapeFit };
+  return { ...item, rankScore, score: Math.min(rankScore, 94), matches, cargoShape, shapeFit, tariffDescriptionEvidence };
 }
 
 function getCaseDutyText(item = {}) {
@@ -4774,6 +5444,7 @@ function buildClassificationProof(item = {}, formText = "") {
   const reasons = [
     `货物形态：${shape.label}。${shape.reason}`,
     host.type !== "unknown" ? `对应主机/品目：${host.label}。${host.reason}` : "",
+    item.tariffDescriptionEvidence?.matched ? `${item.tariffDescriptionEvidence.label}：${item.tariffDescriptionEvidence.reason}${item.tariffDescriptionEvidence.terms?.length ? ` 税则名称命中“${item.tariffDescriptionEvidence.terms.join("、")}”。` : ""}` : "",
     `税则含义：${interpretation.legalName}。${interpretation.scope}`,
     item.classificationHint || "",
     sourceEvidence,
@@ -4799,6 +5470,18 @@ function buildReviewChecklist(formText = "", best = {}) {
     items.push("确认是否无箱体/未装入箱体；如果带箱体，应改看单喇叭或多喇叭音箱。");
     items.push("补喇叭数量、尺寸、额定功率、用途、是否嵌入式/车载/维修用途。");
   }
+  if (shape.type === "radio-part") {
+    items.push("确认是裸 PCB、已装配 PCBA、天线还是其他专用零件");
+    items.push("补对应收音机型号、专用性、接收频段和能否独立工作");
+  }
+  if (shape.type === "radio-receiver") {
+    items.push("确认供电方式、是否车载、是否组合录放音或时钟功能");
+    items.push("补接收频段、是否完整成品及是否带其他主要功能");
+  }
+  if (shape.type === "radio-transmitter") items.push("补发射频段、输出功率、调制方式、是否带接收装置和无线电发射许可边界");
+  if (shape.type === "smartphone") items.push("补网络制式、SIM/eSIM、是否完整成品、存储、电池 Wh 和随附适配器");
+  if (shape.type === "connected-watch" || shape.type === "watch") items.push("确认能否脱离手机独立联网/通话、主要功能、无线制式、显示方式和电池参数");
+
   if (shape.type === "pcba-part" || shape.type === "board") {
     items.push("确认是裸 PCB、已装配 PCBA，还是已经具备独立功能的模块");
     items.push("确认板件是否只服务于音频设备，还是可通用于其他电子设备");
@@ -4824,8 +5507,28 @@ function buildCounterEvidence(formText = "", best = {}) {
     add("851821", "单喇叭音箱", "需要确认装入箱体并作为完整单喇叭音箱使用；无箱体或嵌入式扬声器通常先看 851829。");
     add("851890", "税目 8518 的零件", "如果只是高音/低音单元、维修件或专用于音箱内部的零件才转看 851890；普通无箱体扬声器不自动按零件。");
   }
+  if (shape.type === "radio-part") {
+    add("851890", "税目 8518 所列音频设备的零件", "8518 覆盖传声器、扬声器、耳机、音频扩大器等列名货品及其零件；无线电收音机是 8527 设备，其专用功能板应先看 8529。");
+    add("8527", "无线电广播接收设备成品", "8527 是完整收音机/广播接收机方向；当前若为已装配功能板或专用零件，应继续看 8529。");
+    add("8534", "印刷电路", "只有未装配元器件的裸 PCB 才优先看 8534；已装配 PCBA 不能仅因是电路板归入 8534。");
+  }
+  if (shape.type === "radio-receiver") {
+    add("8518", "扬声器、耳机、音频扩大器及其零件", "收音机的主要功能是无线电广播接收；即使内置扬声器，也不因此成为 8518 音箱。");
+    add("8529", "广播电视设备零件", "当前若为完整收音机成品，应先看 8527；只有专用或主要使用零件才进入 8529。");
+  }
+  if (shape.type === "radio-transmitter") {
+    add("8527", "无线电广播接收设备", "主要功能是发送/发射时不按接收设备归类。");
+    add("8518", "音频设备", "音频输入或声音处理只是发射设备的组成，不能取代 8525 发送功能。");
+  }
+  if (shape.type === "smartphone") {
+    add("8518/8525/8529", "手机内部音频、摄像或零件方向", "完整智能手机有 851713 明确列名；内部扬声器、摄像头、显示屏、电池不会取代整机通信属性。");
+  }
+  if (shape.type === "connected-watch" || shape.type === "watch") {
+    add("9102", "手表方向", "当主要功能是计时且不构成独立数据通信设备时复核 9102。");
+    add("851762", "数据通信设备方向", "只有能独立接收、转换并发送数据且通信构成主要功能时，才优先考虑 8517。");
+  }
 
-  if (shape.type !== "finished" && shape.type !== "speaker-no-enclosure" && !isExplicitFinishedGoodsText(formText)) {
+  if (!isFinishedCargoShapeType(shape.type) && !isExplicitFinishedGoodsText(formText)) {
     if (host.type === "audio-8518") {
       add("851821/851822/851829", "单喇叭/多喇叭/其他音箱成品", "这些税号对应完整音箱或扬声器成品；若货物只是音箱内部单元、网罩、支架、功能板等，应先看零件逻辑。");
       add("851840", "音频扩大器/功放成品", "如果货物只是功放用功能板、连接器、集成块或结构件，不能因用途指向功放就按功放成品。");
@@ -4889,12 +5592,15 @@ function getRequiredFieldGroups(formText = "", best = {}) {
   const destinationInput = typeof document !== "undefined" ? String($("destination")?.value || $("tariffCheckCountry")?.value || "").trim() : "";
   const isHeadphone = /耳机|耳塞|headphone|headset|earbud|tws/i.test(value);
   const isHeadphoneFinished = isHeadphone && shape.type === "finished" && !hasExplicitHeadphonePartIntent(value);
-  const isSpeaker = !isHeadphoneFinished && (shape.type === "speaker-no-enclosure" || shape.type === "speaker-part" || /音箱|扬声器|喇叭|speaker|loudspeaker|soundbar/i.test(value));
-  const isBoard = !isHeadphoneFinished && (shape.type === "pcba-part" || shape.type === "board" || shape.type === "bare-pcb" || hasBoardIntent(value));
-  const isBattery = shape.type === "battery" || (!isHeadphoneFinished && /锂电池|电池组|电芯|battery|li-ion|lithium/i.test(value));
+  const isSpeaker = !isHeadphoneFinished && (shape.type === "speaker-no-enclosure" || shape.type === "speaker-part");
+  const isBoard = !isHeadphoneFinished && (shape.type === "pcba-part" || shape.type === "board" || shape.type === "bare-pcb");
+  const isBattery = shape.type === "battery";
   const isPower = shape.type === "power-supply" || /电源适配器|充电器|电源供应器|power adapter|charger|power supply/i.test(value);
   const isCable = shape.type === "cable" || /连接线|线缆|电缆|数据线|音频线|cable|connector/i.test(value);
   const isPackaging = shape.type === "packaging" || /纸箱|瓦楞|彩盒|包装盒|carton|packaging/i.test(value);
+  const isRadio = shape.type === "radio-part" || shape.type === "radio-receiver" || shape.type === "radio-transmitter";
+  const isPhone = shape.type === "smartphone";
+  const isWatch = shape.type === "connected-watch" || shape.type === "watch";
   const electronicsLike = !isPackaging && (isHeadphone || isSpeaker || isBoard || isBattery || isPower || isCable || shape.type === "display-panel" || /电子|电气|音频|蓝牙|无线|电源|电池|adapter|battery|wireless|audio|electronic/i.test(value));
   const hasDestination = Boolean(destinationInput) || hasFieldSignal(value, /目的国|进口国|出口到|销往|中国|美国|欧盟|英国|日本|泰国|巴西|加拿大|墨西哥|中东|沙特|阿联酋|china|us|usa|eu|uk|japan|thailand|brazil|canada|mexico|gcc|uae|saudi/i);
   const hasOrigin = Boolean(originInput) || hasFieldSignal(value, /原产|产地|origin|made\s+in/i);
@@ -4904,10 +5610,10 @@ function getRequiredFieldGroups(formText = "", best = {}) {
       items: [
         ["品名/商品本体", value.length >= 2, "写清楚货物本身是什么，不要只写项目名或系列名。"],
         ["成品/零件/附件", hasFieldSignal(value, /成品|整机|完整|零件|部件|配件|附件|备件|维修|单元|裸|pcba|pcb|板|箱体|无箱体|finished|complete|part|spare|accessor/i), "必须说明是完整成品，还是某个产品用零件/附件。"],
-        ["核心功能/用途", hasFieldSignal(value, /用途|用于|播放|发声|放大|控制|充电|连接|接收|传输|包装|安装|function|use|play|amplif|control|charge|connect/i), "说明它做什么、最终用在哪里。"],
+        ["核心功能/用途", hasFieldSignal(value, /用途|用于|播放|发声|放大|控制|充电|连接|接收|发送|发射|通信|通话|联网|数据|传输|广播|包装|安装|function|use|play|amplif|control|charge|connect|communicat|transmit|receive|data/i), "说明它做什么、最终用在哪里。"],
         ["结构形态", hasFieldSignal(value, /箱体|无箱体|外壳|裸|板|线|单元|模块|组件|套装|带接头|内置|随附|with|without|enclosure|board|module|unit|cable/i), "说明有无箱体、是否裸件、是否成套、是否装配。"],
         ["材质/组成", hasFieldSignal(value, /塑料|金属|纸|瓦楞|电路|元器件|锂|电池|磁|喇叭|扬声器|铜|铝|steel|plastic|metal|paper|battery|pcb/i), "说明主要材料和关键组成。"],
-        ["规格/型号参数", hasFieldSignal(value, /型号|品牌|功率|电压|wh|mah|尺寸|频段|蓝牙|无线|有线|w\b|v\b|model|brand|power|voltage|bluetooth|wireless/i), "补型号、功率、尺寸、无线/电池等关键参数。"]
+        ["规格/型号参数", hasFieldSignal(value, /型号|品牌|功率|电压|wh|mah|尺寸|频段|容量|存储|5g|4g|lte|sim|esim|蓝牙|无线|有线|w\b|v\b|model|brand|power|voltage|bluetooth|wireless/i), "补型号、功率、尺寸、网络、无线或电池等与该产品相关的关键参数。"]
       ]
     },
     {
@@ -4924,6 +5630,10 @@ function getRequiredFieldGroups(formText = "", best = {}) {
         isPower ? ["是否随整机/内销", hasFieldSignal(value, /随整机|单独|内销|销售|样品|维修|with equipment|standalone/i), "决定是否按单独适配器、随附件或认证边界处理。"] : null,
         isCable ? ["线缆结构", hasFieldSignal(value, /带接头|接插件|接口|usb|dc|jack|电压|线长|connector|plug|voltage/i), "线缆要看是否带接插件、额定电压和接口类型。"] : null,
         isPackaging ? ["包装材质/形态", hasFieldSignal(value, /瓦楞|纸板|彩盒|折叠|印刷|层|corrugated|paperboard|printed/i), "纸箱/包装要按材质、结构和是否单独进口判断。"] : null,
+        isRadio ? ["无线电发送/接收边界", hasFieldSignal(value, /发送|发射|接收|收音|广播|transmit|receive|receiver/i), "8525、8527 和 8529 的首要边界是发送设备、接收设备和专用零件。"] : null,
+        isRadio ? ["无线电结构/参数", hasFieldSignal(value, /完整|成品|功能板|零件|pcba|pcb|频段|am|fm|功率|车载|时钟|录放音|complete|board|part|frequency|power/i), "需补完整设备/零件、频段、供电、功率或组合功能。"] : null,
+        isPhone ? ["手机网络与形态", hasFieldSignal(value, /完整|成品|5g|4g|lte|sim|esim|蜂窝|手机零件|complete|cellular/i), "智能手机需确认完整成品、网络制式和 SIM/eSIM。"] : null,
+        isWatch ? ["手表主要功能", hasFieldSignal(value, /独立联网|独立通话|脱离手机|蜂窝|esim|健康|运动|计时|光电显示|cellular|standalone|timekeeping/i), "智能手表必须先判断独立通信、健康监测或计时何者构成主要功能。"] : null,
         electronicsLike ? ["无线/电池/电源", hasFieldSignal(value, /蓝牙|无线|wifi|wi-fi|电池|锂|wh|mah|适配器|电源|插头|无电池|无蓝牙|无无线|bluetooth|wireless|battery|adapter/i), "电子/音频产品才需要确认；没有也可以写“无”。"] : null
       ].filter(Boolean)
     },
@@ -4936,7 +5646,7 @@ function getRequiredFieldGroups(formText = "", best = {}) {
       ]
     }
   ];
-  if (shape.type !== "finished" && host.type === "unknown") {
+  if (!isFinishedCargoShapeType(shape.type) && host.type === "unknown") {
     groups[1].items.push(["对应主机", false, "零件/附件必须说明用于哪类整机，否则只能给很粗的方向。"]);
   }
   return groups;
@@ -4950,9 +5660,9 @@ function getFieldCompleteness(formText = "", best = {}) {
     .filter(([, ok]) => !ok)
     .map(([label]) => label);
   if (!formText || formText.length < 6) missing.push("产品描述太少");
-  if (shape.type !== "finished" && host.type === "unknown") missing.push("缺对应主机或最终用途");
-  if (shape.type === "finished" && !isExplicitFinishedGoodsText(formText)) missing.push("需确认是否完整成品");
-  if (shape.type === "pcba-part" || shape.type === "board") missing.push("需确认裸 PCB / 已装配 PCBA / 独立功能模块");
+  if (!isFinishedCargoShapeType(shape.type) && host.type === "unknown") missing.push("缺对应主机或最终用途");
+  if (isFinishedCargoShapeType(shape.type) && !isExplicitFinishedGoodsText(formText)) missing.push("需确认是否完整成品");
+  if ((shape.type === "pcba-part" || shape.type === "board") && !/裸\s*pcb|裸板|未装配|已装配|pcba|pcb\s*assembly|独立功能|不能独立/i.test(formText)) missing.push("需确认裸 PCB / 已装配 PCBA / 独立功能模块");
   if (shape.type === "speaker-part") missing.push("需确认是否仅为扬声器单元而非完整音箱");
   if (shape.type === "accessory") missing.push("需确认是否具备独立功能、无线或电池");
   if (shape.type === "speaker-no-enclosure" && !hasSpeakerNoEnclosureSignal(formText)) missing.push("需确认是否无箱体/未装入箱体");
@@ -4960,6 +5670,11 @@ function getFieldCompleteness(formText = "", best = {}) {
   if (shape.type === "power-supply") missing.push("需确认输入/输出参数、功率、插头和是否中国内销");
   if (shape.type === "cable") missing.push("需确认是否带接插件、额定电压和接口类型");
   if (shape.type === "packaging") missing.push("需确认纸箱/包装材质、结构和是否单独进口");
+  if (shape.type === "radio-part" && !/(?:裸\s*pcb|裸板|未装配|已装配|pcba).{0,40}(?:专用于|对应|收音机)|(?:专用于|对应|收音机).{0,40}(?:裸\s*pcb|裸板|未装配|已装配|pcba)/i.test(formText)) missing.push("需确认裸 PCB/已装配 PCBA、专用性、对应收音机和能否独立工作");
+  if (shape.type === "radio-receiver" && !/供电|内置电源|外接电源|电池供电|车载|便携/i.test(formText)) missing.push("需确认供电方式及车载/便携形态，才能细分 8527 子目");
+  if (shape.type === "radio-transmitter" && !(/(?:am|fm|频段|mhz|ghz)/i.test(formText) && /功率|\d+\s*w\b/i.test(formText) && /不带.{0,8}接收|带接收|收发一体|完整|成品|零件/i.test(formText))) missing.push("需确认发射频段、功率、是否带接收功能和设备/零件形态");
+  if (shape.type === "smartphone" && !(/完整|成品|整机/i.test(formText) && /5g|4g|lte|蜂窝|网络制式/i.test(formText) && /sim|esim/i.test(formText))) missing.push("需确认网络制式、SIM/eSIM 和完整成品形态");
+  if ((shape.type === "connected-watch" || shape.type === "watch") && !(/独立联网|独立通话|脱离手机|蜂窝|esim|主要功能|计时|健康|运动/i.test(formText) && /触控|显示|屏|光电|digital/i.test(formText))) missing.push("需确认独立通信能力、主要功能、无线制式和显示方式");
   return Array.from(new Set(missing));
 }
 
@@ -4995,6 +5710,7 @@ function buildCredibilityAssessment(best = {}, ranked = [], formText = "") {
   if (classificationMissing.length) reasons.push(`归类缺资料：${classificationMissing.slice(0, 3).join("、")}。`);
   if (taxMissing.length) reasons.push(`税费/准入缺资料：${taxMissing.join("、")}。`);
   if (best.shapeFit?.reasons?.length) reasons.push(...best.shapeFit.reasons.slice(0, 2));
+  if (best.tariffDescriptionEvidence?.matched) reasons.push(`${best.tariffDescriptionEvidence.label}，已先按税则名称/功能范围筛选候选。`);
 
   let level = "medium";
   let label = "中可信";
@@ -5279,13 +5995,10 @@ function hsCodeAllowedByCase(code = "", testCase = {}) {
 function matchHsValidationCase(formText = "") {
   const text = normalize(formText);
   if (!text) return null;
-  return hsValidationCases.find((testCase) => {
-    const caseText = normalize(buildHsCaseFormText(testCase));
-    const name = normalize(testCase.values?.productName || testCase.title || "");
-    if (name && text.includes(name)) return true;
-    const expectedBoundary = normalize(testCase.boundary || "");
-    return caseText && expectedBoundary && expectedBoundary.split(/[；。,.，]/).some((part) => part.length > 5 && text.includes(part.slice(0, 8)));
-  }) || null;
+  return hsValidationCases
+    .map((testCase) => ({ testCase, name: normalize(testCase.values?.productName || testCase.title || "") }))
+    .filter((item) => item.name && text.startsWith(item.name))
+    .sort((a, b) => b.name.length - a.name.length)[0]?.testCase || null;
 }
 
 function renderHsCaseStatus(best = {}, formText = "") {
@@ -5375,21 +6088,21 @@ function runHsValidationSuite() {
 function hsAssistProfileFor(text = "") {
   return hsAssistProfiles.find((profile) => profile.match.test(text)) || {
     category: "自动判断 / Not sure",
-    material: ["塑料", "金属", "电子元器件", "锂电池", "纸箱/包装"],
-    usage: ["播放声音", "控制设备", "维修备件", "包装保护", "充电供电"],
-    spec: ["是否成品/配件", "是否含电池", "是否无线", "对应整机", "主要功能"],
-    questions: ["这是完整成品、配件、零件还是包装材料？", "是否含锂电池或无线功能？", "主要用途和对应整机是什么？", "材质/规格/型号是否齐全？"]
+    material: ["塑料", "金属", "玻璃/陶瓷", "电子元器件/PCBA", "锂电池", "纺织/皮革", "纸箱/包装"],
+    usage: ["通信/数据处理", "接收/发送信号", "显示/照明", "播放/录制声音图像", "控制/测量", "充电供电", "家用/个人使用", "维修/生产配套"],
+    spec: ["成品/零件/附件", "核心功能和工作原理", "能否独立工作", "对应整机", "材质组成", "电气/尺寸参数", "是否含电池/无线/电源"],
+    questions: ["货物本身是什么，而不是用在哪个项目？", "是完整成品、零件、附件还是原材料？", "核心功能和工作原理是什么？", "能否独立工作？", "关键材质、尺寸、电气和无线参数是什么？"]
   };
 }
 
 function dynamicParamFieldsFor(text = "") {
   const hit = dynamicHsParamProfiles.find((profile) => profile.match.test(text));
   return hit?.fields || [
-    ["货物形态", ["成品", "零件/备件", "附件", "包装", "不确定"]],
-    ["是否含电池", ["是", "否", "不确定"]],
-    ["是否无线/蓝牙", ["是", "否", "不确定"]],
-    ["对应整机", ["音箱", "功放", "耳机", "其他"]],
-    ["用途", ["销售", "维修", "样品", "生产配套"]]
+    ["货物形态", ["完整成品", "零件/备件", "附件", "原材料", "包装", "不确定"]],
+    ["核心功能", ["通信/数据", "接收/发送信号", "声音/图像", "显示/照明", "控制/测量", "供电/充电", "机械功能", "其他"]],
+    ["能否独立工作", ["是", "否，需装入主机", "不适用", "不确定"]],
+    ["电池/无线/电源", ["含电池", "含无线", "含外接电源", "均不含", "不确定"]],
+    ["业务场景", ["销售", "维修", "样品", "生产配套", "退运/返修"]]
   ];
 }
 
@@ -5415,7 +6128,7 @@ function renderDynamicParamFields(text = "") {
         .join("")}
       <label class="smart-param-extra">
         <span>其他关键参数</span>
-        <input id="smartParamExtra" lang="zh-CN" placeholder="例如 功率 10W、阻抗 4Ω、电池 1.2Wh" />
+        <input id="smartParamExtra" lang="zh-CN" placeholder="例如 尺寸、功率、电压、频段、容量、型号或工作原理" />
       </label>
     </div>
   `;
@@ -5646,6 +6359,7 @@ function renderCandidates(items) {
           <div class="classification-proof">
             <b>${escapeHtml(proof.shape.label)} · ${escapeHtml(proof.interpretation.legalName)}</b>
             <span>${escapeHtml(proof.interpretation.boundary)}</span>
+            ${item.tariffDescriptionEvidence?.matched ? `<small>${escapeHtml(`${item.tariffDescriptionEvidence.label}：${item.tariffDescriptionEvidence.reason}`)}</small>` : ""}
           </div>
           <div class="classification-proof ccc-inline-proof">
             <b>3C：${escapeHtml(ccc.level)}</b>
@@ -6349,6 +7063,8 @@ function fallbackPolicyUpdates(message = "", filters = {}) {
       url: "http://www.customs.gov.cn/",
       domain: "customs.gov.cn",
       sourceType: "官方入口",
+      entryOnly: true,
+      evidenceMode: "directory",
       credibility: { score: 96, label: "高：官方来源", reason: "海关官方门户，适合做最终政策核验。" },
       takeaway: "用于核对税号、监管条件、归类口径、海关公告和行政裁定。",
       action: "正式申报前把候选税号、产品资料和公告信息交给关务/报关行复核。"
@@ -6359,6 +7075,8 @@ function fallbackPolicyUpdates(message = "", filters = {}) {
       url: "https://www.cnca.gov.cn/",
       domain: "cnca.gov.cn",
       sourceType: "官方入口",
+      entryOnly: true,
+      evidenceMode: "directory",
       credibility: { score: 95, label: "高：官方来源", reason: "认证认可监管官方入口，适合核验 3C 目录和公告。" },
       takeaway: "用于核对音频设备、电源适配器、低压电器等是否涉及强制认证。",
       action: "如果产品带电源、插头、无线或整机认证风险，先让认证/质量同事确认。"
@@ -6369,6 +7087,8 @@ function fallbackPolicyUpdates(message = "", filters = {}) {
       url: "https://www.wto.org/",
       domain: "wto.org",
       sourceType: "国际组织/政策背景",
+      entryOnly: true,
+      evidenceMode: "directory",
       credibility: { score: 88, label: "中高：国际组织", reason: "适合作为贸易政策背景，具体产品要求仍需当地法规或进口商确认。" },
       takeaway: "出口前需要核对 CE、FCC、UKCA、RoHS、电池、标签语言等要求。",
       action: "把进口国、产品类别和客户资料发给当地进口商确认准入文件。"
@@ -6379,6 +7099,8 @@ function fallbackPolicyUpdates(message = "", filters = {}) {
       url: "https://www.iata.org/en/programs/cargo/dgr/lithium-batteries/",
       domain: "iata.org",
       sourceType: "国际组织/行业规则",
+      entryOnly: true,
+      evidenceMode: "directory",
       credibility: { score: 90, label: "高：行业规则来源", reason: "IATA 是航空运输危险品规则的重要行业来源，适合核验空运锂电池和 DG 边界。" },
       takeaway: "含锂电池、磁性、液体、样品和维修件走空运/快件时，要优先确认 UN38.3、MSDS、PI965/966/967、SOC 和承运商限制。",
       action: "发货前让物流/货代确认承运商是否接收；到达后关注清关延误、收件人税号、进口商授权和目的国认证资料。"
@@ -6497,7 +7219,13 @@ function buildPolicyAnalysis(data = {}) {
     ]).slice(0, 5),
     dimensions,
     trendDirection,
-    sourceTrust: knowledgeMatches.length ? `本地规则库 ${knowledgeMatches.length} 条；附官方入口用于追溯。` : (officialCount ? `官方/国际组织来源 ${officialCount} 条。` : "当前结果为固定规则和公开来源摘要。"),
+    sourceTrust: knowledgeMatches.length
+      ? `本地规则库 ${knowledgeMatches.length} 条；附官方入口用于追溯。`
+      : officialCount
+        ? `官方/国际组织来源 ${officialCount} 条。`
+        : items.length
+          ? "当前结果为公开来源摘要，仍需打开原文核验。"
+          : "未命中相关来源；官方入口仅用于后续核验。",
     sourceGroups: data.analysis?.sourceGroups || [
       {
         title: "常用权威入口",
@@ -6797,7 +7525,7 @@ function renderSourceDigestBoard(digests = [], heading = "来源逐条解读") {
     <section class="source-digest-board" aria-label="${escapeHtml(heading)}">
       <div class="source-digest-heading">
         <span>${escapeHtml(heading)}</span>
-        <strong>每个网页单独提炼，不合并套话</strong>
+        <strong>每条来源只出现一次：事实、判断、日期、原文</strong>
       </div>
       <div class="source-digest-grid">
         ${digests.map((item) => `
@@ -6815,14 +7543,170 @@ function renderSourceDigestBoard(digests = [], heading = "来源逐条解读") {
   `;
 }
 
-function renderPolicyUpdates(data = {}) {
-  const items = Array.isArray(data.items) ? data.items : [];
-  const analysis = buildPolicyAnalysis(data);
-  const display = compactPolicyConclusion(data, analysis);
-  const sourceGroups = Array.isArray(analysis.sourceGroups) ? analysis.sourceGroups.slice(0, 3) : [];
-  const sourceDigests = buildSourceDigests(items, { limit: 8, context: [data.filters?.exportCountry, data.filters?.importCountry, data.filters?.product].filter(Boolean).join(" ") });
-  const sourceConclusion = sourceDigests.length ? summarizeSourceDigests(sourceDigests, data.filters?.product || "") : display.conclusion;
-  $("policyStatus").textContent = `已更新 · ${formatEta(data.updatedAt)}`;
+function policyEvidenceText(item = {}) {
+  return normalize([
+    item.title,
+    item.description,
+    item.summary,
+    item.takeaway,
+    item.action,
+    item.domain,
+    item.sourceCountry,
+    item.category,
+    item.sourceType
+  ].filter(Boolean).join(" "));
+}
+
+function policyItemMatchesFilters(item = {}, filters = {}) {
+  if (item.entryOnly || item.evidenceMode === "directory" || item.sourceType === "官方入口") return false;
+  if (item.localRule) return true;
+  const text = policyEvidenceText(item);
+  const query = normalize(`${filters.product || ""} ${filters.keyword || ""} ${filters.direction || ""}`);
+  const countryChecks = [];
+  const addCountryCheck = (country = "") => {
+    const value = normalize(country);
+    if (/美国|united states|usa|\bus\b/.test(value)) countryChecks.push(/美国|特朗普|川普|united states|u\.s\.|\busa\b|trump|cbp|ustr|usitc|federal register|federalregister\.gov/);
+    else if (/中国|china|大陆/.test(value)) countryChecks.push(/中国|中国原产|china|chinese|\bprc\b|gacc|customs\.gov\.cn/);
+    else if (/英国|united kingdom|\buk\b/.test(value)) countryChecks.push(/英国|united kingdom|u\.k\.|gov\.uk|hmrc|uk trade tariff/);
+    else if (/欧盟|european union|europe/.test(value)) countryChecks.push(/欧盟|欧洲联盟|european union|european commission|eur-lex|europa\.eu/);
+    else if (/巴西|brazil|brasil/.test(value)) countryChecks.push(/巴西|brazil|brasil|anatel|receita federal|siscomex/);
+    else if (/泰国|thailand/.test(value)) countryChecks.push(/泰国|thailand|thai customs|nbtc|tisi/);
+    else if (/沙特|saudi/.test(value)) countryChecks.push(/沙特|saudi arabia|zatca|saber|saso/);
+    else if (/阿联酋|迪拜|uae|united arab emirates/.test(value)) countryChecks.push(/阿联酋|迪拜|united arab emirates|\buae\b|dubai customs|tdra/);
+  };
+  addCountryCheck(filters.importCountry);
+  addCountryCheck(filters.exportCountry);
+  if (countryChecks.length && !countryChecks.every((pattern) => pattern.test(text))) return false;
+
+  const productChecks = [];
+  if (/蓝牙|无线|耳机|音箱|bluetooth|wireless|headphone|earbud|headset|speaker|soundbar/.test(query)) {
+    productChecks.push(/蓝牙|无线|耳机|音箱|bluetooth|wireless|radio equipment|headphone|earbud|headset|speaker|soundbar|audio equipment/);
+  }
+  if (/电池|锂|充电宝|移动电源|battery|lithium|power bank/.test(query)) {
+    productChecks.push(/电池|锂|充电宝|移动电源|battery|lithium|power bank|un38\.3|dangerous goods/);
+  }
+  if (productChecks.length && !productChecks.every((pattern) => pattern.test(text))) return false;
+
+  const topicChecks = [];
+  if (/关税|税率|301|232|反倾销|反补贴|贸易救济|tariff|duty|trade remed/.test(query)) topicChecks.push(/关税|税率|301|232|贸易救济|反倾销|反补贴|tariff|duty|trade remed|antidump|countervail/);
+  if (/认证|准入|标签|ccc|fcc|ce|red|anatel|nbtc|saber|rohs|certif|compliance/.test(query)) topicChecks.push(/认证|准入|标签|ccc|fcc|\bce\b|\bred\b|anatel|nbtc|saber|rohs|certif|compliance|approval|equipment authorization/);
+  if (/税号|归类|申报|海关|清关|hs code|classification|customs/.test(query)) topicChecks.push(/税号|归类|申报|海关|清关|hs code|classification|customs/);
+  if (/制裁|出口管制|实体清单|sanction|export control|entity list|restriction|ban/.test(query)) topicChecks.push(/制裁|出口管制|实体清单|sanction|export control|entity list|restriction|ban/);
+  if (topicChecks.length && !topicChecks.some((pattern) => pattern.test(text))) return false;
+  if (!topicChecks.length && !/关税|海关|认证|准入|法规|制裁|出口管制|tariff|customs|certification|regulation|sanction|export control|trade policy/.test(text)) return false;
+  return Boolean(text.trim());
+}
+
+function isPolicyContentNoise(item = {}) {
+  if (item.localRule) return false;
+  const title = normalize(item.title || "").replace(/\s+/g, " ").trim();
+  const detail = normalize([item.description, item.summary, item.takeaway].filter(Boolean).join(" "));
+  if (title.length < 6) return true;
+  if (/^(?:首页|网站首页|返回网站首页|更多|more|下一页|上一页|政务服务|联系我们|网站地图|通知公告|法律法规|业务专栏|强制性产品认证专栏|目录描述与界定|实施规则|执法单位专区|认证收费|常见问题|财政部微信|视频栏目|新闻动态|工作动态)$/i.test(title)) return true;
+  if (/财政部网站\s*视频栏目\s*正式上线|夯实专业基础.*青春力量|举办\s*20\d{2}\s*年.*政策/i.test(title)) return true;
+  if (/(?:<a\s|href=|navtitle=|common\.css|javascript:)/i.test(detail) && !/(?:公告|通知|决定|措施|法令|规则|regulation|notice|rule|order|tariff)/i.test(title)) return true;
+  return false;
+}
+
+function selectPolicyEvidenceItems(rawItems = [], filters = {}) {
+  const seen = new Set();
+  return (Array.isArray(rawItems) ? rawItems : [])
+    .filter((item) => policyItemMatchesFilters(item, filters) && !isPolicyContentNoise(item))
+    .filter((item) => {
+      const url = String(item.url || item.localRule?.url || "").replace(/[?#].*$/, "").toLowerCase();
+      const title = normalize(item.title || item.localRule?.title || "").replace(/\s+/g, " ").trim();
+      const key = url || title;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+function policyScopeText(filters = {}) {
+  return [
+    filters.exportCountry && `出口国 ${filters.exportCountry}`,
+    filters.importCountry && `进口国 ${filters.importCountry}`,
+    filters.product && `产品/主题 ${filters.product}`
+  ].filter(Boolean).join(" · ") || "当前政策筛选条件";
+}
+
+function policyEvidenceConclusion(items = [], filters = {}) {
+  const scope = policyScopeText(filters);
+  if (!items.length) {
+    return `在“${scope}”范围内，本次没有找到同时匹配国家/地区、产品和政策主题的公告标题或摘要，因此不判断有新增关税、准入或申报变化。`;
+  }
+  const categories = Array.from(new Set(items.map((item) => item.category).filter(Boolean))).slice(0, 3);
+  return `在“${scope}”范围内，找到 ${items.length} 条通过相关性校验的公开标题或摘要${categories.length ? `，主题集中在 ${categories.join("、")}` : ""}。这能确认存在相关政策信号，但不能仅凭摘要断言税率或准入已经改变。`;
+}
+
+function runPolicyRelevanceQualityAudit() {
+  const filters = {
+    exportCountry: "中国",
+    importCountry: "美国",
+    product: "蓝牙耳机 Bluetooth headphones 关税 tariff 特朗普 Trump",
+    direction: "进口"
+  };
+  const cases = [
+    {
+      name: "拒绝无关化工反倾销公告",
+      expected: false,
+      item: { title: "Stilbenic Optical Brightening Agents From Taiwan", summary: "Antidumping duty administrative review", domain: "federalregister.gov", sourceCountry: "United States" }
+    },
+    {
+      name: "拒绝英国通用进口指南",
+      expected: false,
+      item: { title: "Import goods into the UK", summary: "General customs guidance", domain: "gov.uk", sourceCountry: "United Kingdom" }
+    },
+    {
+      name: "接受匹配的中美蓝牙关税公告",
+      expected: true,
+      item: { title: "USTR Section 301 tariff action on Chinese Bluetooth headsets", summary: "United States tariff notice for wireless audio equipment imported from China", domain: "ustr.gov", sourceCountry: "United States" }
+    },
+    {
+      name: "官方入口不算正文证据",
+      expected: false,
+      item: { title: "USITC HTS", summary: "美国 HTS 税号和税率", domain: "usitc.gov", sourceType: "官方入口", entryOnly: true }
+    },
+    {
+      name: "拒绝官方页面导航碎片",
+      expected: false,
+      item: { title: "返回网站首页", summary: "强制性产品认证专栏 href=/index.html", domain: "cnca.gov.cn", sourceCountry: "China" }
+    }
+  ];
+  const results = cases.map((testCase) => {
+    const actual = policyItemMatchesFilters(testCase.item, filters) && !isPolicyContentNoise(testCase.item);
+    return { name: testCase.name, expected: testCase.expected, actual, pass: actual === testCase.expected };
+  });
+  return { passed: results.filter((item) => item.pass).length, total: results.length, failed: results.filter((item) => !item.pass), results };
+}
+
+window.runLogisMasterPolicyRelevanceAudit = runPolicyRelevanceQualityAudit;
+
+function renderPolicyUpdatesLegacy(data = {}) {
+  const rawItems = Array.isArray(data.items) ? data.items : [];
+  const filters = data.filters || getPolicyFilters();
+  const verificationEntries = [
+    ...(Array.isArray(data.verificationEntries) ? data.verificationEntries : []),
+    ...rawItems.filter((item) => item.entryOnly || item.evidenceMode === "directory" || item.sourceType === "官方入口")
+  ].filter((item, index, list) => list.findIndex((entry) => (entry.url || entry.title) === (item.url || item.title)) === index);
+  const items = selectPolicyEvidenceItems(rawItems, filters);
+  const conclusion = policyEvidenceConclusion(items, filters);
+  const safeData = { ...data, filters, items, analysis: null, knowledgeMatches: items.filter((item) => item.localRule).map((item) => item.localRule), summary: conclusion };
+  const analysis = buildPolicyAnalysis(safeData);
+  const display = compactPolicyConclusion(safeData, analysis);
+  const sourceGroups = verificationEntries.length
+    ? [{ title: "官方核验入口（不等同已读取正文）", items: verificationEntries.map((item) => [item.title, item.url, item.summary || item.description || item.takeaway || "打开后按发布日期和适用范围核验。"]) }]
+    : (Array.isArray(analysis.sourceGroups) ? analysis.sourceGroups.slice(0, 3) : []);
+  const sourceDigests = buildSourceDigests(items, { limit: 8, context: [filters.exportCountry, filters.importCountry, filters.product].filter(Boolean).join(" ") });
+  const sourceConclusion = conclusion;
+  const liveSourceCount = items.filter((item) => !item.localRule).length;
+  const evidenceLabel = liveSourceCount ? "相关来源摘要" : items.length ? "本地规则支持" : "未命中相关公告";
+  const evidenceTone = liveSourceCount ? "verified" : items.length ? "model" : "missing";
+  const impactConclusion = items.length ? display.impact : "未确认有新增政策风险；常规核验仍应覆盖关税/额外关税、无线认证、标签和申报资料。";
+  const displayDimensions = items.length
+    ? (analysis.dimensions || [])
+    : (analysis.dimensions || []).map((item) => ({ ...item, level: "常规核验", conclusion: `未发现新增政策证据。${item.conclusion}` }));
+  $("policyStatus").textContent = `已更新 · 相关 ${items.length}/${rawItems.length} · ${formatEta(data.updatedAt)}`;
   $("policyLiveGrid").innerHTML = `
     ${renderResultBrief({
       className: "policy-result-brief",
@@ -6830,20 +7714,25 @@ function renderPolicyUpdates(data = {}) {
       title: "政策/趋势影响结论",
       updatedAt: data.updatedAt,
       conclusion: sourceConclusion,
-      risk: display.impact,
+      risk: impactConclusion,
       cost: "重点复核关税/额外关税、认证费用、标签/文件整改、物流延误和清关成本是否变化。",
       action: display.actions[0] || "提取发布主体、实施日期、适用产品、材料要求和过渡期，写入订单备注。",
-      source: sourceDigests.length ? `已逐条提炼 ${sourceDigests.length} 个来源网页。` : (analysis.sourceTrust || "来源：本地规则库和公开来源摘要。"),
+      source: liveSourceCount ? `已逐条提炼 ${liveSourceCount} 个通过相关性校验的公开标题或摘要。` : items.length ? "当前结论来自本地结构化规则，并附官方核验入口。" : "本次只提供官方核验入口，不把入口页当作政策正文。",
+      evidenceLabel,
+      evidenceTone,
+      evidenceBasis: liveSourceCount ? `${liveSourceCount} 条同时匹配国家/地区、产品和政策主题的公开标题或摘要` : items.length ? `${items.length} 条本地结构化政策规则` : "实时检索未通过相关性门槛；保留官方入口供人工核验",
+      scope: policyScopeText(filters),
+      pending: items.length ? "公告正文、发布主体、生效日期、适用 HS、原产国、豁免/暂停条款和过渡期" : "需在官方入口找到匹配公告正文后，才能判断是否有新增政策影响",
       links: sourceGroups.flatMap((group) => group.items || [])
     })}
-    ${renderSourceDigestBoard(sourceDigests, "政策来源逐条解读")}
+    ${renderSourceDigestBoard(sourceDigests, "通过相关性校验的来源解读")}
     <article class="policy-summary-card policy-summary-wide conclusion-card">
       <span>当前判断</span>
       <strong>${escapeHtml(sourceConclusion)}</strong>
-      <p>${escapeHtml(display.impact)}</p>
+      <p>${escapeHtml(impactConclusion)}</p>
     </article>
     <div class="policy-structured-grid">
-      ${buildPolicyBriefChecklist(data, analysis)
+      ${buildPolicyBriefChecklist(safeData, analysis)
         .map(([title, text]) => `
           <article class="policy-structured-card">
             <span>${escapeHtml(title)}</span>
@@ -6853,7 +7742,7 @@ function renderPolicyUpdates(data = {}) {
         .join("")}
     </div>
     <div class="policy-brief-grid">
-      ${(analysis.dimensions || [])
+      ${displayDimensions
         .map(
           (item) => `
             <article class="policy-brief-card">
@@ -6866,7 +7755,7 @@ function renderPolicyUpdates(data = {}) {
         )
         .join("")}
       <article class="policy-brief-card trust">
-        <span>可信度</span>
+        <span>来源状态</span>
         <strong>${escapeHtml(analysis.sourceTrust || "来源需复核")}</strong>
         <p>${escapeHtml(analysis.trendDirection || "当前仅显示固定检查项。")}</p>
       </article>
@@ -6894,7 +7783,7 @@ function renderPolicyUpdates(data = {}) {
       .slice(0, 6)
       .map((item) => {
         const statement = sourceStatementForItem(item);
-        const opinion = sourceOpinionForItem(item, statement, [data.filters?.exportCountry, data.filters?.importCountry, data.filters?.product].filter(Boolean).join(" "));
+        const opinion = sourceOpinionForItem(item, statement, [filters.exportCountry, filters.importCountry, filters.product].filter(Boolean).join(" "));
         return `
           <article class="policy-news-card">
             <span>${escapeHtml(item.category || item.domain || "政策")}</span>
@@ -6908,6 +7797,131 @@ function renderPolicyUpdates(data = {}) {
       })
       .join("")}
   `;
+}
+
+function buildPolicyIndependentJudgment(items = [], filters = {}, analysis = {}) {
+  const liveItems = items.filter((item) => !item.localRule);
+  const officialItems = liveItems.filter((item) =>
+    (item.credibility?.score || 0) >= 90 ||
+    /gov|customs|cnca|singlewindow|europa|wto|cbp|ustr|federalregister|usitc/i.test(String(item.domain || ""))
+  );
+  const categories = Array.from(new Set(items.map((item) => item.category).filter(Boolean))).slice(0, 4);
+  const dimensions = (analysis.dimensions || []).filter((item) => item.title).slice(0, 4);
+  const scope = policyScopeText(filters);
+  if (!items.length) {
+    return {
+      verdict: "本次没有证据支持“政策已变化”，因此不调整税率、准入或出货方案。",
+      reason: "实时结果没有同时通过国家/地区、产品和政策主题三项相关性校验。未命中不等于政策一定没变，只表示当前不能形成新增影响结论。",
+      boundary: "维持常规核验：官方税则、认证目录、标签、原产地、制裁和承运限制。",
+      scope,
+      owner: "关务/合规在官方入口找到匹配公告正文后再升级。",
+      actions: ["不要用无关新闻或入口页推断政策变化。", "补充更具体的产品名、HS、原产国和进出口国家后重查。"]
+    };
+  }
+  const evidenceText = officialItems.length
+    ? "命中 " + officialItems.length + " 条官方或高可信公开内容，另有 " + Math.max(0, liveItems.length - officialItems.length) + " 条行业/媒体信号。"
+    : liveItems.length
+      ? "命中 " + liveItems.length + " 条公开标题或摘要，但尚无官方正文证据。"
+      : "当前由本地结构化规则提供方向，官方入口用于最终追溯。";
+  const effectText = dimensions.length
+    ? dimensions.map((item) => item.title + "（" + (item.level || "关注") + "）").join("、")
+    : categories.join("、") || "税费、认证、文件和物流";
+  const dimensionActions = dimensions.map((item) => {
+    const title = String(item.title || "");
+    if (/关税|贸易|税费|清关|申报/.test(title)) return "关务：核对公告正文、生效日、适用 HS、原产国、附加税和在途货物安排。";
+    if (/认证|无线|准入|标签/.test(title)) return "认证负责人：核对证书覆盖型号、测试标准、标签/说明书和过渡期。";
+    if (/电池|危险品|安全/.test(title)) return "危险品负责人：核对 UN38.3、运输鉴定、包装指令和承运限制是否变化。";
+    if (/物流|交付|供应链/.test(title)) return "物流计划：确认承运人限制、舱位、清关等待和 ETA 是否受该政策直接影响。";
+    return "合规负责人：只把与当前订单直接相交的条款写入出货检查表。";
+  });
+  const actions = Array.from(new Set([
+    ...dimensionActions,
+    "关务/合规：记录发布主体、发布日期、生效日、适用范围、豁免和过渡期。"
+  ])).slice(0, 4);
+  return {
+    verdict: officialItems.length
+      ? "存在相关政策信号，但在确认生效日期、适用 HS、原产国和豁免条款前，不直接改报价或申报口径。"
+      : "现有证据只够提示风险，不足以证明税率、认证或清关规则已经生效改变。",
+    reason: evidenceText,
+    boundary: "最可能影响 " + effectText + "；只处理与当前订单范围直接相交的事项。",
+    scope,
+    owner: actions[0] || "关务/合规：提取公告正文并确认实施范围。",
+    actions
+  };
+}
+
+function renderPolicyUpdates(data = {}) {
+  const rawItems = Array.isArray(data.items) ? data.items : [];
+  const filters = data.filters || getPolicyFilters();
+  const verificationEntries = [
+    ...(Array.isArray(data.verificationEntries) ? data.verificationEntries : []),
+    ...rawItems.filter((item) => item.entryOnly || item.evidenceMode === "directory" || item.sourceType === "官方入口")
+  ].filter((item, index, list) => list.findIndex((entry) => (entry.url || entry.title) === (item.url || item.title)) === index);
+  const items = selectPolicyEvidenceItems(rawItems, filters);
+  const conclusion = policyEvidenceConclusion(items, filters);
+  const safeData = {
+    ...data,
+    filters,
+    items,
+    analysis: null,
+    knowledgeMatches: items.filter((item) => item.localRule).map((item) => item.localRule),
+    summary: conclusion
+  };
+  const analysis = buildPolicyAnalysis(safeData);
+  const display = compactPolicyConclusion(safeData, analysis);
+  const judgment = buildPolicyIndependentJudgment(items, filters, analysis);
+  const sourceDigests = buildSourceDigests(items, {
+    limit: 8,
+    context: [filters.exportCountry, filters.importCountry, filters.product].filter(Boolean).join(" ")
+  });
+  const liveSourceCount = items.filter((item) => !item.localRule).length;
+  const evidenceLabel = liveSourceCount ? "相关来源摘要" : items.length ? "本地规则支持" : "未命中相关公告";
+  const evidenceTone = liveSourceCount ? "pending" : items.length ? "model" : "missing";
+  const officialLinks = verificationEntries.slice(0, 8).map((item) => [
+    item.title,
+    item.url,
+    item.summary || item.description || item.takeaway || "打开后按发布日期和适用范围核验。"
+  ]);
+  const actionItems = judgment.actions.filter((item) => item !== judgment.owner);
+  $("policyStatus").textContent = "已更新 · 相关 " + items.length + "/" + rawItems.length + " · " + formatEta(data.updatedAt);
+  const brief = renderResultBrief({
+    className: "policy-result-brief",
+    kicker: "Policy Impact Brief",
+    title: "政策影响结论",
+    updatedAt: data.updatedAt,
+    conclusion: judgment.verdict,
+    risk: judgment.boundary,
+    cost: "没有确认正文、生效日和适用范围前，不把新闻摘要直接写进税率、认证或清关结论。",
+    action: judgment.owner,
+    source: judgment.reason,
+    evidenceLabel,
+    evidenceTone,
+    evidenceBasis: liveSourceCount
+      ? liveSourceCount + " 条同时匹配国家/地区、产品和政策主题的公开标题或摘要"
+      : items.length
+        ? items.length + " 条本地结构化政策规则"
+        : "实时检索未通过相关性门槛",
+    scope: judgment.scope,
+    pending: items.length
+      ? "公告正文、发布主体、生效日期、适用 HS、原产国、豁免/暂停条款和过渡期"
+      : "需先找到匹配公告正文，才能判断是否存在新增政策影响",
+    links: officialLinks
+  });
+  const decisionStrip =
+    '<section class="policy-decision-strip" aria-label="政策独立判断">' +
+      '<div><span>我的判断</span><strong>' + escapeHtml(judgment.verdict) + '</strong><p>' + escapeHtml(judgment.reason) + '</p></div>' +
+      '<div><span>影响边界</span><strong>' + escapeHtml(judgment.boundary) + '</strong><p>' + escapeHtml(judgment.scope) + '</p></div>' +
+      '<div><span>现在要做</span><strong>' + escapeHtml(judgment.owner) + '</strong>' + (actionItems.length ? '<ul>' + actionItems.map((item) => '<li>' + escapeHtml(item) + '</li>').join("") + '</ul>' : '') + '</div>' +
+    '</section>';
+  const sourceBoard = renderSourceDigestBoard(sourceDigests, "相关来源：事实与独立判断");
+  const emptyEvidence = !sourceDigests.length
+    ? '<section class="policy-evidence-empty"><strong>' + escapeHtml(conclusion) + '</strong><p>官方入口只用于继续核验，不当作已读取的政策正文。</p>' +
+      (officialLinks.length
+        ? '<div class="source-chip-grid">' + officialLinks.map(([title, url]) => '<a href="' + escapeHtml(url) + '" target="_blank" rel="noreferrer">' + escapeHtml(title) + '</a>').join("") + '</div>'
+        : "") +
+      '</section>'
+    : "";
+  $("policyLiveGrid").innerHTML = brief + decisionStrip + sourceBoard + emptyEvidence;
 }
 
 function credibilityLabel(domain = "") {
@@ -7736,7 +8750,7 @@ function renderShipmentRouteRisk(data = {}) {
   status.textContent = `已更新 · ${formatEta(data.updatedAt)}`;
   summary.innerHTML = `
     <strong>${escapeHtml(data.conclusion || "已生成航线风险判断")}</strong>
-    <p>判断区域：${escapeHtml(data.region || "未识别")}；坐标来源：${escapeHtml(data.coordinateSource || "自动判断")}。</p>
+    <p>判断区域：${escapeHtml(data.region || "未识别")}；坐标来源：${escapeHtml(data.coordinateSource || "自动判断")}。${data.coordinateNote ? ` ${escapeHtml(data.coordinateNote)}` : ""}</p>
   `;
   const militaryItems = data.military?.items || [];
   grid.innerHTML = `
@@ -7752,7 +8766,7 @@ function renderShipmentRouteRisk(data = {}) {
       <p>${escapeHtml(data.seasonal?.summary || "暂无季节性风险判断。")}</p>
     </article>
     <article class="risk-card route-risk-card">
-      <span>军演/海域新闻</span>
+      <span>管制/安全线索</span>
       <h3>${escapeHtml(data.military?.level || "未见明显信号")}</h3>
       <p>${escapeHtml(data.military?.summary || "暂无公开新闻信号。")}</p>
       ${
@@ -7962,6 +8976,12 @@ function renderShipmentJudgement(brief = {}) {
   if (!target) return;
   const evidence = Array.isArray(brief.evidence) ? brief.evidence : [];
   const actions = Array.isArray(brief.actions) ? brief.actions : [];
+  const availableEvidence = evidence.filter(([, value]) => !/未取得|未返回|未提供|无实时数据|等待查询/.test(String(value || "")));
+  const evidenceLabel = brief.tone === "good" || brief.tone === "ok"
+    ? "实时数据支持"
+    : availableEvidence.length
+      ? "弱证据参考"
+      : "资料不足";
   target.innerHTML = `
     ${renderResultBrief({
       className: `shipment-result-brief ${["bad", "danger", "warn"].includes(brief.tone) ? "warning" : ""}`,
@@ -7972,12 +8992,17 @@ function renderShipmentJudgement(brief = {}) {
       risk: brief.label || "待判断",
       cost: "船期风险主要影响改配、拖车等待、港杂/堆存、客户交付承诺和可能的空运替代成本。",
       action: actions[0] || "补 MMSI、IMO、箱号或提单号，并用船司/码头事件核验。",
-      source: brief.sourceName ? `${brief.sourceName}；数据时间 ${brief.dataAge || "待确认"}` : "自动接口/网页核验结果。"
+      source: brief.sourceName ? `${brief.sourceName}；数据时间 ${brief.dataAge || "待确认"}` : "自动接口/网页核验结果。",
+      evidenceLabel,
+      evidenceTone: evidenceLabel === "实时数据支持" ? "verified" : evidenceLabel === "资料不足" ? "missing" : "pending",
+      evidenceBasis: availableEvidence.length ? availableEvidence.map(([label, value]) => `${label}：${value}`).join("；") : "未取得可核验船位、ETA 或身份信息",
+      scope: "仅适用于当前船舶身份、查询时间和已返回事件",
+      pending: actions.join("；")
     })}
     <article class="shipment-judgement-card ${escapeHtml(brief.tone || "neutral")}">
       <div class="shipment-judgement-head">
         <span>${escapeHtml(brief.label || "待判断")}</span>
-        <strong>${escapeHtml(String(brief.score || 0))}</strong>
+        <strong>${escapeHtml(`${availableEvidence.length} 项可用证据`)}</strong>
       </div>
       <p>${escapeHtml(brief.viewpoint || "等待船期证据。")}</p>
       <div class="shipment-evidence-grid">
@@ -8088,6 +9113,12 @@ function normalizeBriefLinks(links = []) {
 function renderResultBrief(options = {}) {
   const links = normalizeBriefLinks(options.links || []).slice(0, 5);
   const updatedAt = options.updatedAt ? formatEta(options.updatedAt) : (options.updatedLabel || "按当前页面结果");
+  const evidenceMeta = [
+    options.evidenceLabel ? ["证据状态", options.evidenceLabel] : null,
+    options.evidenceBasis ? ["本次使用", options.evidenceBasis] : null,
+    options.scope ? ["适用范围", options.scope] : null,
+    options.pending ? ["仍待核验", options.pending] : null
+  ].filter(Boolean);
   const rows = [
     ["结论", options.conclusion || "待查询结果返回后判断。"],
     ["风险", options.risk || "按当前输入未发现额外风险信号。"],
@@ -8110,6 +9141,11 @@ function renderResultBrief(options = {}) {
           </section>
         `).join("")}
       </div>
+      ${evidenceMeta.length ? `
+        <div class="result-brief-evidence" data-tone="${escapeHtml(options.evidenceTone || "reference")}">
+          ${evidenceMeta.map(([label, text]) => `<section><b>${escapeHtml(label)}</b><p>${escapeHtml(text)}</p></section>`).join("")}
+        </div>
+      ` : ""}
       ${links.length ? `<div class="result-brief-links">${links.map((item) => `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a>`).join("")}</div>` : ""}
     </article>
   `;
@@ -8233,11 +9269,13 @@ function buildSmartBusinessBrief(items = [], options = {}) {
   const hits = dimensions.filter((item) => item.pattern.test(text));
   const officialCount = (items || []).filter((item) => /gov|customs|cnca|singlewindow|wto|worldbank|imf|europa|cbp|ustr|iata|imo/i.test(`${item.domain || ""} ${item.url || ""}`)).length;
   const recentCount = (items || []).filter((item) => Date.parse(item.seendate || item.date || item.updatedAt || item.publishedAt || "")).length;
-  let score = 45 + Math.min(25, hits.length * 5) + Math.min(16, officialCount * 4) + Math.min(10, recentCount * 2);
-  if (!items.length) score -= 16;
-  if (options.fallback) score -= 8;
-  score = Math.max(30, Math.min(96, score));
-  const label = score >= 84 ? "高可信：可直接进入执行清单" : score >= 70 ? "中高可信：适合业务预警" : score >= 56 ? "中可信：需补来源复核" : "低可信：只做观察";
+  const evidenceLevel = !items.length
+    ? "离线观察"
+    : officialCount >= 2 && recentCount >= 2 && !options.fallback
+      ? "多来源支持"
+      : officialCount >= 1
+        ? "有官方来源支持"
+        : "公开消息初判";
   const top = hits.slice(0, 3);
   const conclusion = top.length
     ? `${options.title || "本次信息"}主要影响 ${top.map((item) => item.title).join("、")}。${top[0].owner}应先处理：${top[0].action}`
@@ -8249,7 +9287,7 @@ function buildSmartBusinessBrief(items = [], options = {}) {
   if (!context) gaps.push("未输入具体国家、产品或路线，判断只能按来源内容做泛化提醒。");
   if (!officialCount) gaps.push("官方来源不足，不能替代正式公告或报关行/认证机构意见。");
   if (!items.length) gaps.push("暂无实时来源，当前使用固定观察清单。");
-  return { score, label, conclusion, actions, gaps, dimensions: top.length ? top : dimensions.slice(0, 3), officialCount, itemCount: items.length };
+  return { label: evidenceLevel, conclusion, actions, gaps, dimensions: top.length ? top : dimensions.slice(0, 3), officialCount, recentCount, itemCount: items.length };
 }
 
 function renderSmartIntelBoard(brief = {}, heading = "智能判断") {
@@ -8259,7 +9297,7 @@ function renderSmartIntelBoard(brief = {}, heading = "智能判断") {
       <div class="smart-intel-head">
         <span>${escapeHtml(heading)}</span>
         <strong>${escapeHtml(brief.label || "待判断")}</strong>
-        <small>${escapeHtml(String(brief.score || "0"))}/100 · ${escapeHtml(String(brief.itemCount || 0))} 条来源</small>
+        <small>${escapeHtml(String(brief.itemCount || 0))} 条来源 · ${escapeHtml(String(brief.officialCount || 0))} 条官方来源 · ${escapeHtml(String(brief.recentCount || 0))} 条含日期</small>
       </div>
       <p>${escapeHtml(brief.conclusion || "暂无明确业务判断。")}</p>
       <div class="smart-intel-grid">
@@ -8747,6 +9785,45 @@ function elapsedHours(start = "", end = "") {
   return (endTime - startTime) / 3600000;
 }
 
+function scheduleTransitDuration(hours = 0) {
+  const total = Math.max(0, Math.round(Number(hours) || 0));
+  if (!total) return "时长待核验";
+  const days = Math.floor(total / 24);
+  const remain = total % 24;
+  return `${days ? `${days}天` : ""}${remain ? `${remain}小时` : ""}`;
+}
+
+function carrierScheduleEvidenceForRoute(mode = "sea", origin = {}, destination = {}) {
+  const database = window.LOGISTICS_SCHEDULE_DATABASE || {};
+  const records = Array.isArray(database.records) ? database.records : [];
+  const sources = Array.isArray(database.sources) ? database.sources : [];
+  const originKey = evidenceEndpointKey(origin, mode);
+  const destinationKey = evidenceEndpointKey(destination, mode);
+  const routeRecords = records
+    .filter((record) => record.mode === mode)
+    .filter((record) => evidenceEndpointKey(record.originCode || record.origin, mode) === originKey)
+    .filter((record) => evidenceEndpointKey(record.destinationCode || record.destination, mode) === destinationKey)
+    .sort((a, b) => String(a.departureDate || "").localeCompare(String(b.departureDate || "")));
+  const transitHours = routeRecords.map((record) => Number(record.transitHours)).filter((value) => value > 0);
+  const sourceRows = routeRecords
+    .map((record) => sources.find((source) => source.id === record.sourceId))
+    .filter((source, index, list) => source && list.findIndex((item) => item.id === source.id) === index);
+  const lastCaptured = routeRecords.map((record) => record.capturedAt || "").filter(Boolean).sort().reverse()[0] || "";
+  return {
+    records: routeRecords,
+    sources: sourceRows,
+    count: routeRecords.length,
+    carriers: Array.from(new Set(routeRecords.map((record) => record.carrier).filter(Boolean))),
+    minHours: transitHours.length ? Math.min(...transitHours) : null,
+    maxHours: transitHours.length ? Math.max(...transitHours) : null,
+    medianHours: transitHours.length ? medianNumber(transitHours) : null,
+    lastCaptured,
+    rangeText: transitHours.length
+      ? `${scheduleTransitDuration(Math.min(...transitHours))}-${scheduleTransitDuration(Math.max(...transitHours))}`
+      : "班期时长待核验"
+  };
+}
+
 function businessEvidenceForRoute(mode = "sea", origin = {}, destination = {}, options = {}) {
   const originKey = evidenceEndpointKey(origin, mode);
   const destinationKey = evidenceEndpointKey(destination, mode);
@@ -8771,6 +9848,7 @@ function businessEvidenceForRoute(mode = "sea", origin = {}, destination = {}, o
     .map((sample) => (new Date(sample.actualArrival).getTime() - new Date(sample.plannedArrival).getTime()) / 3600000)
     .filter(Number.isFinite);
   const outcomeRows = routeRows.filter((sample) => sample.outcome);
+  const schedule = carrierScheduleEvidenceForRoute(mode, origin, destination);
   return {
     mode,
     originKey,
@@ -8780,6 +9858,8 @@ function businessEvidenceForRoute(mode = "sea", origin = {}, destination = {}, o
     actuals: actualRows,
     delays: delayRows,
     outcomes: outcomeRows,
+    officialSchedules: schedule.records,
+    schedule,
     quote: prices.length ? {
       min: Math.min(...prices),
       max: Math.max(...prices),
@@ -8882,6 +9962,9 @@ function renderEvidenceDataCoverage() {
   const apiOrDownload = sources.filter((source) => /api|download|rss|gis/.test(normalize(`${source.access || ""} ${source.apiStatus || ""} ${source.evidenceMode || ""}`)));
   const noApiFallback = sources.filter((source) => /public|manual|query|download/.test(normalize(`${source.access || ""} ${source.apiStatus || ""}`)));
   const officialSources = sources.filter((source) => /official|port-official|terminal|standard/.test(source.sourceType || ""));
+  const scheduleSources = sources.filter((source) => (source.dataKinds || []).some((kind) => /ocean-schedule|air-schedule|schedule-download|routing/.test(kind)));
+  const verifiedSources = sources.filter((source) => source.lastVerified);
+  const specificallyMappedChinaPorts = Object.entries(portEvidenceSourceIds).filter(([, ids]) => ids.some((id) => !/china-msa|china-nmc/.test(id))).length;
   const priorityNames = [
     "中国国际贸易单一窗口",
     "中国海关税目税号查询",
@@ -8916,6 +9999,21 @@ function renderEvidenceDataCoverage() {
       <strong>${noApiFallback.length} 个来源</strong>
       <p>接口不可用时仍提供官网查询、PDF/数据下载和人工核验路径。</p>
     </article>
+    <article>
+      <span>承运人班期</span>
+      <strong>${scheduleSources.length} 个船期/航班来源</strong>
+      <p>包括船司点到点船期、可下载服务表、航司货运班期和路线查询。</p>
+    </article>
+    <article>
+      <span>中国口岸直连</span>
+      <strong>${specificallyMappedChinaPorts} 个港口专属来源</strong>
+      <p>其余中国沿海港口至少回到海事局、中央气象台和承运人船期入口核验。</p>
+    </article>
+    <article>
+      <span>来源核验日期</span>
+      <strong>${verifiedSources.length}/${sources.length} 已记录</strong>
+      <p>未记录核验日期的入口不作为“已读取本次正文”或实时证据。</p>
+    </article>
     <div class="evidence-data-source-row">
       <span>中国优先与全球补充</span>
       ${prioritySources.map((source) => `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.name)}</a>`).join("")}
@@ -8923,6 +10021,26 @@ function renderEvidenceDataCoverage() {
     </div>
   `;
 }
+
+function runDataCoverageQualityAudit() {
+  const sourceIds = new Set(logisticsSourceRegistry.map((source) => source.id));
+  const scheduleSources = logisticsSourceRegistry.filter((source) => (source.dataKinds || []).some((kind) => /ocean-schedule|air-schedule|schedule-download|routing/.test(kind)));
+  const chinaPorts = majorPortRiskProfiles.filter((port) => /^china-/.test(port.region || ""));
+  const chinaAirports = airportRiskProfiles.filter((airport) => /^china-/.test(airport.region || ""));
+  const cases = [
+    { name: "主流港口库", actual: majorPortRiskProfiles.length, minimum: 80 },
+    { name: "主流机场库", actual: airportRiskProfiles.length, minimum: 70 },
+    { name: "中国沿海港口库", actual: chinaPorts.length, minimum: 25 },
+    { name: "中国主要机场库", actual: chinaAirports.length, minimum: 30 },
+    { name: "结构化来源目录", actual: logisticsSourceRegistry.length, minimum: 55 },
+    { name: "船司/航司班期来源", actual: scheduleSources.length, minimum: 10 },
+    { name: "中国核心政策来源", actual: ["china-customs-tariff", "china-tariff-commission", "china-mofcom-trade-remedy", "china-cnca"].filter((id) => sourceIds.has(id)).length, minimum: 4 },
+    { name: "公共天气来源", actual: ["china-nmc", "jtwc", "noaa-marine", "aviationweather-api", "nhc-gis-rss"].filter((id) => sourceIds.has(id)).length, minimum: 5 }
+  ].map((item) => ({ ...item, pass: item.actual >= item.minimum }));
+  return { passed: cases.filter((item) => item.pass).length, total: cases.length, failed: cases.filter((item) => !item.pass), results: cases };
+}
+
+window.runLogisMasterDataCoverageAudit = runDataCoverageQualityAudit;
 
 function renderEvidenceLedgerRouteSummary() {
   const target = $("evidenceLedgerRouteSummary");
@@ -9124,7 +10242,7 @@ function renderMiniCurve(values = [], label = "趋势") {
 
 function cleanRouteEndpoint(value = "") {
   return String(value || "")
-    .replace(/查询|价格|费用|风险|预警|海运|空运|港口|机场|market|rate|fee|risk|多少钱|多少|怎么走|有什么|如何|能不能|需要|报价|成本/gi, " ")
+    .replace(/查询|价格|费用|风险|预警|海运|空运|港口|机场|market|rate|fee|risk|多少钱|多少|多久|几天|多长时间|预计|时效|航程|怎么走|有什么|如何|能不能|需要|报价|成本/gi, " ")
     .replace(/锂电池|电池组|电芯|移动电源|充电宝|蓝牙|无线|耳机|音箱|喇叭|扬声器|磁性|危险品|普货|样品|整柜|拼箱|快件/gi, " ")
     .replace(/\b(battery|lithium|bluetooth|wireless|speaker|headphone|earbud|magnetic|dangerous|general|cargo|lcl|fcl)\b/gi, " ")
     .replace(/[？?。.!！]/g, " ")
@@ -9185,7 +10303,7 @@ function countryFromLocation(location = {}) {
 function inferDestinationCountry(query = "", mode = "Mixed", route = {}) {
   const text = normalize(query);
   const explicit = [
-    ["美国", /美国|洛杉矶|纽约|芝加哥|lax|jfk|ord|us\b|usa|los angeles|new york|chicago/],
+    ["美国", /美国|洛杉矶|纽约|芝加哥|特朗普|川普|trump|ustr|cbp|lax|jfk|ord|us\b|usa|los angeles|new york|chicago/],
     ["欧盟", /欧盟|德国|荷兰|法国|西班牙|意大利|鹿特丹|汉堡|法兰克福|阿姆斯特丹|eu|europe|germany|netherlands|france/],
     ["英国", /英国|伦敦|希思罗|uk|london|lhr|felixstowe/],
     ["巴西", /巴西|圣保罗|桑托斯|brazil|sao paulo|gru|santos/],
@@ -9213,7 +10331,11 @@ function intelligenceRouteLabel(intel = {}) {
 function buildLogisticsIntelligence(query = "", candidates = []) {
   const value = String(query || "").trim();
   const text = normalize(value);
-  const route = splitRouteQuery(value);
+  let route = splitRouteQuery(value);
+  const policyWithoutTransport = /政策|关税|301|232|制裁|出口管制|公告|认证|特朗普|川普|trump/.test(text)
+    && !/海运|空运|快件|港口|机场|船期|航班|码头|vessel|ocean|air cargo/.test(text);
+  const codeWithoutTransport = /\b\d{8,10}\b/.test(value) && /税号|税率|归类|申报|关税|hs|hscode/.test(text);
+  if (policyWithoutTransport || codeWithoutTransport) route = { origin: "", destination: "" };
   const airport = findAirportCodeProfile(value);
   const port = findPortRiskProfile(value);
   const products = findChinaKnowledgeProfiles(value);
@@ -9246,7 +10368,14 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
   ].filter(Boolean));
   const missing = [];
   if (!primaryProduct && !hs && !/pvg|lax|cnsha|uslax/i.test(value)) missing.push("补真实品名、用途、材质、是否整机/配件。");
-  if (!route.origin || !route.destination) missing.push("补起运地和目的地，价格/风险会更准。");
+  const routeRequired = concerns.some((item) => /price|risk/.test(item.id)) || /海运|空运|快件|港口|机场|船期|航班|码头|ocean|air cargo/.test(text);
+  if (routeRequired && (!route.origin || !route.destination)) missing.push("补起运地和目的地，价格/风险会更准。");
+  const routeProfilesKnown = mode === "Air" || mode === "Courier"
+    ? Boolean(route.origin && route.destination && originAir && destinationAir)
+    : mode === "Sea"
+      ? Boolean(route.origin && route.destination && originPort && destinationPort)
+      : true;
+  if (routeRequired && route.origin && route.destination && !routeProfilesKnown) missing.push("核对起运地和目的地的标准港口/机场代码；当前地点库未完整识别。");
   if (primaryProduct?.id === "lithium-battery") missing.push("补 Wh/mAh、UN 编号、包装方式、MSDS 和 UN38.3。");
   if (primaryProduct?.id === "wireless-audio") missing.push("补蓝牙/无线频段、型号、是否含电池和目的国认证状态。");
   if (concerns.some((item) => item.id === "price")) missing.push(mode === "Sea" ? "补箱型、柜量、货型和预计出运周。" : "补计费重、体积、件数、货物性质和期望航班。");
@@ -9344,7 +10473,7 @@ function desiredEvidenceKinds(intel = {}, target = {}) {
     ["ocean-schedule", "transit-time", "port-notice", "terminal", "freight-index", "price", "marine-weather", "navigation-warning", "maritime-control"].forEach((item) => kinds.add(item));
   }
   if (intel.mode === "Air" || intel.mode === "Courier") {
-    ["air-cargo", "flight-status", "eta", "delay", "dangerous-goods", "lithium-battery", "quote"].forEach((item) => kinds.add(item));
+    ["air-cargo", "air-schedule", "routing", "schedule-download", "flight-status", "eta", "delay", "dangerous-goods", "lithium-battery", "quote"].forEach((item) => kinds.add(item));
   }
   if (concernIds.has("price") || /market|price/.test(target.module || "")) ["quote", "price", "freight-index", "market-update"].forEach((item) => kinds.add(item));
   if (concernIds.has("risk") || target.module === "risk-center") {
@@ -9384,18 +10513,21 @@ function preferredEvidenceSourceIds(query = "", intel = {}) {
   const destinationAirport = findAirportRiskProfile(intel.route?.destination || "");
   [originPort, destinationPort].filter(Boolean).forEach((port) => {
     (portEvidenceSourceIds[port.code] || []).forEach((id) => preferred.add(id));
+    if (/^china-/.test(port.region || "")) ["china-msa", "china-nmc"].forEach((id) => preferred.add(id));
   });
   [originAirport, destinationAirport].filter(Boolean).forEach((airport) => {
     (airportEvidenceSourceIds[airport.iata] || []).forEach((id) => preferred.add(id));
+    ["aviationweather-api", "iata-dgr"].forEach((id) => preferred.add(id));
+    if (/^china-/.test(airport.region || "")) preferred.add("caac");
   });
   if (intel.mode === "Sea") {
-    ["dcsa-schedules", "maersk-schedules"].forEach((id) => preferred.add(id));
+    ["dcsa-schedules", "maersk-schedules", "oocl-schedules"].forEach((id) => preferred.add(id));
     if (/中国|china/.test(normalize(`${value} ${intel.routeLabel || ""}`))) preferred.add("china-msa-open-data");
     if (/价格|报价|运费|市场|price|rate|freight/.test(value)) ["freightos-fbx", "drewry"].forEach((id) => preferred.add(id));
     if (/电池|锂|battery|un38|msds/.test(value)) preferred.add("imo-imdg");
   }
   if (intel.mode === "Air" || intel.mode === "Courier") {
-    ["iata-dgr", "flightaware-aeroapi", "aviationweather-api"].forEach((id) => preferred.add(id));
+    ["iata-dgr", "flightaware-aeroapi", "aviationweather-api", "cathay-cargo-schedule", "lufthansa-cargo-schedule", "china-cargo-airlines"].forEach((id) => preferred.add(id));
     if (/电池|锂|battery|un38|msds/.test(value)) ["faa-lithium", "iata-dgr"].forEach((id) => preferred.add(id));
   }
   if (policyOrCustoms) {
@@ -9507,6 +10639,178 @@ function selectEvidenceSourcesForQuery(query = "", candidates = [], intel = {}) 
     .reduce((items, source) => [...items, source], selected);
 }
 
+function globalRouteEvidence(intel = {}) {
+  const recognition = globalRouteRecognition(intel);
+  if (!recognition.complete) return null;
+  if (recognition.kind === "air") return businessEvidenceForRoute("air", recognition.origin, recognition.destination, { unit: "KG" });
+  if (recognition.kind === "sea") return businessEvidenceForRoute("sea", recognition.origin, recognition.destination);
+  return null;
+}
+
+function globalRouteRecognition(intel = {}) {
+  const originText = intel.route?.origin || "";
+  const destinationText = intel.route?.destination || "";
+  const kind = intel.mode === "Air" || intel.mode === "Courier" ? "air" : intel.mode === "Sea" ? "sea" : "mixed";
+  const origin = kind === "air"
+    ? findAirportRiskProfile(originText)
+    : kind === "sea"
+      ? findPortRiskProfile(originText)
+      : findAirportRiskProfile(originText) || findPortRiskProfile(originText);
+  const destination = kind === "air"
+    ? findAirportRiskProfile(destinationText)
+    : kind === "sea"
+      ? findPortRiskProfile(destinationText)
+      : findAirportRiskProfile(destinationText) || findPortRiskProfile(destinationText);
+  return {
+    kind,
+    origin,
+    destination,
+    any: Boolean(origin || destination),
+    complete: Boolean(originText && destinationText && origin && destination)
+  };
+}
+
+function sourceDirectoryFreshness(sources = []) {
+  const timestamps = sources
+    .map((source) => Date.parse(source.lastVerified || source.updatedAt || ""))
+    .filter(Number.isFinite)
+    .sort((a, b) => b - a);
+  if (!timestamps.length) return "来源目录更新时间待逐项核验";
+  return `来源目录最近核验 ${new Date(timestamps[0]).toISOString().slice(0, 10)}`;
+}
+
+function buildGlobalEvidenceAssessment(query = "", candidates = [], intel = {}, sources = []) {
+  const routeRecognition = globalRouteRecognition(intel);
+  const routeEvidence = globalRouteEvidence(intel);
+  const evidenceRows = routeEvidence?.rows || [];
+  const actualRows = routeEvidence?.actuals || [];
+  const quoteRows = routeEvidence?.quotes || [];
+  const outcomeRows = routeEvidence?.outcomes || [];
+  const scheduleRows = routeEvidence?.officialSchedules || [];
+  const officialCount = sources.filter((source) => /official|port-official|terminal|carrier|standard/.test(source.sourceType || "")).length;
+  const hasModel = (intel.metrics || []).some(([label]) => /模型|预算/.test(label));
+  const policyQuery = (intel.concerns || []).some((item) => item.id === "policy") || /特朗普|川普|trump|301|232|制裁|出口管制|政策/.test(normalize(query));
+  const locationHit = Boolean(findAirportCodeProfile(query) || findPortRiskProfile(query) || routeRecognition.any);
+  const used = [];
+  if (evidenceRows.length) {
+    const parts = [
+      quoteRows.length ? `${quoteRows.length} 条近期报价` : "",
+      actualRows.length ? `${actualRows.length} 票实际运输` : "",
+      outcomeRows.length ? `${outcomeRows.length} 票查验/预审结果` : ""
+    ].filter(Boolean);
+    used.push(`同航线实单：${parts.join("、")}`);
+  }
+  if (scheduleRows.length) {
+    used.push(`承运人计划班期：${scheduleRows.length} 条 · ${routeEvidence.schedule?.carriers?.join("、") || "承运人待核"}`);
+  }
+  if (intel.primaryProduct) used.push(`产品规则库：${intel.primaryProduct.label}`);
+  if (intel.hs) used.push(`用户输入 HS：${intel.hs}`);
+  if (routeRecognition.any) used.push(`地点库：${intel.routeLabel}`);
+  if (hasModel) used.push("价格/航程模型：仅用于预算或初筛");
+  if (!used.length) used.push("关键词、编号格式与模块路由规则");
+
+  let label = "资料不足";
+  let tone = "missing";
+  let explanation = "当前只能识别查询方向，不能形成可执行结论。";
+  if (evidenceRows.length) {
+    const evidenceKinds = [quoteRows.length ? "价格" : "", actualRows.length ? "时效" : "", outcomeRows.length ? "查验" : ""].filter(Boolean);
+    label = evidenceKinds.length === 1 ? `实单${evidenceKinds[0]}支持` : "实单部分支持";
+    tone = "verified";
+    explanation = `本次只有${evidenceKinds.join("、")}维度命中同航线实单；其他维度仍按规则或模型处理。还需核对记录日期、承运人和适用条件。`;
+  } else if (policyQuery) {
+    label = "待查公告正文";
+    tone = "pending";
+    explanation = "当前只完成政策主题与适用范围识别；核验入口不等于已经读取最新公告正文。";
+  } else if (scheduleRows.length) {
+    label = "船司班期支持";
+    tone = "pending";
+    explanation = `命中 ${scheduleRows.length} 条承运人计划 ETD/ETA，计划航程 ${routeEvidence.schedule?.rangeText || "待核验"}；这比区域模型可靠，但不是实际到港实绩。`;
+  } else if (intel.primaryProduct || intel.hs) {
+    label = hasModel ? "规则初判 + 模型估算" : "规则初判";
+    tone = "rules";
+    explanation = "本次使用产品/税则规则做初筛；正式结论仍取决于真实规格、目的国、原产国和申报日期。";
+  } else if (hasModel) {
+    label = "模型估算";
+    tone = "model";
+    explanation = "路线已识别，但没有同航线实单；页面数字只作预算和核验优先级参考。";
+  } else if (locationHit) {
+    label = "地点库命中";
+    tone = "location";
+    explanation = "港口或机场代码已识别；价格、时效、风险仍需补齐完整路线和货物信息。";
+  }
+
+  const evidenceDates = [...evidenceRows, ...scheduleRows]
+    .map((sample) => sample.evidenceDate || sample.capturedAt || sample.updatedAt || sample.createdAt || "")
+    .filter(Boolean)
+    .sort()
+    .reverse();
+  const freshness = evidenceDates.length
+    ? `业务/班期证据最近日期 ${String(evidenceDates[0]).slice(0, 10)}；${sourceDirectoryFreshness(sources)}`
+    : sourceDirectoryFreshness(sources);
+  const scope = [modeLabel(intel.mode), routeRecognition.any ? intel.routeLabel : "", intel.productLabel, intel.country].filter((item) => item && !/待补|待识别/.test(item)).join(" · ") || "仅适用于当前输入";
+  return {
+    label,
+    tone,
+    explanation,
+    used,
+    scope,
+    freshness,
+    officialCount,
+    sourceCount: sources.length,
+    routeRecognition,
+    routeEvidence
+  };
+}
+
+function buildGlobalAnswerContract(query = "", target = {}, intel = {}, assessment = {}) {
+  const concernIds = new Set((intel.concerns || []).map((item) => item.id));
+  const routeComplete = Boolean(intel.route?.origin && intel.route?.destination);
+  const routeRecognized = Boolean(assessment.routeRecognition?.complete);
+  const hasActual = Boolean(assessment.routeEvidence?.rows?.length);
+  const hasCarrierSchedule = Boolean(assessment.routeEvidence?.officialSchedules?.length);
+  const policyQuery = concernIds.has("policy");
+  let conclusion = intel.conclusion;
+  if (policyQuery) {
+    conclusion = `已识别为${intel.country ? `${intel.country}相关` : ""}政策/准入问题。当前首页尚未读取最新公告正文，因此只确认查询方向，不直接判断政策已经生效或一定适用。`;
+  } else if (routeComplete && hasActual) {
+    const routeEvidence = assessment.routeEvidence || {};
+    const supported = [routeEvidence.quotes?.length ? "价格" : "", routeEvidence.actuals?.length ? "实际时效" : "", routeEvidence.outcomes?.length ? "查验/预审结果" : ""].filter(Boolean);
+    const modelDimensions = [!routeEvidence.quotes?.length && concernIds.has("price") ? "价格" : "", !routeEvidence.actuals?.length ? "航程/时效" : "", !routeEvidence.outcomes?.length && concernIds.has("risk") ? "查验风险" : ""].filter(Boolean);
+    conclusion = `${intel.routeLabel} 已识别；${supported.join("、")}有同航线实单支持${modelDimensions.length ? `，${modelDimensions.join("、")}仍是规则或模型判断` : ""}。实单仍需核对日期、承运人、有效期和货物差异。`;
+  } else if (routeComplete && routeRecognized && hasCarrierSchedule) {
+    const schedule = assessment.routeEvidence?.schedule || {};
+    conclusion = `${intel.routeLabel} 已识别，并命中 ${schedule.count || 0} 条${schedule.carriers?.join("、") || "承运人"}计划班期，计划航程 ${schedule.rangeText || "待核验"}。这不是区域模型，但仍属于计划 ETD/ETA，不能当作实际到港或平均延误。`;
+  } else if (routeComplete && routeRecognized && (intel.metrics || []).some(([label]) => /模型|预算/.test(label))) {
+    conclusion = `${intel.routeLabel} 已识别，但没有同航线实单。页面中的价格和航程属于模型预算，不应直接写入客户报价或交期承诺。`;
+  } else if (routeComplete && !routeRecognized) {
+    conclusion = `当前地点库没有完整识别“${intel.route.origin} → ${intel.route.destination}”，因此不提供航程、价格或风险数字。请补标准港口 UN/LOCODE 或机场 IATA 代码后再查。`;
+  } else if (findAirportCodeProfile(query)) {
+    const airport = findAirportCodeProfile(query);
+    conclusion = `${airport.cn} 已识别为机场，代码 ${airport.iata}${airport.icao ? ` / ${airport.icao}` : ""}；可以继续查空运价格、航班/运单状态和机场风险。`;
+  } else if (findPortRiskProfile(query) && intel.mode !== "Air" && intel.mode !== "Courier") {
+    const port = findPortRiskProfile(query);
+    conclusion = `${port.cn || port.name} 已识别为港口，代码 ${port.code || "待复核"}；完整风险和时效仍需要起运港、目的港和货物类型。`;
+  }
+
+  const impacts = [];
+  if (concernIds.has("price")) impacts.push("当前价格只能用于预算，正式报价必须核对有效期、附加费和包含项");
+  if (concernIds.has("risk")) impacts.push("风险结论影响交期承诺、备选路线和异常成本预留");
+  if (concernIds.has("customs")) impacts.push("税号、原产国或监管条件变化会直接影响税费和放行资料");
+  if (concernIds.has("docs")) impacts.push("文件缺失可能导致退仓、补件、查验或清关延误");
+  if (policyQuery) impacts.push("政策是否影响当前订单，取决于生效日期、HS、原产国、进口国和豁免条款");
+  if (!impacts.length) impacts.push(target.reason || "系统已识别最相关的查询方向");
+
+  return {
+    conclusion,
+    basis: assessment.used?.join("；") || "按当前输入做意图识别。",
+    impact: `${impacts.join("；").replace(/[。；]+$/g, "")}。`,
+    action: policyQuery
+      ? "先进入政策模块读取最新公告正文，确认发布主体、生效日期、适用 HS、原产国、进口国和豁免条款，再决定是否调整报价、申报或出运。"
+      : intel.action,
+    pending: intel.missing?.length ? intel.missing.join("；") : "正式执行前复核承运人、官方规则和查询时间。"
+  };
+}
+
 function evidenceCaveats(intel = {}, sources = []) {
   const caveats = [];
   if (intel.metrics?.some(([label]) => /预算|价格|运价/.test(label))) caveats.push("价格是预算区间：必须用船司/货代有效报价复核。");
@@ -9517,36 +10821,36 @@ function evidenceCaveats(intel = {}, sources = []) {
   return caveats.slice(0, 4);
 }
 
-function renderGlobalEvidencePanel(query = "", candidates = [], intel = {}) {
+function renderGlobalEvidencePanel(query = "", candidates = [], intel = {}, selectedSources = null, assessment = null) {
   const queryText = normalize(query);
   const airQuery = intel.mode === "Air" || intel.mode === "Courier" || /空运|航空|航班|机场|pvg|lax|jfk|ord|hkg|can|szx/.test(queryText);
   const policyQuery = (intel.concerns || []).some((item) => /policy|customs/.test(item.id || "")) || /特朗普|川普|trump|301|232|关税|制裁|出口管制|tariff|sanction/.test(queryText);
   const policyKinds = /trade-policy|tariff|hs|customs|regulation|effective-date|customs-message|import-requirements|tariff-measures/;
-  const sources = selectEvidenceSourcesForQuery(query, candidates, intel)
+  const sources = (selectedSources || selectEvidenceSourcesForQuery(query, candidates, intel))
     .filter((source) => !(airQuery && source.id === "noaa-marine"))
     .filter((source) => !policyQuery || (source.dataKinds || []).some((kind) => policyKinds.test(kind)))
     .slice(0, policyQuery ? 4 : (airQuery ? 5 : 6));
   const caveats = evidenceCaveats(intel, sources);
   const officialCount = sources.filter((source) => /official|port-official|terminal|carrier|standard/.test(source.sourceType || "")).length;
   return `
-    <section class="global-evidence-panel" aria-label="AI 回答证据与核验面板">
-      <div class="global-evidence-head">
-        <span>证据与核验</span>
-        <strong>${escapeHtml(`${sources.length} 个核验入口 · ${officialCount} 个官方/承运人级别`)}</strong>
-        <small>来源目录，不等于已读取正文</small>
-      </div>
+    <details class="global-evidence-panel" aria-label="AI 回答证据与核验面板">
+      <summary class="global-evidence-head">
+        <span>核验入口</span>
+        <strong>${escapeHtml(`${sources.length} 个入口 · ${officialCount} 个官方/承运人级别`)}</strong>
+        <small>${escapeHtml(assessment?.freshness || "来源目录，不等于已读取正文")} · 展开查看</small>
+      </summary>
       <div class="global-evidence-grid">
         ${sources.map((source) => `
           <a href="${escapeHtml(source.url || "#")}" target="_blank" rel="noreferrer" class="global-evidence-card">
             <span>${escapeHtml(sourceTypeLabel(source.sourceType))} · ${escapeHtml(sourceAccessLabel(source.access, source.apiStatus))}</span>
             <strong>${escapeHtml(source.name || source.id || "来源")}</strong>
-            <p>${escapeHtml(source.summary || "用于复核当前查询结论。")}</p>
+            <p>${escapeHtml(source.summary || "用于继续核验当前查询，不代表本次已经读取该网页正文。")}</p>
             <small>${escapeHtml([source.coverage, source.updateCadence, source.lastVerified ? `目录核验 ${source.lastVerified}` : "", source.dataKinds?.slice(0, 2).join("/")].filter(Boolean).join(" · "))}</small>
           </a>
         `).join("")}
       </div>
       ${caveats.length ? `<div class="global-evidence-caveats">${caveats.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>` : ""}
-    </section>
+    </details>
   `;
 }
 
@@ -9561,6 +10865,9 @@ function globalSearchOptionsForQuery(query = "") {
   const push = (module, label, detail, icon = "✓", tab = "") => {
     if (!options.some((item) => item.module === module && item.label === label)) options.push({ module, label, detail, icon, tab });
   };
+  if (intel.concerns.some((item) => item.id === "policy")) {
+    push("policy", "政策变化与影响", "查询公告正文、生效日期、适用产品、国家和业务影响", "✓");
+  }
   if (intel.products.length && intel.concerns.length >= 2) {
     push("decision", "综合结论", `${modeLabel(intel.mode)} · ${intel.productLabel} · ${intel.concerns.map((item) => item.label).join("/")}`, "✓");
   }
@@ -9634,8 +10941,8 @@ function buildLiveIntentInsights(query = "", intel = {}, options = []) {
     add(
       "risk-center",
       `${origin.cn || origin.iata} → ${destination.cn || destination.iata}`,
-      `机场路线已识别，航程约 ${hours[0]}-${hours[1]} 小时`,
-      [`航程 ${hours[0]}-${hours[1]} 小时`, "机场风险", "空运费用", "航班/运单状态"],
+      `机场路线已识别，基础航程模型 ${hours[0]}-${hours[1]} 小时`,
+      [`模型时效 ${hours[0]}-${hours[1]} 小时`, "机场风险", "空运费用", "航班/运单状态"],
       "risk-airport-panel"
     );
   }
@@ -9664,12 +10971,11 @@ function buildLiveIntentInsights(query = "", intel = {}, options = []) {
       ["实时来源", "政策影响", "物流影响", "关务动作"]
     );
   }
-  options.slice(0, 3).forEach((item) => add(item.module, item.label, item.detail, [item.label, "自动带入查询", "直接生成结果"], item.tab || ""));
   return insights.slice(0, 5);
 }
 
 function contextualComplianceSummary(profile = {}, country = "", query = "") {
-  const context = normalize(`${country} ${query}`);
+  const context = normalize(country || query);
   const product = normalize(`${profile.id || ""} ${profile.label || ""} ${profile.summary || ""}`);
   const battery = /battery|锂|电池/.test(product);
   const wireless = /wireless|bluetooth|wifi|无线|蓝牙/.test(product);
@@ -9701,6 +11007,9 @@ function buildGlobalSearchAnswer(query = "", candidates = []) {
   const airport = findAirportCodeProfile(value);
   const port = findPortRiskProfile(value);
   const intel = buildLogisticsIntelligence(value, candidates);
+  const selectedSources = selectEvidenceSourcesForQuery(value, candidates, intel);
+  const assessment = buildGlobalEvidenceAssessment(value, candidates, intel, selectedSources);
+  const contract = buildGlobalAnswerContract(value, target, intel, assessment);
   const subject = intel.products.length
     ? `${intel.productLabel} · ${intel.routeLabel}`
     : airport
@@ -9713,11 +11022,33 @@ function buildGlobalSearchAnswer(query = "", candidates = []) {
   return `
     <article class="global-ai-answer">
       <div class="global-ai-head">
-        <span>AI 回答</span>
+        <span>直接结论</span>
         <strong>${escapeHtml(subject)}</strong>
-        <small>${escapeHtml(`${evidenceStateLabel(intel)} · ${modeLabel(intel.mode)}`)}</small>
+        <small data-tone="${escapeHtml(assessment.tone)}">${escapeHtml(`${assessment.label} · ${modeLabel(intel.mode)}`)}</small>
       </div>
-      <p>${escapeHtml(intel.conclusion)}</p>
+      <div class="global-answer-contract">
+        <section class="primary">
+          <b>结论</b>
+          <p>${escapeHtml(contract.conclusion)}</p>
+        </section>
+        <section>
+          <b>本次依据</b>
+          <p>${escapeHtml(contract.basis)}</p>
+        </section>
+        <section>
+          <b>业务影响</b>
+          <p>${escapeHtml(contract.impact)}</p>
+        </section>
+        <section>
+          <b>建议动作</b>
+          <p>${escapeHtml(contract.action)}</p>
+        </section>
+      </div>
+      <div class="global-answer-evidence" data-tone="${escapeHtml(assessment.tone)}">
+        <div><span>证据状态</span><strong>${escapeHtml(assessment.label)}</strong></div>
+        <p>${escapeHtml(assessment.explanation)}</p>
+        <small>${escapeHtml(`适用范围：${assessment.scope} · ${assessment.freshness}`)}</small>
+      </div>
       <div class="global-ai-signal-row">
         <span>货物：${escapeHtml(intel.productLabel)}</span>
         <span>路线：${escapeHtml(intel.routeLabel)}</span>
@@ -9729,13 +11060,12 @@ function buildGlobalSearchAnswer(query = "", candidates = []) {
           ${intel.metrics.map(([label, metric]) => `<section><b>${escapeHtml(label)}</b><strong>${escapeHtml(metric)}</strong></section>`).join("")}
         </div>
       ` : ""}
-      <div class="global-ai-judgement">
-        <b>独立判断</b>
-        <p>${escapeHtml(intel.action)}</p>
-        ${intel.primaryProduct ? `<p>${escapeHtml(contextualComplianceSummary(intel.primaryProduct, intel.country, value))}</p>` : ""}
+      ${intel.primaryProduct ? `<div class="global-ai-judgement"><b>产品与目的国判断</b><p>${escapeHtml(contextualComplianceSummary(intel.primaryProduct, intel.country, value))}</p></div>` : ""}
+      ${renderGlobalEvidencePanel(value, candidates, intel, selectedSources, assessment)}
+      <div class="global-ai-pending">
+        <b>仍待核验</b>
+        <p>${escapeHtml(contract.pending)}</p>
       </div>
-      ${renderGlobalEvidencePanel(value, candidates, intel)}
-      ${intel.missing.length ? `<div class="global-ai-gap-row">${intel.missing.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>` : ""}
       <div class="global-ai-action-grid">
         ${options.map((item) => `
           <button type="button" data-live-module="${escapeHtml(item.module)}" data-live-tab="${escapeHtml(item.tab || "")}" data-global-query="${escapeHtml(value)}">
@@ -9763,6 +11093,8 @@ function renderGlobalSearchLiveAssist(query = "") {
   const intel = buildLogisticsIntelligence(value, candidates);
   const options = globalSearchOptionsForQuery(value);
   const insights = buildLiveIntentInsights(value, intel, options);
+  const sources = selectEvidenceSourcesForQuery(value, candidates, intel);
+  const assessment = buildGlobalEvidenceAssessment(value, candidates, intel, sources);
   const title = intel.products.length
     ? `正在判断：${intel.productLabel}`
     : airport
@@ -9780,6 +11112,8 @@ function renderGlobalSearchLiveAssist(query = "") {
         <span>${escapeHtml(modeLabel(intel.mode))}</span>
         <span>${escapeHtml(intel.routeLabel)}</span>
         <span>${escapeHtml(intel.productLabel)}</span>
+        <span data-tone="${escapeHtml(assessment.tone)}">证据：${escapeHtml(assessment.label)}</span>
+        ${intel.missing.length ? `<span data-tone="pending">待补 ${intel.missing.length} 项</span>` : ""}
       </div>
       ${insights.length ? `
         <div class="live-intent-insight-grid">
@@ -9818,8 +11152,10 @@ function classifyGlobalSearch(raw = "") {
   }
 
   const containerLike = /\b[A-Z]{4}\d{7}\b/i.test(query.replace(/\s+/g, ""));
-  const trackingLike = /\b1Z[0-9A-Z]{8,}\b/i.test(query) || /\b\d{10,15}\b/.test(query) || /dhl|ups|fedex|sf|顺丰|快递|运单|awb|空运单/i.test(query);
   const hsLike = /\b\d{8,10}\b/.test(query);
+  const explicitTrackingLike = /dhl|ups|fedex|sf|顺丰|快递|运单|awb|空运单/i.test(query);
+  const numericTrackingLike = /\b\d{10,15}\b/.test(query) && !/税号|税率|归类|申报|关税|hs|hscode/i.test(query);
+  const trackingLike = /\b1Z[0-9A-Z]{8,}\b/i.test(query) || explicitTrackingLike || numericTrackingLike;
   const airportMatchLike = hasCodeMatch(airportCodeData, query, ["iata", "icao", "name", "cn", "city", "country", "aliases"]);
   const portMatchLike = hasCodeMatch(seaPortCodeData, query, ["code", "name", "cn", "country", "aliases"]);
   const vesselIntent = /船名|船期|船位|船舶|航次|位置|定位|eta|vessel|voyage|mmsi|imo/.test(text);
@@ -9858,9 +11194,9 @@ function classifyGlobalSearch(raw = "") {
   const add = (module, title, reason, score, fill = {}) => candidates.push({ module, title, reason, score, fill });
 
   if (complexQuestionLike) {
-    add("decision", "AI 综合结论", "这是多意图问题：同时涉及货物、价格/风险/关务/单证。系统会先给业务结论，再自动带入相关模块。", 139, { decision: query });
+    add("decision", "AI 综合结论", "这是多意图问题：同时涉及货物、价格/风险/关务/单证。系统会先给业务结论，再自动带入相关模块。", policyHardLike ? 128 : 139, { decision: query });
   }
-  if (politicalHotspotLike && !containerLike && !trackingLike && !feeLike && !documentLike) {
+  if (politicalHotspotLike && !containerLike && !trackingLike && (!feeLike || policyHardLike) && !documentLike) {
     add("trends", "政策/热点趋势影响", "识别为政治人物、选举、地缘或贸易热点，直接搜索公开趋势并生成物流/关务影响判断。", policyHardLike ? 124 : 136, { trend: query });
     add("policy", "政策变化雷达", "如果它关联关税、制裁、出口管制或海关公告，可继续看政策来源和实施日期。", policyHardLike ? 138 : 98, { policy: query });
   }
@@ -9930,9 +11266,9 @@ function classifyGlobalSearch(raw = "") {
     add("matrix", "进口国要求", "看起来是在查某个国家/地区的进口准入、认证、标签或清关要求。", 82, { country: query });
   }
   if (policyLike) {
-    const explicitTrendRoute = /趋势|新闻|热点|热搜|市场|金融|汇率|利率|突发|实时|影响/.test(text);
+    const explicitTrendRoute = /趋势|新闻|热点|热搜|市场动态|金融|汇率|利率|突发|实时/.test(text);
     const policyRoute = policyHardLike && !explicitTrendRoute;
-    add(policyRoute ? "policy" : "trends", policyRoute ? "政策变化雷达" : "市场动态对物流的影响", "看起来是政策、趋势、监管、认证或市场影响查询；进入后会直接生成结果。", policyRoute ? 116 : 112, { policy: query, trend: query });
+    add(policyRoute ? "policy" : "trends", policyRoute ? "政策变化雷达" : "市场动态对物流的影响", "看起来是政策、趋势、监管、认证或市场影响查询；进入后会直接生成结果。", policyRoute ? 152 : 112, { policy: query, trend: query });
   }
   if (!candidates.length) {
     if (/[A-Z]{3,}/i.test(cleanText) && !/产品|货物|音箱|耳机|电池|政策|费用|报关|发票|箱单/.test(text)) {
@@ -9953,21 +11289,58 @@ function renderGlobalSearchResult(query = "") {
   const target = $("globalSearchResult");
   if (!target) return;
   const candidates = classifyGlobalSearch(query);
-  target.innerHTML = `
-    ${buildGlobalSearchAnswer(query, candidates)}
-    ${buildGlobalSearchVerdict(query, candidates)}
-    ${candidates
-    .map((item, index) => `
-      <article class="global-search-card ${index === 0 ? "primary" : ""}">
-        <span>${index === 0 ? "推荐入口" : "备选入口"}</span>
-        <strong>${escapeHtml(item.title)}</strong>
-        <p>${escapeHtml(item.reason)}</p>
-        <button type="button" data-global-module="${escapeHtml(item.module)}" data-global-query="${escapeHtml(query)}">${index === 0 ? "直接查询" : "换到这里查"}</button>
-      </article>
-    `)
-    .join("")}
-  `;
+  target.innerHTML = buildGlobalSearchAnswer(query, candidates);
 }
+
+const globalSearchQualityCases = [
+  { query: "PVG", modules: ["codes"], evidence: /地点库命中/ },
+  { query: "特朗普对中国蓝牙耳机进口关税有什么影响", modules: ["policy"], evidence: /待查公告正文/, country: "美国", noRoute: true },
+  { query: "特朗普最近有什么物流影响", modules: ["trends"], evidence: /待查公告正文/ },
+  { query: "上海港到洛杉矶港风险", modules: ["risk-center"] },
+  { query: "上海到洛杉矶海运价格", modules: ["sea-market"] },
+  { query: "PVG到LAX空运风险", modules: ["risk-center"] },
+  { query: "PVG到LAX锂电池空运多少钱，有什么风险？", modules: ["decision", "air-market"], evidence: /规则初判|实单/ },
+  { query: "小港A到小港B海运多久", modules: ["decision"], evidence: /资料不足/, basisNot: /地点库/ },
+  { query: "CAIU9615034", modules: ["customs"] },
+  { query: "EVER GIVEN 船位", modules: ["shipment"] },
+  { query: "DHL 1234567890 查询", modules: ["air"] },
+  { query: "生成商业发票 蓝牙耳机", modules: ["docs-invoice"] },
+  { query: "8517629400 税率", modules: ["hs"] },
+  { query: "巴西蓝牙耳机 ANATEL 认证", modules: ["policy"], country: "巴西" }
+];
+
+function runGlobalSearchQualityAudit() {
+  const results = globalSearchQualityCases.map((testCase) => {
+    const candidates = classifyGlobalSearch(testCase.query);
+    const target = candidates[0] || {};
+    const intel = buildLogisticsIntelligence(testCase.query, candidates);
+    const sources = selectEvidenceSourcesForQuery(testCase.query, candidates, intel);
+    const assessment = buildGlobalEvidenceAssessment(testCase.query, candidates, intel, sources);
+    const checks = [
+      testCase.modules.includes(target.module),
+      !testCase.evidence || testCase.evidence.test(assessment.label),
+      !testCase.country || intel.country === testCase.country,
+      !testCase.noRoute || (!intel.route.origin && !intel.route.destination),
+      !testCase.basisNot || !testCase.basisNot.test((assessment.used || []).join(" "))
+    ];
+    return {
+      query: testCase.query,
+      module: target.module || "none",
+      evidence: assessment.label,
+      country: intel.country || "",
+      route: intel.routeLabel,
+      pass: checks.every(Boolean)
+    };
+  });
+  return {
+    passed: results.filter((item) => item.pass).length,
+    total: results.length,
+    failed: results.filter((item) => !item.pass),
+    results
+  };
+}
+
+window.runLogisMasterSearchQualityAudit = runGlobalSearchQualityAudit;
 
 function applyGlobalSearchFill(moduleId = "", query = "") {
   const candidates = classifyGlobalSearch(query);
@@ -10073,8 +11446,25 @@ function applyGlobalSearchFill(moduleId = "", query = "") {
     if (parts.length > 1) $("requirementProduct").value = parts.slice(1).join(" ");
   }
   if (moduleId === "policy") {
-    $("policyProduct").value = value;
-    $("policyImportCountry").value = $("policyImportCountry").value || "";
+    const intel = buildLogisticsIntelligence(value, candidates);
+    const text = normalize(value);
+    const productTerms = [];
+    if (/蓝牙耳机|bluetooth (?:headphone|earbud|headset)/.test(text)) productTerms.push("蓝牙耳机 Bluetooth headphones");
+    else if (/耳机|headphone|earbud|headset/.test(text)) productTerms.push("耳机 headphones");
+    else if (/蓝牙音箱|无线音箱|bluetooth speaker|wireless speaker/.test(text)) productTerms.push("蓝牙音箱 Bluetooth speaker");
+    else if (/音箱|speaker|soundbar/.test(text)) productTerms.push("音箱 speaker");
+    else if (/电池|锂|battery|lithium/.test(text)) productTerms.push("锂电池 lithium battery");
+    else if (intel.primaryProduct?.label) productTerms.push(intel.primaryProduct.label);
+    if (/关税|税率|tariff|duty/.test(text)) productTerms.push("关税 tariff");
+    if (/301/.test(text)) productTerms.push("Section 301");
+    if (/232/.test(text)) productTerms.push("Section 232");
+    if (/特朗普|川普|trump/.test(text)) productTerms.push("特朗普 Trump");
+    if (/认证|certif|fcc|anatel|nbtc|saber|ccc/.test(text)) productTerms.push("认证 compliance");
+    if (/制裁|出口管制|sanction|export control/.test(text)) productTerms.push("制裁 出口管制");
+    $("policyProduct").value = productTerms.join(" ") || value;
+    if (intel.country && $("policyImportCountry")) $("policyImportCountry").value = intel.country;
+    if (/中国|china|中国原产/.test(text) && intel.country !== "中国" && $("policyExportCountry")) $("policyExportCountry").value = "中国";
+    if (/关税|301|232|进口/.test(text) && $("policyDirection")) $("policyDirection").value = "进口";
   }
   if (moduleId === "trends") {
     $("trendKeyword").value = value;
@@ -10296,6 +11686,11 @@ function renderOpsFeeCard(profile, type, mode) {
       cost: amountPreview || "暂无公开金额；以当期收费表和服务商报价为准。",
       action: "把收费项目、适用口径、有效期、金额和备注分项确认；正式报价不要只写总价。",
       source: `${profile.publicLevel || "公开/参考口径"}；以最新公示、码头/货站账单、承运人和货代报价为准。`,
+      evidenceLabel: "公开费用口径",
+      evidenceTone: "rules",
+      evidenceBasis: `${profile.name} 的公开收费入口、费用项目与业务账单核验规则`,
+      scope: `${profile.name} · ${typeLabel}；不含未列明的逐票附加费`,
+      pending: "当期收费表、币种税费、最低收费、有效期和实际作业账单",
       links: profile.sources || []
     })}
     <article class="ops-fee-verdict ${mustQuote ? "warning" : "primary"}">
@@ -10420,15 +11815,29 @@ function renderAirportRiskSourceCard(origin = {}, destination = {}, cargo = "gen
 }
 
 function renderMarketQuoteTable(mode = "sea", context = {}) {
-  const { origin = {}, destination = {}, rate = {}, weight = 300 } = context;
+  const { origin = {}, destination = {}, rate = {}, weight = 300, evidence = {} } = context;
   const route = mode === "air"
     ? `${origin.iata || origin.cn || "起飞机场"} → ${destination.iata || destination.cn || "目的机场"}`
     : `${origin.cn || origin.name || "起运港"} → ${destination.cn || destination.name || "目的港"}`;
-  const rows = (marketInquiryRows[mode] || []).map((row, index) => {
+  const evidenceRows = (Array.isArray(evidence.quotes) ? evidence.quotes : [])
+    .filter((sample) => Number(sample.price) > 0)
+    .slice(0, 8)
+    .map((sample) => ({
+      kind: "evidence",
+      name: sample.carrier || "承运人待补",
+      type: "已录入有效报价",
+      status: sample.evidenceDate || "日期待补",
+      note: sample.note || "请复核报价有效期、包含项、舱位和附加费。",
+      url: "",
+      route,
+      price: `${sample.currency || "USD"} ${Number(sample.price).toLocaleString()}/${sample.unit || (mode === "air" ? "KG" : "票")}`
+    }));
+  const inquiryRows = (marketInquiryRows[mode] || []).map((row, index) => {
     const price = index === 0
       ? (mode === "air" ? `${rate.label || "待估算"} / ${weight} kg 约 ${rate.total || "待估算"}` : rate.label || "待估算")
       : "点击入口实时询价/查船期";
     return {
+      kind: index === 0 ? "model" : "inquiry",
       name: row[0],
       type: row[1],
       status: row[2],
@@ -10438,6 +11847,7 @@ function renderMarketQuoteTable(mode = "sea", context = {}) {
       price
     };
   });
+  const rows = [...evidenceRows, ...inquiryRows];
   return `
     <article class="market-rate-card wide market-quote-card">
       <span>${mode === "air" ? "空运价目表" : "海运价目表"}</span>
@@ -10461,13 +11871,13 @@ function renderMarketQuoteTable(mode = "sea", context = {}) {
                 <td><b>${escapeHtml(row.price)}</b></td>
                 <td>${escapeHtml(row.type)}<br><small>${escapeHtml(row.status)}</small></td>
                 <td>${escapeHtml(row.note)}</td>
-                <td>${row.url ? `<a href="${escapeHtml(row.url)}" target="_blank" rel="noreferrer">打开</a>` : `<span>本页模型</span>`}</td>
+                <td>${row.url ? `<a href="${escapeHtml(row.url)}" target="_blank" rel="noreferrer">打开</a>` : `<span>${row.kind === "evidence" ? "本机实单记录" : "预算模型（非报价）"}</span>`}</td>
               </tr>
             `).join("")}
           </tbody>
         </table>
       </div>
-      <p>只有第一行是页面模型预算；其他行是承运人/货代官方入口。没有账号、PDF 船期或 API 授权前，不把预测值包装成实时价或确定船期。</p>
+      <p>${evidenceRows.length ? `表首 ${evidenceRows.length} 行为已录入的承运人/货代有效报价，按公司和日期展示；` : "当前没有已录入的承运人/货代有效报价；"}预算模型明确标注为非报价，其余行是官方询价或班期入口，不把入口或预测值包装成实时价。</p>
     </article>
   `;
 }
@@ -10481,7 +11891,7 @@ function renderBusinessEvidenceRouteCard(mode = "sea", evidence = {}) {
       <article class="market-rate-card wide business-evidence-card empty">
         <span>同航线实际记录</span>
         <strong>该航线暂无真实样本</strong>
-        <p>当前只能给模型预算或航程窗口，不能称为市场实时价、平均船期或平均延误。</p>
+        <p>${evidence.schedule?.records?.length ? "已有承运人计划班期，但还没有实际出发/到达或有效报价记录，因此不能称为市场实时价、实际平均船期或平均延误。" : "当前只能给模型预算或航程窗口，不能称为市场实时价、平均船期或平均延误。"}</p>
         <a href="#evidence-ledger">录入有效报价或实际运输结果</a>
       </article>
     `;
@@ -10501,16 +11911,66 @@ function renderBusinessEvidenceRouteCard(mode = "sea", evidence = {}) {
   `;
 }
 
+function renderCarrierScheduleEvidenceCard(schedule = {}) {
+  if (!schedule.records?.length) return "";
+  const source = schedule.sources?.[0];
+  return `
+    <article class="market-rate-card wide business-evidence-card verified carrier-schedule-evidence-card">
+      <span>承运人计划班期 · ${escapeHtml(String(schedule.records.length))} 条</span>
+      <strong>${escapeHtml(schedule.rangeText)}</strong>
+      <p>这是承运人发布的计划 ETD/ETA，不是实际履约时效；系统据此替代区域航程模型，但不据此计算平均延误。</p>
+      <div class="business-evidence-facts">
+        ${schedule.records.map((record) => `
+          <p>
+            <b>${escapeHtml(`${record.carrier || "承运人"} · ${record.vessel || "船名待补"} ${record.voyage || ""}`.trim())}</b>
+            ${escapeHtml(`${record.departureDate || "ETD待补"} → ${record.arrivalDate || "ETA待补"} · ${scheduleTransitDuration(record.transitHours)}`)}
+          </p>
+        `).join("")}
+      </div>
+      <small>${escapeHtml(`抓取/录入日期 ${schedule.lastCaptured || "待补"}；计划可能调整，订舱前重查当前航次。`)}</small>
+      ${source?.url ? `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">打开 ${escapeHtml(source.name || "承运人船期")}</a>` : ""}
+    </article>
+  `;
+}
+
+function renderMarketCoverageMissing(target, mode = "sea", originQuery = "", destinationQuery = "") {
+  if (!target) return;
+  const type = mode === "air" ? "机场" : "港口";
+  const code = mode === "air" ? "IATA 三字码" : "UN/LOCODE";
+  target.innerHTML = `
+    ${renderResultBrief({
+      className: "market-rate-brief warn",
+      kicker: mode === "air" ? "Air Market Coverage" : "Sea Market Coverage",
+      title: `${originQuery || "起点待补"} → ${destinationQuery || "终点待补"}`,
+      updatedLabel: "覆盖不足",
+      conclusion: `起点或终点未命中主流${type}数据库，因此不输出市场价格、航程或时效数字。`,
+      risk: "自动套用其他路线会造成错误报价和交期判断，本次已停止计算。",
+      cost: "当前没有可适用的路线价格样本或模型口径。",
+      action: `请补充${code}、中文正式名称或英文名称，并确认具体${type}后重新查询。`,
+      source: "LogisMaster 主流地点库；未识别输入不使用默认路线代替。",
+      evidenceLabel: "资料不足",
+      evidenceTone: "missing",
+      evidenceBasis: `当前输入未同时命中起点和终点${type}库`,
+      scope: `${originQuery || "起点待补"} → ${destinationQuery || "终点待补"}`,
+      pending: `${code}、货物类型、计划日期和承运人`
+    })}
+  `;
+}
+
 function renderSeaMarketRate(event) {
   event?.preventDefault();
   const target = $("seaMarketRateResult");
   if (!target) return;
-  const originQuery = $("seaMarketOrigin")?.value || "上海";
-  const destinationQuery = $("seaMarketDestination")?.value || "Los Angeles";
+  const originQuery = String($("seaMarketOrigin")?.value || "").trim();
+  const destinationQuery = String($("seaMarketDestination")?.value || "").trim();
   const box = $("seaMarketBox")?.value || "40HQ";
   const cargo = $("seaMarketCargo")?.value || "general";
-  const origin = findPortRiskProfile(originQuery) || findPortRiskProfile("上海");
-  const destination = findPortRiskProfile(destinationQuery) || findPortRiskProfile("Los Angeles");
+  const origin = findPortRiskProfile(originQuery);
+  const destination = findPortRiskProfile(destinationQuery);
+  if (!origin || !destination) {
+    renderMarketCoverageMissing(target, "sea", originQuery, destinationQuery);
+    return;
+  }
   const days = routeDaysForPorts(origin, destination);
   const scheduleSource = routeScheduleSourceProfile(origin, destination, days);
   const rate = seaMarketRateEstimate(origin, destination, box, cargo);
@@ -10518,25 +11978,32 @@ function renderSeaMarketRate(event) {
   const evidencePrice = formatEvidencePrice(evidence);
   const evidenceTransit = formatEvidenceTransit(evidence);
   const evidenceDelay = formatEvidenceDelay(evidence);
+  const schedule = evidence.schedule || { records: [] };
   const extra = cargo === "dg" ? "危险品要逐票确认船司接收、危申、港区进港窗口和 DG surcharge。" : cargo === "reefer" ? "冷箱要确认插电、温控、PTI、目的港冷箱费和超期堆存。" : cargo === "oog" ? "OOG/特种箱必须先拿船司和码头确认，市场价只能作方向参考。" : "普通货仍需确认旺季附加费、BAF、PSS、目的港费用和免堆免箱。";
   target.innerHTML = `
     ${renderResultBrief({
       className: "market-rate-brief primary",
       kicker: "Sea Market Price",
       title: `${origin.cn || origin.name} → ${destination.cn || destination.name} · ${box}`,
-      updatedLabel: evidence.quote ? "近期业务样本" : "模型预算",
+      updatedLabel: evidence.quote ? "近期业务样本" : schedule.records.length ? "价格模型 + 承运人班期" : "模型预算",
       conclusion: evidence.quote ? `同航线 60 天内有效报价为 ${evidencePrice}，共 ${evidence.quotes.length} 条；仍需核对有效期、包含项和舱位。` : `暂无同航线近期报价，只能先按 ${rate.label} 做模型预算；正式报价要拿船司/货代有效期和附加费明细。`,
-      risk: evidence.transit ? `历史实际运输区间 ${evidenceTransit}${evidenceDelay ? `；到港偏差 ${evidenceDelay}` : ""}。` : days ? `航程模型 ${routeDaysText(days)}；口径：${scheduleSource.label}。这不是实时船期。` : `航程覆盖不足。${routeDaysNote(days)}`,
+      risk: evidence.transit ? `历史实际运输区间 ${evidenceTransit}${evidenceDelay ? `；到港偏差 ${evidenceDelay}` : ""}。` : schedule.records.length ? `承运人计划班期 ${schedule.rangeText}，共 ${schedule.records.length} 个航次；计划仍可能调整。` : days ? `航程模型 ${routeDaysText(days)}；口径：${scheduleSource.label}。这不是实时船期。` : `航程覆盖不足。${routeDaysNote(days)}`,
       cost: rate.basis,
       action: "至少向 2-3 家船司/货代核价，要求列明海运费、BAF/PSS、文件费、目的港费、免堆免箱和有效期。",
-      source: evidence.rows.length ? `同航线实际记录 + ${scheduleSource.label}；以记录日期和承运人为准。` : `价格模型 + ${scheduleSource.label}；不是合约价、保证价或实时船司 ETA。`,
+      source: evidence.rows.length ? `同航线实际记录 + ${scheduleSource.label}；以记录日期和承运人为准。` : schedule.records.length ? `价格仍是模型预算；航程采用 ${schedule.carriers.join("、") || "承运人"} 计划班期。` : `价格模型 + ${scheduleSource.label}；不是合约价、保证价或实时船司 ETA。`,
+      evidenceLabel: evidence.rows.length ? "实单支持" : schedule.records.length ? "船司班期支持" : "模型估算",
+      evidenceTone: evidence.rows.length ? "verified" : schedule.records.length ? "pending" : "model",
+      evidenceBasis: evidence.rows.length ? `${evidence.rows.length} 条同航线实际记录；最近报价 ${evidence.quote?.latestDate || "日期待补"}` : schedule.records.length ? `${schedule.records.length} 条承运人计划班期；录入 ${schedule.lastCaptured || "日期待补"}` : `路线价格模型 + ${scheduleSource.label}`,
+      scope: `${origin.cn || origin.name} → ${destination.cn || destination.name} · ${box} · ${cargo}`,
+      pending: "当前舱位、有效期、直航/中转、附加费、目的港费用和免堆免箱",
       links: marketSourceLinks.sea
     })}
     <article class="market-rate-card primary"><span>${evidence.quote ? "近期业务报价" : "模型预算"}</span><strong>${escapeHtml(evidencePrice || rate.label)}</strong><p>${escapeHtml(evidence.quote ? `${evidence.quotes.length} 条同航线、同单位样本；最近日期 ${evidence.quote.latestDate || "待补"}。` : rate.basis)}</p></article>
-    <article class="market-rate-card"><span>${evidence.transit ? "历史实绩航程" : "航程模型"}</span><strong>${escapeHtml(evidenceTransit || routeDaysText(days))}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : routeDaysNote(days))}</p></article>
+    <article class="market-rate-card"><span>${evidence.transit ? "历史实绩航程" : schedule.records.length ? "承运人计划航程" : "航程模型"}</span><strong>${escapeHtml(evidenceTransit || (schedule.records.length ? schedule.rangeText : routeDaysText(days)))}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : schedule.records.length ? `${schedule.records.length} 个计划航次；不是实际到港实绩。` : routeDaysNote(days))}</p></article>
     <article class="market-rate-card warning"><span>费用风险</span><strong>${escapeHtml(extra)}</strong><p>报价单必须拆明细，不建议只看一个 all-in 数字。</p></article>
     ${renderBusinessEvidenceRouteCard("sea", evidence)}
-    ${renderMarketQuoteTable("sea", { origin, destination, rate, unit: rate.unit })}
+    ${renderCarrierScheduleEvidenceCard(schedule)}
+    ${renderMarketQuoteTable("sea", { origin, destination, rate, unit: rate.unit, evidence })}
   `;
 }
 
@@ -10544,12 +12011,16 @@ function renderAirMarketRate(event) {
   event?.preventDefault();
   const target = $("airMarketRateResult");
   if (!target) return;
-  const originQuery = $("airMarketOrigin")?.value || "PVG";
-  const destinationQuery = $("airMarketDestination")?.value || "LAX";
+  const originQuery = String($("airMarketOrigin")?.value || "").trim();
+  const destinationQuery = String($("airMarketDestination")?.value || "").trim();
   const weight = Math.max(1, Number($("airMarketWeight")?.value || 300));
   const cargo = $("airMarketCargo")?.value || "general";
-  const origin = findAirportRiskProfile(originQuery) || findAirportRiskProfile("PVG");
-  const destination = findAirportRiskProfile(destinationQuery) || findAirportRiskProfile("LAX");
+  const origin = findAirportRiskProfile(originQuery);
+  const destination = findAirportRiskProfile(destinationQuery);
+  if (!origin || !destination) {
+    renderMarketCoverageMissing(target, "air", originQuery, destinationQuery);
+    return;
+  }
   const hours = flightHoursForAirports(origin, destination);
   const rate = airMarketRateEstimate(origin, destination, weight, cargo);
   const evidence = businessEvidenceForRoute("air", origin, destination, { unit: "KG" });
@@ -10574,13 +12045,18 @@ function renderAirMarketRate(event) {
       cost: rate.basis,
       action,
       source: evidence.rows.length ? "同航线实际记录 + 航空公司/快件/货代公开入口；以记录日期和承运人为准。" : "市场区间模型 + 航空公司/快件/货代公开入口；不是合约价或保证价。",
+      evidenceLabel: evidence.rows.length ? "实单支持" : "模型估算",
+      evidenceTone: evidence.rows.length ? "verified" : "model",
+      evidenceBasis: evidence.rows.length ? `${evidence.rows.length} 条同航线实际记录；最近报价 ${evidence.quote?.latestDate || "日期待补"}` : "空运市场区间模型 + 基础时效模型",
+      scope: `${origin.iata || origin.cn} → ${destination.iata || destination.cn} · ${weight} kg · ${cargo}`,
+      pending: "当前舱位、计费重、燃油与安检附加费、敏感货接收和目的港清关",
       links: marketSourceLinks.air
     })}
     <article class="market-rate-card primary"><span>${evidence.quote ? "近期业务报价" : "模型预算"}</span><strong>${escapeHtml(evidencePrice || rate.label)}</strong><p>${escapeHtml(evidence.quote ? `${evidence.quotes.length} 条同航线每公斤报价样本；最近日期 ${evidence.quote.latestDate || "待补"}。` : `按 ${weight} kg 计费重估算，总价约 ${rate.total}。`)}</p></article>
     <article class="market-rate-card"><span>${evidence.transit ? "历史实绩时效" : "基础时效模型"}</span><strong>${escapeHtml(evidenceTransit || `${hours[0]}-${hours[1]} 小时`)}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : "不含截仓、安检、清关、仓储和末端派送。")}</p></article>
     <article class="market-rate-card warning"><span>敏感货预审</span><strong>${escapeHtml(assessment.level)}</strong><p>${escapeHtml(action)}</p></article>
     ${renderBusinessEvidenceRouteCard("air", evidence)}
-    ${renderMarketQuoteTable("air", { origin, destination, rate, weight })}
+    ${renderMarketQuoteTable("air", { origin, destination, rate, weight, evidence })}
   `;
 }
 
@@ -10628,7 +12104,12 @@ function renderRiskCoverageMissing(target, type = "港口", originQuery = "", de
       risk: "请换用 UN/LOCODE、IATA 三字码、英文港口/机场名或中文正式名称再查。",
       cost: "覆盖不足时，报价和交期只能作为待核验事项，不建议写进客户承诺。",
       action: "先确认具体港区/机场、承运人、航班/船期和历史订单数据，再进入价格或单证模块。",
-      source: "LogisMaster 主流港口/机场库；缺失项应进入人工核验。"
+      source: "LogisMaster 主流港口/机场库；缺失项应进入人工核验。",
+      evidenceLabel: "资料不足",
+      evidenceTone: "missing",
+      evidenceBasis: "当前输入未同时命中起点和终点主流地点库",
+      scope: `${originQuery || "起点待补"} → ${destinationQuery || "终点待补"}`,
+      pending: `有效${type}代码、承运人、货物类型和计划日期`
     })}
     <article class="risk-center-card warning wide">
       <span>未输出默认值</span>
@@ -10773,8 +12254,8 @@ function renderRiskPortResult(event) {
   event?.preventDefault();
   const target = $("riskPortResult");
   if (!target) return;
-  const originQuery = String($("riskPortOrigin")?.value || "上海").trim();
-  const destinationQuery = String($("riskPortDestination")?.value || "洛杉矶").trim();
+  const originQuery = String($("riskPortOrigin")?.value || "").trim();
+  const destinationQuery = String($("riskPortDestination")?.value || "").trim();
   const origin = findPortRiskProfile(originQuery);
   const destination = findPortRiskProfile(destinationQuery);
   if (!origin || !destination) {
@@ -10787,6 +12268,7 @@ function renderRiskPortResult(event) {
   const evidence = businessEvidenceForRoute("sea", origin, destination);
   const actualTransit = formatEvidenceTransit(evidence);
   const actualDelay = formatEvidenceDelay(evidence);
+  const carrierSchedule = evidence.schedule || { records: [] };
   const concernScore = clampPercent(((origin.risk || 50) + (destination.risk || 50)) / 2 + (cargo === "dg" ? 10 : cargo === "oog" ? 12 : cargo === "reefer" ? 7 : cargo === "battery" ? 5 : 0));
   const modelLevel = riskLevelFromScore(concernScore);
   const actions = [
@@ -10801,18 +12283,24 @@ function renderRiskPortResult(event) {
       className: `risk-center-brief ${modelLevel.tone}`,
       kicker: "Port Risk Brief",
       title: `${origin.cn || origin.name} → ${destination.cn || destination.name}`,
-      updatedLabel: evidence.actuals.length ? "业务实绩 + 实时异常" : "模型初判 + 实时异常",
-      conclusion: evidence.transit ? `我的判断：已有 ${evidence.actuals.length} 票同航线实绩，实际运输区间 ${actualTransit}${actualDelay ? `，到港偏差 ${actualDelay}` : ""}；天气和管制仍需看下方实时扫描。` : days ? `我的判断：两端港口已识别，航程模型为 ${routeDaysText(days)}；暂无实际运输样本，不输出平均延误。` : "我的判断：两端港口已识别，但该组合没有航程模型或业务实绩，不输出默认天数。",
+      updatedLabel: evidence.actuals.length ? "业务实绩 + 实时异常" : carrierSchedule.records.length ? "承运人班期 + 实时异常" : "模型初判 + 实时异常",
+      conclusion: evidence.transit ? `我的判断：已有 ${evidence.actuals.length} 票同航线实绩，实际运输区间 ${actualTransit}${actualDelay ? `，到港偏差 ${actualDelay}` : ""}；天气和管制仍需看下方实时扫描。` : carrierSchedule.records.length ? `我的判断：查到 ${carrierSchedule.records.length} 条${carrierSchedule.carriers.join("、") || "承运人"}计划航次，计划航程 ${carrierSchedule.rangeText}；这是计划船期，不是实际履约，因此不输出平均延误。` : days ? `我的判断：两端港口已识别，航程模型为 ${routeDaysText(days)}；暂无实际运输样本，不输出平均延误。` : "我的判断：两端港口已识别，但该组合没有航程模型或业务实绩，不输出默认天数。",
       risk: `${modelLevel.label}（模型关注等级）· ${origin.cn || origin.name}：${origin.note || "待核验"}；${destination.cn || destination.name}：${destination.note || "待核验"}`,
       cost: "延误会影响改配、堆存、滞箱、拖车等待、客户交付承诺和可能的空运替代成本。",
       action: actions[0],
-      source: evidence.rows.length ? "同航线实际记录 + 港口画像；天气、海况、军演/管制只在官方来源命中且与常规航线相关时展示。" : "航程模型 + 港口画像；暂无同航线实绩时不输出平均延误。"
+      source: evidence.rows.length ? "同航线实际记录 + 港口画像；天气、海况、军演/管制只在官方来源命中且与常规航线相关时展示。" : carrierSchedule.records.length ? "承运人计划船期 + 港口画像；计划变化需回到船司页面重查。" : "航程模型 + 港口画像；暂无同航线实绩时不输出平均延误。",
+      evidenceLabel: evidence.rows.length ? "实单支持" : carrierSchedule.records.length ? "船司班期支持" : days ? "模型初判" : "资料不足",
+      evidenceTone: evidence.rows.length ? "verified" : carrierSchedule.records.length ? "pending" : days ? "model" : "missing",
+      evidenceBasis: evidence.rows.length ? `${evidence.rows.length} 条同航线实际记录 + 两端港口画像` : carrierSchedule.records.length ? `${carrierSchedule.records.length} 条承运人计划航次 + 两端港口画像` : days ? `${scheduleSource.label} + 两端港口画像` : "仅命中两端港口，未命中航程或业务实绩",
+      scope: `${origin.cn || origin.name} → ${destination.cn || destination.name} · ${cargo}`,
+      pending: "实时天气/海况、码头公告、航行管制、实际挂靠、转运港和当前船期"
     })}
     ${renderRiskLevelCard(modelLevel, "模型关注等级", "用于安排港口、货型和天气核验优先级，不是事故概率。")}
-    <article class="risk-center-card"><span>${evidence.transit ? "历史实绩航程" : "航程模型"}</span><strong>${escapeHtml(actualTransit || routeDaysText(days))}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : routeDaysNote(days))}</p></article>
+    <article class="risk-center-card"><span>${evidence.transit ? "历史实绩航程" : carrierSchedule.records.length ? "承运人计划航程" : "航程模型"}</span><strong>${escapeHtml(actualTransit || (carrierSchedule.records.length ? carrierSchedule.rangeText : routeDaysText(days)))}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : carrierSchedule.records.length ? `${carrierSchedule.records.length} 个计划航次；订舱前重查 ETD/ETA。` : routeDaysNote(days))}</p></article>
     <article class="risk-center-card"><span>到港偏差证据</span><strong>${escapeHtml(actualDelay || "暂无实绩")}</strong><p>${escapeHtml(actualDelay ? "仅统计该航线已录入的计划到达与实际到达记录。" : "没有计划与实际到达记录时，不输出平均延误。")}</p></article>
     <article class="risk-center-card wide"><span>建议动作</span><ul>${actions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
     ${renderBusinessEvidenceRouteCard("sea", evidence)}
+    ${renderCarrierScheduleEvidenceCard(carrierSchedule)}
     <div id="riskPortWeatherLayer" class="risk-center-result-grid weather-risk-layer"></div>
   `;
   schedulePortWeatherRisk(origin, destination);
@@ -10822,8 +12310,8 @@ function renderRiskAirportResult(event) {
   event?.preventDefault();
   const target = $("riskAirportResult");
   if (!target) return;
-  const originQuery = String($("riskAirportOrigin")?.value || "PVG").trim();
-  const destinationQuery = String($("riskAirportDestination")?.value || "LAX").trim();
+  const originQuery = String($("riskAirportOrigin")?.value || "").trim();
+  const destinationQuery = String($("riskAirportDestination")?.value || "").trim();
   const origin = findAirportRiskProfile(originQuery);
   const destination = findAirportRiskProfile(destinationQuery);
   if (!origin || !destination) {
@@ -10853,7 +12341,12 @@ function renderRiskAirportResult(event) {
       risk: `出发机场：${origin.note || "待核验"}；目的机场：${destination.note || "待核验"}${actualDelay ? `；历史到达偏差 ${actualDelay}` : ""}`,
       cost: "机场风险会影响退仓、重贴标签、重新订舱、仓储、安检、燃油和客户交期。",
       action,
-      source: evidence.rows.length ? "同航线实际记录 + IATA/航空公司/货站规则入口；只展示实际结果，不外推官方查验率。" : "IATA/航空公司/货站规则入口 + 基础时效模型；没有业务样本时不输出查验率。"
+      source: evidence.rows.length ? "同航线实际记录 + IATA/航空公司/货站规则入口；只展示实际结果，不外推官方查验率。" : "IATA/航空公司/货站规则入口 + 基础时效模型；没有业务样本时不输出查验率。",
+      evidenceLabel: evidence.rows.length ? "实单支持" : "规则与模型初判",
+      evidenceTone: evidence.rows.length ? "verified" : "model",
+      evidenceBasis: evidence.rows.length ? `${evidence.rows.length} 条同航线实际记录 + 敏感货规则` : "敏感货规则 + 基础时效模型",
+      scope: `${origin.iata || origin.cn} → ${destination.iata || destination.cn} · ${cargo}`,
+      pending: "实际航班、承运人接收、货站预审、安检结果、目的国清关和当期舱位"
     })}
     ${renderRiskLevelCard({ label: assessment.level, tone: assessment.tone }, "敏感货预审等级", "等级来自货物性质、规则要求和已录入业务结果，不是查验概率。")}
     <article class="risk-center-card"><span>${evidence.transit ? "历史实绩时效" : "基础时效模型"}</span><strong>${escapeHtml(actualTransit || `${hours[0]}-${hours[1]} 小时`)}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : "不含截仓、安检、清关、仓储和派送。")}</p></article>
@@ -10887,13 +12380,18 @@ function renderRiskRouteResult(event) {
       kicker: "Route Risk Brief",
       title: query,
       updatedLabel: "航线判断",
-      conclusion: `我的判断：当前航线为 ${level.label}，风险分 ${score}/100。`,
+      conclusion: `我的判断：当前航线为 ${level.label} 的模型关注等级；该等级用于安排核验优先级，不是事故概率。`,
       risk: points[0] || "未见明显特殊航线风险，但仍需确认承运人时效和中转安排。",
       cost: "航线风险会影响绕航费、燃油、舱位、改配、仓储、客户交付承诺。",
       action: "向承运人/货代确认最新航线、是否中转、是否跳港、预计 ETD/ETA 和费用有效期。",
-      source: "航线风险规则 + 公开趋势/承运人核验入口。"
+      source: "航线风险规则 + 公开趋势/承运人核验入口。",
+      evidenceLabel: "规则模型初判",
+      evidenceTone: "model",
+      evidenceBasis: "航线关键词、运输方式和区域风险规则",
+      scope: query,
+      pending: "承运人实际航线、当前管制/天气公告、ETD/ETA 和中转港"
     })}
-    ${renderRiskScoreCard(score, "航线风险")}
+    ${renderRiskLevelCard(level, "航线模型关注等级", "只表示需要核验的优先级，不代表事故或延误概率。")}
     <article class="risk-center-card wide"><span>风险点</span><ul>${points.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
   `;
 }
@@ -10921,13 +12419,18 @@ function renderRiskPolicyResult(event) {
       kicker: "Policy Risk Brief",
       title: query,
       updatedLabel: "政策/清关判断",
-      conclusion: `我的判断：这是 ${level.label} 的政策/清关问题，风险分 ${score}/100。`,
+      conclusion: `我的判断：这是 ${level.label} 的政策/清关关注项；当前只完成规则初筛，不能替代最新公告正文。`,
       risk: actions[0] || "目前问题描述较泛，需要补国家、产品、HS、原产国和用途。",
       cost: "政策风险会影响关税、认证费用、标签整改、查验、仓储和客户报价有效期。",
       action: actions[0] || "补充国家、产品、用途、HS、原产国和是否含电池/无线功能。",
-      source: "政策/清关规则 + 官方入口核验；可继续进入政策变化模块做公开来源搜索。"
+      source: "政策/清关规则 + 官方入口核验；可继续进入政策变化模块做公开来源搜索。",
+      evidenceLabel: "规则初判",
+      evidenceTone: "pending",
+      evidenceBasis: "国家、产品、关税/认证/电池关键词与政策规则库",
+      scope: query,
+      pending: "最新公告正文、生效日期、适用 HS、原产国、进口国和豁免条款"
     })}
-    ${renderRiskScoreCard(score, "政策清关风险")}
+    ${renderRiskLevelCard(level, "政策清关关注等级", "只表示核验优先级，不代表查验或违规概率。")}
     <article class="risk-center-card wide"><span>建议动作</span><ul>${actions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
   `;
 }
@@ -10963,7 +12466,31 @@ async function renderRiskCenterFromQuery(query = "") {
   fillRiskCenterFromQuery(query);
 }
 
-function buildSeaLoadInquiryText() {
+const SEA_CONTAINER_PROFILES = {
+  "20GP": { capacity: 28, payload: 28200, tare: 2200, inside: [589, 235, 239], door: [234, 228] },
+  "40GP": { capacity: 58, payload: 26700, tare: 3800, inside: [1203, 235, 239], door: [234, 228] },
+  "40HQ": { capacity: 68, payload: 26500, tare: 3900, inside: [1203, 235, 269], door: [234, 258] },
+  "45HQ": { capacity: 78, payload: 27600, tare: 4800, inside: [1355, 235, 269], door: [234, 258] }
+};
+
+function dimensionPermutations(dimensions = []) {
+  if (dimensions.length !== 3 || dimensions.some((value) => !value)) return [];
+  const [a, b, c] = dimensions;
+  return [[a, b, c], [a, c, b], [b, a, c], [b, c, a], [c, a, b], [c, b, a]];
+}
+
+function containerUnitCapacity(dimensions = [], profile = null, stackable = true) {
+  if (!profile) return 0;
+  return dimensionPermutations(dimensions).reduce((best, [unitLength, unitWidth, unitHeight]) => {
+    if (unitWidth > profile.door[0] || unitHeight > profile.door[1]) return best;
+    const lengthSlots = Math.floor(profile.inside[0] / unitLength);
+    const widthSlots = Math.floor(profile.inside[1] / unitWidth);
+    const heightSlots = stackable ? Math.floor(profile.inside[2] / unitHeight) : Number(unitHeight <= profile.inside[2]);
+    return Math.max(best, lengthSlots * widthSlots * heightSlots);
+  }, 0);
+}
+
+function getSeaLoadMetrics() {
   const length = numericField("seaLength");
   const width = numericField("seaWidth");
   const height = numericField("seaHeight");
@@ -10972,15 +12499,107 @@ function buildSeaLoadInquiryText() {
   const type = $("seaContainerType")?.value || "LCL";
   const rate = numericField("seaRate");
   const fees = numericField("seaLocalFees");
+  const minimumWm = numericField("seaMinimumWm");
   const packingMode = $("seaPackingMode")?.value || "carton";
-  const cbm = length && width && height && cartons ? (length * width * height * cartons) / 1000000 : 0;
-  const chargeTon = Math.max(cbm, gross / 1000);
-  const estimatedCost = rate ? (type === "LCL" ? chargeTon * rate : rate) + fees : 0;
+  const stackable = ($("seaStackable")?.value || "yes") === "yes";
+  const palletDimensions = [numericField("seaPalletLength"), numericField("seaPalletWidth"), numericField("seaPalletHeight")];
+  const palletCount = numericField("seaPalletCount");
+  const palletComplete = packingMode === "pallet" && palletDimensions.every(Boolean) && palletCount > 0;
+  const cartonDimensions = [length, width, height];
+  const cartonCbm = cartonDimensions.every(Boolean) && cartons ? (length * width * height * cartons) / 1000000 : 0;
+  const palletCbm = palletComplete ? (palletDimensions[0] * palletDimensions[1] * palletDimensions[2] * palletCount) / 1000000 : 0;
+  const cbm = palletComplete ? palletCbm : cartonCbm;
+  const unitDimensions = packingMode === "pallet" ? (palletComplete ? palletDimensions : [0, 0, 0]) : cartonDimensions;
+  const unitCount = packingMode === "pallet" ? (palletComplete ? palletCount : 0) : cartons;
+  const profile = SEA_CONTAINER_PROFILES[type] || null;
+  const chargeTon = cbm || gross ? Math.max(cbm, gross / 1000, type === "LCL" ? minimumWm : 0) : 0;
+  const unitCapacity = profile ? containerUnitCapacity(unitDimensions, profile, stackable) : 0;
+  const hasUnitDimensions = unitDimensions.every(Boolean) && unitCount > 0;
+  const singleUnitFit = profile && hasUnitDimensions ? unitCapacity > 0 : null;
+  const volumeContainers = profile && cbm ? Math.ceil(cbm / profile.capacity) : 0;
+  const weightContainers = profile && gross ? Math.ceil(gross / profile.payload) : 0;
+  const layoutContainers = profile && unitCapacity && unitCount ? Math.ceil(unitCount / unitCapacity) : 0;
+  const containerCount = profile && (cbm || gross || unitCount)
+    ? Math.max(1, volumeContainers, weightContainers, layoutContainers)
+    : 0;
+  const billableContainers = profile ? Math.max(1, containerCount) : 0;
+  const rawFill = profile && cbm ? (cbm / profile.capacity) * 100 : null;
+  const averageFill = profile && cbm && containerCount ? (cbm / (profile.capacity * containerCount)) * 100 : rawFill;
+  const averageGross = profile && gross && containerCount ? gross / containerCount : gross;
+  const averageVgm = profile && averageGross ? averageGross + profile.tare : 0;
+  const baseFreight = rate ? (type === "LCL" ? chargeTon * rate : rate * billableContainers) : 0;
+  return {
+    length, width, height, cartons, gross, type, rate, fees, minimumWm, packingMode, stackable,
+    palletDimensions, palletCount, palletComplete, cartonCbm, palletCbm, cbm, unitDimensions, unitCount,
+    profile, chargeTon, unitCapacity, hasUnitDimensions, singleUnitFit, volumeContainers, weightContainers,
+    layoutContainers, containerCount, rawFill, averageFill, averageVgm, baseFreight,
+    estimatedCost: baseFreight + fees,
+    density: cbm ? gross / cbm : 0,
+    weightUtilization: profile && gross && containerCount ? (gross / (profile.payload * containerCount)) * 100 : 0
+  };
+}
+
+function syncSeaPackingFields() {
+  if ($("seaPalletFields")) $("seaPalletFields").hidden = ($("seaPackingMode")?.value || "carton") !== "pallet";
+}
+
+function airRoundUp(value, increment) {
+  if (!value || !increment) return value;
+  return Math.ceil((value - 1e-9) / increment) * increment;
+}
+
+function getAirFreightMetrics() {
+  const length = numericField("airLength");
+  const width = numericField("airWidth");
+  const height = numericField("airHeight");
+  const pieces = numericField("airPieces");
+  const gross = numericField("airGrossWeight");
+  const mode = $("airFreightMode")?.value || "general";
+  const rate = numericField("airRate");
+  const surcharges = numericField("airSurcharges");
+  const nature = $("airCargoNature")?.value || "general";
+  const divisor = numericField("airDivisor") || (mode === "express" ? 5000 : 6000);
+  const minimumChargeWeight = numericField("airMinimumChargeWeight");
+  const roundingValue = $("airRounding")?.value || "1";
+  const roundingIncrement = roundingValue === "none" ? 0 : Number(roundingValue);
+  const stackable = ($("airStackable")?.value || "yes") === "yes";
+  const uldType = $("airUldType")?.value || "unknown";
+  const cbm = length && width && height && pieces ? (length * width * height * pieces) / 1000000 : 0;
+  const volumeWeight = length && width && height && pieces ? (length * width * height * pieces) / divisor : 0;
+  const rawChargeWeight = Math.max(gross, volumeWeight, minimumChargeWeight);
+  const chargeWeight = airRoundUp(rawChargeWeight, roundingIncrement);
+  const unitGross = gross && pieces ? gross / pieces : 0;
+  const maxDimension = Math.max(length, width, height);
+  const loadability = !length || !width || !height || !unitGross
+    ? "待补件重尺"
+    : maxDimension > 300 || unitGross > 500
+      ? "必须做机型/舱门/地板承重预审"
+      : maxDimension > 160 || unitGross > 80
+        ? "需要承运人做单件可装性预审"
+        : "常规件重尺初筛通过";
+  const baseFreight = rate && chargeWeight ? chargeWeight * rate : 0;
+  return {
+    length, width, height, pieces, gross, mode, rate, surcharges, nature, divisor, minimumChargeWeight,
+    roundingValue, roundingIncrement, stackable, uldType, cbm, volumeWeight, rawChargeWeight, chargeWeight,
+    unitGross, maxDimension, loadability, density: cbm ? gross / cbm : 0, baseFreight,
+    estimatedCost: baseFreight + surcharges
+  };
+}
+
+function syncAirFreightFields() {
+  const mode = $("airFreightMode")?.value || "general";
+  if ($("airUldFields")) $("airUldFields").hidden = !/bsa|charter/.test(mode);
+}
+
+function buildSeaLoadInquiryText() {
+  const metrics = getSeaLoadMetrics();
+  const { length, width, height, cartons, gross, type, packingMode, cbm, chargeTon, estimatedCost, containerCount, palletComplete, palletDimensions, palletCount, stackable } = metrics;
   return [
     "海运询价/核价说明：",
     `货物包装：${cartons || "待补"} 箱；单箱尺寸 ${length || "待补"} x ${width || "待补"} x ${height || "待补"} cm。`,
+    packingMode === "pallet" ? `托盘口径：${palletComplete ? `${palletCount} 托，含货尺寸 ${palletDimensions.join(" x ")} cm` : "待补托盘数和含货尺寸"}；${stackable ? "可叠放" : "不可叠放"}。` : `装载口径：${stackable ? "可叠放" : "不可叠放"}。`,
     `总毛重：${gross || "待补"} kg；总体积：${cbm ? cbm.toFixed(2) : "待补"} CBM；计费吨 W/M：${chargeTon ? chargeTon.toFixed(2) : "待补"}。`,
-    `计划箱型/方式：${type}；装柜口径：${packingMode}。`,
+    `计划箱型/方式：${type}${containerCount ? `；初算至少 ${containerCount} 柜` : ""}；装柜口径：${packingMode}。`,
     estimatedCost ? `按当前输入初算费用：USD ${estimatedCost.toFixed(2)}（仅用于内部预估，正式以报价单为准）。` : "费用预估：未填写海运费率/柜价。",
     "请协助确认：海运费、码头/港杂、文件费、拖车/仓库、查验/移箱/堆存、免堆免箱期、是否有 DG/电池/木包/熏蒸要求。",
     "如涉及冷箱、危险品、OOG/BBK 或查验，请单独列明收费项目、有效期、金额和备注。"
@@ -10988,30 +12607,19 @@ function buildSeaLoadInquiryText() {
 }
 
 function buildAirFreightInquiryText() {
-  const length = numericField("airLength");
-  const width = numericField("airWidth");
-  const height = numericField("airHeight");
-  const pieces = numericField("airPieces");
-  const gross = numericField("airGrossWeight");
-  const mode = $("airFreightMode")?.value || "express";
-  const rate = numericField("airRate");
-  const surcharges = numericField("airSurcharges");
-  const nature = $("airCargoNature")?.value || "general";
-  const cbm = length && width && height && pieces ? (length * width * height * pieces) / 1000000 : 0;
-  const divisor = mode === "express" ? 5000 : 6000;
-  const volumeWeight = length && width && height && pieces ? (length * width * height * pieces) / divisor : 0;
-  const chargeWeight = Math.max(gross, volumeWeight);
-  const estimatedCost = rate && chargeWeight ? chargeWeight * rate + surcharges : 0;
-  const modeText = { express: "快件 Express", general: "普通空运散货", bsa: "包板/BSA", charter: "包机/Charter" }[mode] || "空运";
+  const metrics = getAirFreightMetrics();
+  const { length, width, height, pieces, gross, mode, nature, cbm, divisor, volumeWeight, chargeWeight, estimatedCost, unitGross, stackable, uldType } = metrics;
+  const modeText = airModeLabel(mode);
   return [
     "空运询价/核价说明：",
     `货物包装：${pieces || "待补"} 件；单件尺寸 ${length || "待补"} x ${width || "待补"} x ${height || "待补"} cm。`,
-    `总毛重：${gross || "待补"} kg；总体积：${cbm ? cbm.toFixed(2) : "待补"} CBM；体积重：${volumeWeight ? volumeWeight.toFixed(1) : "待补"} kg；计费重：${chargeWeight ? chargeWeight.toFixed(1) : "待补"} kg。`,
-    `运输方式：${modeText}；货物属性：${nature}；体积重系数按 ${divisor} 初算。`,
+    `总毛重：${gross || "待补"} kg；单件毛重：${unitGross ? unitGross.toFixed(1) : "待补"} kg；总体积：${cbm ? cbm.toFixed(2) : "待补"} CBM；体积重：${volumeWeight ? volumeWeight.toFixed(1) : "待补"} kg；计费重：${chargeWeight ? chargeWeight.toFixed(1) : "待补"} kg。`,
+    `运输方式：${modeText}；货物属性：${nature}；${stackable ? "可叠放" : "不可叠放"}；体积重除数按 ${divisor} 初算。`,
+    /bsa|charter/.test(mode) ? `板型/箱型：${uldType === "unknown" ? "待承运人确认" : uldType}；请按实际机型和 ULD 轮廓复核可装性。` : "",
     estimatedCost ? `按当前输入初算费用：USD ${estimatedCost.toFixed(2)}（仅用于内部预估，正式以报价单为准）。` : "费用预估：未填写空运单价。",
     "请协助确认：航空运费、燃油/安检/货站操作费、仓储/超期、报关、提派送、是否可接电池/磁性/液体/粉末/高价值货。",
     "如走包板/BSA/包机，请补充板型、装板限制、截仓时间、航班计划和拉货/甩货规则。"
-  ].join("\n");
+  ].filter(Boolean).join("\n");
 }
 
 async function copyTextToClipboard(text = "", statusId = "") {
@@ -11822,31 +13430,24 @@ function cargoNatureLabel(nature) {
 
 function evaluateSeaLoad(event) {
   event?.preventDefault();
-  const length = numericField("seaLength");
-  const width = numericField("seaWidth");
-  const height = numericField("seaHeight");
-  const cartons = numericField("seaCartons");
-  const gross = numericField("seaGrossWeight");
-  const type = $("seaContainerType")?.value || "LCL";
-  const rate = numericField("seaRate");
-  const fees = numericField("seaLocalFees");
-  const packingMode = $("seaPackingMode")?.value || "carton";
-  const cbm = length && width && height && cartons ? (length * width * height * cartons) / 1000000 : 0;
-  const chargeTon = Math.max(cbm, gross / 1000);
-  const containerCaps = { LCL: 0, "20GP": 28, "40GP": 58, "40HQ": 68, "45HQ": 78 };
-  const containerPayload = { LCL: 0, "20GP": 28200, "40GP": 26700, "40HQ": 26500, "45HQ": 27600 };
-  const containerTare = { LCL: 0, "20GP": 2200, "40GP": 3800, "40HQ": 3900, "45HQ": 4800 };
-  const cap = containerCaps[type] || 0;
-  const payload = containerPayload[type] || 0;
-  const fill = cap ? (cbm / cap) * 100 : null;
-  const vgm = containerTare[type] ? gross + containerTare[type] : 0;
-  const baseFreight = rate ? (type === "LCL" ? chargeTon * rate : rate) : 0;
-  const estimatedCost = baseFreight + fees;
-  const weightUtil = payload ? (gross / payload) * 100 : 0;
-  const density = cbm ? gross / cbm : 0;
+  syncSeaPackingFields();
+  const metrics = getSeaLoadMetrics();
+  const {
+    gross, type, fees, packingMode, cbm, chargeTon, profile, rawFill: fill, averageFill,
+    averageVgm: vgm, baseFreight, estimatedCost, weightUtilization: weightUtil, density,
+    containerCount, unitCapacity, unitCount, singleUnitFit, hasUnitDimensions, palletComplete,
+    cartonCbm, stackable, minimumWm
+  } = metrics;
+  const containerCaps = Object.fromEntries(Object.entries(SEA_CONTAINER_PROFILES).map(([key, value]) => [key, value.capacity]));
+  const cap = profile?.capacity || 0;
+  const payload = profile?.payload || 0;
   const selectedFillPercent = fill === null ? (cbm ? (cbm / 20) * 100 : 0) : fill;
   const gaugePercent = selectedFillPercent ? clampPercent(selectedFillPercent) : completedInputPercent(["seaLength", "seaWidth", "seaHeight", "seaCartons", "seaGrossWeight"]);
-  const fillDisplay = fill === null ? (cbm ? `LCL 参考 ${clampPercent(cbm / 20 * 100)}% / 20CBM` : "LCL 待补") : `${Math.round(fill)}%`;
+  const fillDisplay = fill === null
+    ? (cbm ? `LCL 参考 ${clampPercent(cbm / 20 * 100)}% / 20CBM` : "LCL 待补")
+    : containerCount > 1
+      ? `总量相当于 ${Math.round(fill)}%，至少 ${containerCount} 柜，平均每柜约 ${Math.round(averageFill)}%`
+      : `${Math.round(fill)}%`;
   const lclOrFcl = !cbm
     ? "填写尺寸后自动给出 LCL/FCL 建议"
     : cbm < 15 && gross < 8000
@@ -11859,7 +13460,7 @@ function evaluateSeaLoad(event) {
             ? "优先按 40HQ 核价，并复核可装性"
             : "可能需要拆柜或多柜方案";
   const weightBoundary = payload
-    ? (gross > payload ? "超过参考载重" : weightUtil > 88 ? "接近限重" : "重量常规")
+    ? (containerCount > 1 ? `至少 ${containerCount} 柜` : gross > payload ? "超过参考载重" : weightUtil > 88 ? "接近限重" : "重量常规")
     : gross ? "看入仓重量" : "待补重量";
   const utilRows = [
     renderUtilizationRow("20GP", cbm ? (cbm / containerCaps["20GP"]) * 100 : 0, "约 28 CBM"),
@@ -11867,19 +13468,32 @@ function evaluateSeaLoad(event) {
     renderUtilizationRow("40HQ", cbm ? (cbm / containerCaps["40HQ"]) * 100 : 0, "约 68 CBM")
   ].join("");
   const docItems = ["箱单/发票", "唛头", "货好时间", "订舱口径"];
-  if (packingMode === "pallet") docItems.push("托盘尺寸", "可堆叠层数");
+  if (packingMode === "pallet") docItems.push("托盘含货尺寸", "托盘数", "可叠放说明");
   if (packingMode === "wood") docItems.push("IPPC/熏蒸");
   if (packingMode === "dg") docItems.push("MSDS", "UN38.3", "危包/限量");
   const warnings = [];
   if (!cbm) warnings.push("尺寸/箱数不完整，无法计算总体积。");
-  if (fill !== null && fill > 100) warnings.push(`${seaContainerLabel(type)} 参考箱容不足，需换更大箱型或拆柜。`);
+  if (fill !== null && fill > 100) warnings.push(`总量超过单个 ${seaContainerLabel(type)} 的参考箱容，初算至少需要 ${containerCount} 柜。`);
   if (gross > 0 && cbm > 0 && gross / cbm > 800) warnings.push("货物偏重，订舱前确认单箱承重、托盘承重和码头/仓库装卸能力。");
   if (fill !== null && fill > 90 && fill <= 100) warnings.push("箱容利用率很高，实际还要预留托盘、加固、通风和装卸空间。");
-  if (payload && gross > payload) warnings.push("重量超过箱型参考载重，需让货代按船司、码头、拖车和道路限制复核。");
-  if (/40HQ|45HQ/.test(type) && gross > 26000) warnings.push("重量可能超过常规道路/箱型操作边界，需让货代按港口和拖车限制复核。");
-  if (packingMode === "pallet") warnings.push("托盘货要按托盘尺寸、可堆叠层数和叉车空间重新复核箱容，不能只看散箱 CBM。");
+  if (payload && gross > payload && containerCount <= 1) warnings.push("重量超过箱型参考载重，需让货代按船司、码头、拖车和道路限制复核。");
+  if (/40HQ|45HQ/.test(type) && gross > 26000 && containerCount <= 1) warnings.push("重量可能超过常规道路/箱型操作边界，需让货代按港口和拖车限制复核。");
+  if (packingMode === "pallet" && !palletComplete) warnings.push("托盘模式尚缺托盘数或含货尺寸；当前 CBM 暂按散箱尺寸计算，不输出托盘可装性结论。");
+  if (packingMode === "pallet" && palletComplete && cartonCbm && Math.abs(cartonCbm - cbm) > 0.01) warnings.push(`托盘化后体积按 ${cbm.toFixed(2)} CBM 计算，不再沿用散箱 ${cartonCbm.toFixed(2)} CBM。`);
+  if (profile && hasUnitDimensions && singleUnitFit === false) warnings.push(`单件无法按参考门宽/门高进入 ${seaContainerLabel(type)}，应更换包装、箱型或改按 OOG 方案询价。`);
+  if (profile && unitCapacity && unitCount > unitCapacity && containerCount > 1) warnings.push(`按${stackable ? "可叠放" : "不可叠放"}几何排布，单柜参考上限约 ${unitCapacity} 个包装单元；实际装柜还需复核门位、加固和叉车空间。`);
   if (packingMode === "dg") warnings.push("含电池/DG 要先确认 MSDS、UN38.3、危包/限量、船司接收和港区进港窗口。");
   if (packingMode === "wood") warnings.push("木包装需确认 IPPC 标识、熏蒸/非木证明和目的国木包装要求。");
+  const fitVerdict = !profile
+    ? "LCL 由仓库复核入仓条件"
+    : !hasUnitDimensions
+      ? "待补完整包装尺寸"
+      : singleUnitFit
+        ? `${seaContainerLabel(type)} 单件可进入，初算至少 ${containerCount} 柜`
+        : `${seaContainerLabel(type)} 单件不可按标准门尺寸装入`;
+  const fitDetail = profile && hasUnitDimensions && singleUnitFit
+    ? `参考内尺寸 ${profile.inside.join(" x ")} cm、门宽/门高 ${profile.door.join(" x ")} cm；${stackable ? "允许叠放" : "按不可叠放"}估算，单柜几何上限约 ${unitCapacity} 个包装单元。该数字不替代装箱图和船司箱体参数。`
+    : "LCL 仓库、实际箱体制造商、箱况、绑扎和装卸空间都会改变可装结果。";
   $("seaLoadResult").innerHTML = `
     <article class="freight-result-card primary cargo-dashboard sea-dashboard calc-command-card">
       <div class="calc-command-top">
@@ -11895,13 +13509,15 @@ function evaluateSeaLoad(event) {
       <div class="dashboard-metrics">
         <div><span>CBM</span><strong>${cbm ? cbm.toFixed(2) : "--"}</strong></div>
         <div><span>W/M</span><strong>${chargeTon ? chargeTon.toFixed(2) : "--"}</strong></div>
-        <div><span>密度</span><strong>${density ? `${density.toFixed(0)} kg/CBM` : "--"}</strong></div>
+        <div><span>${profile ? "柜数" : "密度"}</span><strong>${profile ? (containerCount || "--") : (density ? `${density.toFixed(0)} kg/CBM` : "--")}</strong></div>
       </div>
       <p>${escapeHtml(seaContainerLabel(type))}：${escapeHtml(fillDisplay)} · ${escapeHtml(lclOrFcl)}</p>
     </article>
     <article class="freight-result-card sea-meter-card wide"><span>箱型利用率</span><div class="container-util-list">${utilRows}</div></article>
-    <article class="freight-result-card"><span>VGM/限重</span><strong>${escapeHtml(weightBoundary)}</strong><p>${vgm ? `初算 VGM ${vgm.toFixed(0)} kg；重量利用率 ${Math.round(weightUtil)}%。正式以称重和船司要求为准。` : "拼箱看货代仓库入仓重量、单箱承重和目的港收费口径。"}</p></article>
+    <article class="freight-result-card"><span>物理可装性</span><strong>${escapeHtml(fitVerdict)}</strong><p>${escapeHtml(fitDetail)}</p></article>
+    <article class="freight-result-card"><span>VGM/限重</span><strong>${escapeHtml(weightBoundary)}</strong><p>${vgm ? `平均每柜初算 VGM ${vgm.toFixed(0)} kg；平均重量利用率 ${Math.round(weightUtil)}%。箱皮重只是参考，正式以实际箱号称重和船司要求为准。` : "拼箱看货代仓库入仓重量、单箱承重和目的港收费口径。"}</p></article>
     <article class="freight-result-card"><span>费用快算</span><strong>${estimatedCost ? `USD ${estimatedCost.toFixed(2)}` : "待填费率"}</strong><div class="result-split-list"><div><span>基础运费</span><b>${moneyOrDash(baseFreight)}</b></div><div><span>港杂/本地</span><b>${moneyOrDash(fees)}</b></div></div><p>${type === "LCL" ? "LCL 按 W/M x 费率 + 杂费初算。" : "FCL 按柜价 + 杂费初算。"}</p></article>
+    <article class="freight-result-card"><span>计费边界</span><strong>${type === "LCL" ? `最低 ${minimumWm || 0} W/M` : `${containerCount || 1} x 柜价`}</strong><p>${type === "LCL" ? "计费吨取体积吨、重量吨和输入的最低计费吨三者最大值；实际最低收费与目的港计费项仍以报价为准。" : "整柜运费按初算柜数乘柜价；港杂输入目前按整票合计，若报价按柜收取需另行调整。"}</p></article>
     <article class="freight-result-card"><span>下单资料清单</span><strong>${completedInputPercent(["seaLength", "seaWidth", "seaHeight", "seaCartons", "seaGrossWeight"])}%</strong>${renderDocChipList(docItems)}</article>
     <article class="freight-result-card warning"><span>操作提醒</span><ul>${(warnings.length ? warnings : ["装柜前确认托盘尺寸、毛重、唛头、外箱强度、是否含电池/DG 和是否需要熏蒸/木包证明。"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
     <article class="freight-result-card wide copy-quote-card"><span>询价说明</span><strong>生成给货代/供应商的核价文字</strong><p>复制后可直接粘贴到邮件或聊天里，让对方按费用项目报价。</p><button type="button" class="secondary-button" data-copy-inquiry="sea">复制海运询价说明</button><small id="seaCopyStatus"></small></article>
@@ -11915,10 +13531,12 @@ function loadSeaCalcExample() {
     seaHeight: "35",
     seaCartons: "500",
     seaGrossWeight: "6800",
+    seaMinimumWm: "1",
     seaRate: "1450",
     seaLocalFees: "580",
     seaContainerType: "40HQ",
-    seaPackingMode: "carton"
+    seaPackingMode: "carton",
+    seaStackable: "yes"
   };
   Object.entries(values).forEach(([id, value]) => {
     if ($(id)) $(id).value = value;
@@ -12459,44 +14077,43 @@ function renderSeaSpecialGuide(event) {
 
 function evaluateAirFreightCalc(event) {
   event?.preventDefault();
-  const length = numericField("airLength");
-  const width = numericField("airWidth");
-  const height = numericField("airHeight");
-  const pieces = numericField("airPieces");
-  const gross = numericField("airGrossWeight");
-  const mode = $("airFreightMode")?.value || "express";
-  const rate = numericField("airRate");
-  const surcharges = numericField("airSurcharges");
-  const nature = $("airCargoNature")?.value || "general";
-  const cbm = length && width && height && pieces ? (length * width * height * pieces) / 1000000 : 0;
-  const divisor = mode === "express" ? 5000 : 6000;
-  const volumeWeight = length && width && height && pieces ? (length * width * height * pieces) / divisor : 0;
-  const chargeWeight = Math.max(gross, volumeWeight);
-  const density = cbm ? gross / cbm : 0;
-  const estimatedCost = rate && chargeWeight ? chargeWeight * rate + surcharges : 0;
+  syncAirFreightFields();
+  const metrics = getAirFreightMetrics();
+  const {
+    length, width, height, pieces, gross, mode, surcharges, nature, cbm, divisor, volumeWeight,
+    rawChargeWeight, chargeWeight, density, estimatedCost, baseFreight, minimumChargeWeight,
+    roundingIncrement, unitGross, loadability, stackable, uldType
+  } = metrics;
   const modeText = airModeLabel(mode);
-  const chargeSource = chargeWeight ? (volumeWeight > gross ? "体积重计费" : "实重计费") : "待补尺寸/重量";
+  const chargeSource = chargeWeight
+    ? minimumChargeWeight >= Math.max(gross, volumeWeight) && minimumChargeWeight > 0
+      ? "最低计费重生效"
+      : volumeWeight > gross ? "体积重计费" : "实重计费"
+    : "待补尺寸/重量";
   const throwCargo = volumeWeight && gross ? (volumeWeight > gross * 1.2 ? "明显抛货" : gross > volumeWeight * 1.2 ? "偏重货" : "接近平衡") : "待补";
   const grossBarWidth = chargeWeight ? `${Math.max(8, Math.min(100, Math.round((gross / chargeWeight) * 100)))}%` : "8%";
   const volumeBarWidth = chargeWeight ? `${Math.max(8, Math.min(100, Math.round((volumeWeight / chargeWeight) * 100)))}%` : "8%";
   const completeness = completedInputPercent(["airLength", "airWidth", "airHeight", "airPieces", "airGrossWeight"]);
-  const baseFreight = rate && chargeWeight ? chargeWeight * rate : 0;
   const docItems = ["商业发票", "装箱单", "订舱资料", "AWB 信息"];
-  if (nature === "battery-contained") docItems.push("MSDS", "UN38.3", "PI966/967");
-  if (nature === "battery-alone") docItems.push("MSDS", "UN38.3", "PI965", "SOC");
+  if (nature === "battery-contained") docItems.push("UN38.3/测试概要", "Wh/电池配置", "PI966/967", "承运人要求时 SDS");
+  if (nature === "battery-alone") docItems.push("UN38.3/测试概要", "Wh/锂含量", "PI965", "SOC", "电池净重/机型");
   if (nature === "magnetic") docItems.push("磁检报告", "航空鉴定");
   if (nature === "sample") docItems.push("用途说明", "申报价值", "品牌授权");
-  if (mode === "bsa") docItems.push("板型", "截仓时间", "可堆叠说明");
-  if (mode === "charter") docItems.push("包机窗口", "装卸方案", "航权/航线确认");
+  if (mode === "bsa") docItems.push("板型/ULD 轮廓", "机型", "截仓时间", "可叠放说明");
+  if (mode === "charter") docItems.push("机型/舱门尺寸", "包机窗口", "装卸方案", "航权/航线确认");
   const tips = [];
   if (volumeWeight > gross * 1.2) tips.push("体积重明显大于实重，是抛货；报价和包装优化要重点看尺寸。");
   if (gross > volumeWeight * 1.2) tips.push("实重大于体积重，是偏重货；要确认单件重量、托盘承重和机场装卸限制。");
-  if (/bsa|charter/.test(mode)) tips.push("包板/包机需要提前给板型、件重尺、堆叠限制、货好时间、截仓时间和安检资料。");
-  if (nature === "battery-contained") tips.push("含电池设备需确认 UN38.3、MSDS、PI966/967、SOC、包装方式和承运人接收限制。");
-  if (nature === "battery-alone") tips.push("电池单独运输通常比装在设备中更敏感，需先让承运人确认 PI965、SOC、危包和航线是否接收。");
+  if (unitGross > 80 || Math.max(length, width, height) > 160) tips.push(`${loadability}；这不是拒载结论，应提供单件照片、重心/吊点、机型和舱门尺寸让承运人确认。`);
+  if (/bsa|charter/.test(mode)) tips.push(`当前只完成件重尺和计费重初算；${uldType === "unknown" ? "尚未确认板型/ULD" : `已选择 ${uldType}`}，仍需按实际机型、ULD 轮廓、截仓和拉货规则形成报价。`);
+  if (!stackable) tips.push("货物不可叠放，包板/包机利用率不能只按 CBM 推算，必须按底面积和 ULD 轮廓排板。");
+  if (nature === "battery-contained") tips.push("含电池设备应先确认 UN38.3/测试概要、Wh、电池配置、PI966/967、包装和承运人差异；SDS 仅在承运人或操作方要求时补充，不能替代 UN38.3。");
+  if (nature === "battery-alone") tips.push("电池单独运输需先确认 PI965、SOC、每件电池净重、UN38.3/测试概要、客机/货机限制及承运人是否接收；SDS 不能替代这些判断。");
   if (nature === "magnetic") tips.push("含喇叭磁钢、马达或磁性材料时，优先确认磁检报告和航空公司磁性限制。");
   if (nature === "sample") tips.push("样品/维修件要确认申报价值、用途说明、品牌授权、临时进口/退运资料和目的国收件人资质。");
   if (!tips.length) tips.push("计费重接近实重/体积重，继续确认电池、磁性、品牌、目的国清关和承运限制。");
+  const roundingText = roundingIncrement ? `向上取整至 ${roundingIncrement} kg` : "未取整";
+  const uldText = uldType === "unknown" ? "板型/机型待确认" : `${uldType} 仅作询价口径`;
   $("airFreightCalcResult").innerHTML = `
     <article class="freight-result-card primary cargo-dashboard air-dashboard calc-command-card">
       <div class="calc-command-top">
@@ -12518,15 +14135,17 @@ function evaluateAirFreightCalc(event) {
         <div><span>实重</span><i style="width: ${grossBarWidth}"></i><b>${gross ? gross.toFixed(1) : "--"}</b></div>
         <div><span>体积重</span><i style="width: ${volumeBarWidth}"></i><b>${volumeWeight ? volumeWeight.toFixed(1) : "--"}</b></div>
       </div>
-      <p>${escapeHtml(chargeSource)} · 公式：长 x 宽 x 高 x 件数 / ${divisor}</p>
+      <p>${escapeHtml(chargeSource)} · 原始计费重 ${rawChargeWeight ? rawChargeWeight.toFixed(2) : "--"} kg · ${escapeHtml(roundingText)}</p>
     </article>
-    <article class="freight-result-card"><span>运输类型</span><strong>${escapeHtml(modeText)}</strong><p>${mode === "express" ? "快件常用 5000，适合小票和门到门。" : "普通空运常用 6000；不同渠道可能调整。"}</p></article>
+    <article class="freight-result-card"><span>运输类型</span><strong>${escapeHtml(modeText)}</strong><p>本次按报价输入的除数 /${divisor} 计算；不同航空公司、货代产品和航线可采用不同口径。</p></article>
     <article class="freight-result-card"><span>体积</span><strong>${cbm ? `${cbm.toFixed(2)} CBM` : "待补尺寸"}</strong><p>尺寸会直接影响体积重和包板判断，包装优化通常先看这里。</p></article>
     <article class="freight-result-card"><span>密度判断</span><strong>${density ? `${density.toFixed(0)} kg/CBM` : "待补"}</strong><p>${density && density < 167 ? "偏抛货，报价会更受尺寸影响。" : density ? "偏重货，重点看单件重量和装卸限制。" : "补齐尺寸和重量后判断货型。"}</p></article>
+    <article class="freight-result-card"><span>单件可装性</span><strong>${escapeHtml(loadability)}</strong><p>单件毛重 ${unitGross ? `${unitGross.toFixed(1)} kg` : "待补"}；最大边 ${Math.max(length, width, height) || "待补"} cm。超过提示阈值只表示需要机型、舱门和地板承重预审，不代表自动拒载。</p></article>
+    ${/bsa|charter/.test(mode) ? `<article class="freight-result-card"><span>BSA/ULD 判断</span><strong>${escapeHtml(uldText)}</strong><p>没有机型、板型/箱型轮廓、航线和截仓规则时，不输出板数、舱位利用率或可装结论，避免把 CBM 当成真实排板结果。</p></article>` : ""}
     <article class="freight-result-card"><span>费用快算</span><strong>${estimatedCost ? `USD ${estimatedCost.toFixed(2)}` : "待填单价"}</strong><div class="result-split-list"><div><span>空运费</span><b>${moneyOrDash(baseFreight)}</b></div><div><span>燃油/安检/杂费</span><b>${moneyOrDash(surcharges)}</b></div></div><p>按计费重 x 空运单价 + 燃油/安检/杂费初算。</p></article>
     <article class="freight-result-card"><span>下单资料清单</span><strong>${completeness}% · ${escapeHtml(cargoNatureLabel(nature))}</strong>${renderDocChipList(docItems)}</article>
     <article class="freight-result-card warning"><span>操作提醒</span><ul>${tips.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
-    <article class="freight-result-card"><span>公式口径</span><strong>/${divisor}</strong><p>快件常见 /5000，普通空运常见 /6000；航空公司、货代渠道和目的港规则可能不同。</p></article>
+    <article class="freight-result-card"><span>公式口径</span><strong>/${divisor}${minimumChargeWeight ? ` · 最低 ${minimumChargeWeight} kg` : ""}</strong><p>体积重 = 长 x 宽 x 高 x 件数 / ${divisor}；再与实重、最低计费重取大，最后按 ${escapeHtml(roundingText)}。这些输入必须与当次报价口径一致。</p></article>
     <article class="freight-result-card wide copy-quote-card"><span>询价说明</span><strong>生成给货代/承运商的核价文字</strong><p>复制后可直接让对方确认空运费、货站费、安检、仓储和特殊货限制。</p><button type="button" class="secondary-button" data-copy-inquiry="air">复制空运询价说明</button><small id="airCopyStatus"></small></article>
   `;
 }
@@ -12538,10 +14157,15 @@ function loadAirCalcExample() {
     airHeight: "35",
     airPieces: "20",
     airGrossWeight: "180",
+    airDivisor: "6000",
+    airMinimumChargeWeight: "45",
     airRate: "4.5",
     airSurcharges: "120",
     airFreightMode: "general",
-    airCargoNature: "battery-contained"
+    airCargoNature: "battery-contained",
+    airRounding: "1",
+    airStackable: "yes",
+    airUldType: "unknown"
   };
   Object.entries(values).forEach(([id, value]) => {
     if ($(id)) $(id).value = value;
@@ -13215,7 +14839,9 @@ function buildAirOperationAdvice(origin = "", destination = "", product = "", mo
   }
 
   const signalCount = [battery, magnetic, wireless, repair, sample].filter(Boolean).length;
-  const confidence = Math.max(42, Math.min(92, 58 + signalCount * 8 + (destination ? 8 : 0) + (product ? 6 : 0) + (origin ? 4 : 0)));
+  const evidenceState = destination && product
+    ? signalCount ? "输入已识别 · 需要预审" : "输入已识别 · 常规初判"
+    : "资料待补";
   let opinion = "";
   if (battery && wireless) {
     opinion = `我的判断：这票不应按普通电子样品走。电池先决定承运商是否接，${destProfile.market}的无线/认证资料决定到达后会不会卡清关；先做承运商预审，再承诺时效。`;
@@ -13241,7 +14867,7 @@ function buildAirOperationAdvice(origin = "", destination = "", product = "", mo
     level,
     conclusion,
     opinion,
-    confidence,
+    evidenceState,
     departure,
     docs,
     riskFlags: riskFlags.length ? riskFlags : ["未命中电池、磁性、无线、维修或样品关键词；仍需按真实产品资料复核。"],
@@ -13266,7 +14892,7 @@ function renderAirGuideResult(data = {}) {
     <article class="air-guide-opinion">
       <div>
         <span>独立判断</span>
-        <strong>${escapeHtml(data.confidence ? `${data.confidence}%` : "待补资料")}</strong>
+        <strong>${escapeHtml(data.evidenceState || "资料待补")}</strong>
       </div>
       <p>${escapeHtml(data.opinion || "输入产品、目的国和出运方式后生成承运/清关判断。")}</p>
     </article>
@@ -13318,6 +14944,11 @@ function renderAirTrackingCards(data = {}, product = "", destination = "") {
       cost: "空运/快件风险主要体现在清关延误、改派、仓储、燃油/偏远附加费和重新派送成本。",
       action: judgement?.actions?.[0] || (data.ok ? "保存官网状态截图；若出现清关/异常/Hold，立刻确认缺少的进口资料。" : "打开官方链接核验状态，并保存截图、运单号、查询时间。"),
       source: data.ok ? "承运商官网/接口返回 + 产品风险规则。" : "官方追踪入口 + 本地空运风险规则；自动接口未返回可解析状态。",
+      evidenceLabel: data.ok ? "承运商状态支持" : "资料不足",
+      evidenceTone: data.ok ? "verified" : "missing",
+      evidenceBasis: data.ok ? `承运商返回状态 + 查询时间 ${formatEta(data.queriedAt || new Date().toISOString())}` : "仅识别承运商与官方追踪入口，未取得可解析实时状态",
+      scope: `${data.carrier?.name || "承运商待识别"} · ${data.trackingNo || "运单待输入"}`,
+      pending: data.ok ? "官网完整事件、清关状态、目的站操作和产品资料" : "官网实时事件、验证码后结果、清关资料和异常原因",
       links
     })}
     <article class="air-result-card primary ${data.ok ? "success" : ""}">
@@ -13338,7 +14969,7 @@ function renderAirTrackingCards(data = {}, product = "", destination = "") {
       judgement
         ? `<article class="air-result-card">
             <span>独立判断</span>
-            <strong>${escapeHtml(judgement.label || "待判断")} · ${escapeHtml(String(judgement.score || 0))}/100</strong>
+            <strong>${escapeHtml(judgement.label || "待判断")} · ${escapeHtml(`${(judgement.evidence || []).filter(([, value]) => !/未取得|未提供|未知/.test(String(value || ""))).length} 项可用证据`)}</strong>
             <p>${escapeHtml(judgement.opinion || "需要结合官网完整页面和产品资料判断。")}</p>
             <div class="manual-field-grid">
               ${(judgement.evidence || []).map(([label, value]) => `<div><span>${escapeHtml(label)}</span><b>${escapeHtml(value)}</b></div>`).join("")}
@@ -13511,8 +15142,11 @@ async function loadTrends(keyword = "", showOverlay = false) {
     const data = await fetchJsonOrFallback(url, fallbackTrends("实时趋势接口响应较慢，先显示本地观察结论。", cleanedKeyword), { timeoutMs: 12000 });
     renderTrends(data);
     if (cleanedKeyword) addHistory("趋势查询", cleanedKeyword, data.summary || "已生成趋势摘要");
+    return data;
   } catch (error) {
-    renderTrends(fallbackTrends(error.message, cleanedKeyword));
+    const fallbackData = fallbackTrends(error.message, cleanedKeyword);
+    renderTrends(fallbackData);
+    return fallbackData;
   } finally {
     if (showOverlay) hideQueryOverlay();
   }
@@ -13714,6 +15348,7 @@ const hotspotDisplayCategories = ["政治", "科技", "金融"];
 const hotspotBoardMinimum = 10;
 const hotspotStaleMs = 2 * 60 * 60 * 1000;
 const hotspotAutoRefreshMs = 60 * 60 * 1000;
+let hotspotActiveCategory = "政治";
 
 function fallbackHotspotData() {
   const makeItem = ([title, summary, owner, url], index, category) => ({
@@ -13724,6 +15359,7 @@ function fallbackHotspotData() {
     category,
     hotCategory: category,
     hotScore: 80 - index,
+    baseline: true,
     domain: sourceDomainLabel({ url }),
     url,
     seendate: ""
@@ -13846,6 +15482,41 @@ function hotspotFreshnessMeta(data = {}) {
       detail: "未取得实时公开来源，当前只是本地业务观察清单，不代表今日热点。"
     };
   }
+  const sourceItems = [
+    ...(Array.isArray(data.boards) ? data.boards.flatMap((board) => board.items || []) : []),
+    ...(Array.isArray(data.items) ? data.items : [])
+  ].filter((item) => item && !item.baseline);
+  const sourceDates = sourceItems
+    .map((item) => Date.parse(item.seendate || item.date || item.publishedAt || ""))
+    .filter(Number.isFinite);
+  if (sourceItems.length && !sourceDates.length) {
+    return {
+      state: "watch",
+      label: "来源日期不足",
+      ageText: formatEta(updatedAt),
+      detail: "缓存虽然刚更新，但来源没有发布日期，不能称为实时热点。"
+    };
+  }
+  if (sourceDates.length) {
+    const latestSourceStamp = Math.max(...sourceDates);
+    const sourceAgeMs = Math.max(0, Date.now() - latestSourceStamp);
+    if (sourceAgeMs > 48 * 60 * 60 * 1000) {
+      return {
+        state: "stale",
+        label: "来源偏旧",
+        ageText: formatEta(new Date(latestSourceStamp).toISOString()),
+        detail: "最新一条有日期的来源已超过 48 小时，不作为实时热点结论。"
+      };
+    }
+    if (sourceDates.length < Math.ceil(sourceItems.length / 2)) {
+      return {
+        state: "watch",
+        label: "部分日期可核",
+        ageText: formatEta(new Date(latestSourceStamp).toISOString()),
+        detail: `仅 ${sourceDates.length}/${sourceItems.length} 条公开来源带发布日期，实时性按保守口径展示。`
+      };
+    }
+  }
   if (!Number.isFinite(stamp)) {
     return {
       state: "watch",
@@ -13945,16 +15616,19 @@ function renderDynamicHotspotCard(item = {}, index = 0, options = {}) {
   const opinion = sourceOpinionForItem(item, summary, item.hotCategory || item.category || "");
   const compact = Boolean(options.compact);
   const showLink = options.showLink !== false;
+  const sourceState = item.baseline
+    ? `${source} · 观察项/非实时`
+    : `${source}${item.seendate || item.date ? ` · ${formatEta(item.seendate || item.date)}` : " · 日期未提供"}`;
   return `
-    <article class="hotspot-rank-card dynamic-hotspot-card">
+    <article class="hotspot-rank-card dynamic-hotspot-card ${item.baseline ? "baseline" : "live-source"}">
       <span>${rank}</span>
       <div>
         <strong>${escapeHtml(item.title || source || "热点来源")}</strong>
         <p>${escapeHtml(compact ? compactSourceStatement(summary, 118) : summary)}</p>
-        ${compact ? "" : `<p class="opinion-line"><b>判断：</b>${escapeHtml(opinion)}</p>`}
-        <small>${escapeHtml(source)}${item.seendate || item.date ? ` · ${escapeHtml(formatEta(item.seendate || item.date))}` : ""}</small>
+        <p class="opinion-line"><b>判断：</b>${escapeHtml(compact ? compactSourceStatement(opinion, 108) : opinion)}</p>
+        <small>${escapeHtml(sourceState)}</small>
       </div>
-      ${showLink && item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">来源</a>` : ""}
+      ${showLink && item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${item.baseline ? "核验入口" : "来源"}</a>` : ""}
     </article>
   `;
 }
@@ -13964,20 +15638,33 @@ function renderTrendHotspotBoard(data = {}) {
   const hasDynamic = boards.some((board) => board.items.length);
   const dailyBoard = $("dailyHotspotBoard");
   const sourceStrip = $("hotspotSourceStrip");
+  if (!boards.some((board) => board.category === hotspotActiveCategory && board.items.length)) {
+    hotspotActiveCategory = boards.find((board) => board.items.length)?.category || "政治";
+  }
 
   if (dailyBoard && hasDynamic) {
     dailyBoard.innerHTML = `
       ${renderHotspotPulsePanel(data, boards)}
+      <div class="hotspot-category-tabs" role="tablist" aria-label="热点类别">
+        ${boards
+          .filter((board) => board.items.length)
+          .map((board) => {
+            const liveCount = board.items.filter((item) => !item.baseline).length;
+            return `<button type="button" role="tab" data-hotspot-tab="${escapeHtml(board.category)}" aria-selected="${board.category === hotspotActiveCategory ? "true" : "false"}" class="${board.category === hotspotActiveCategory ? "active" : ""}">${escapeHtml(board.category)} <span>${escapeHtml(String(liveCount))} 实时 / ${escapeHtml(String(board.items.length - liveCount))} 观察</span></button>`;
+          })
+          .join("")}
+      </div>
       ${boards
         .filter((board) => board.items.length)
         .map((board) => {
           const visibleItems = board.items.slice(0, hotspotBoardMinimum);
           const hiddenItems = board.items.slice(hotspotBoardMinimum);
+          const liveCount = board.items.filter((item) => !item.baseline).length;
           return `
-        <section class="hotspot-board-column">
+        <section class="hotspot-board-column" data-hotspot-panel="${escapeHtml(board.category)}" ${board.category === hotspotActiveCategory ? "" : "hidden"}>
           <div class="hotspot-board-head">
             <span>${escapeHtml(board.category)}</span>
-            <strong>${escapeHtml(String(board.items.length))} 条</strong>
+            <strong>${escapeHtml(String(liveCount))} 条实时 · ${escapeHtml(String(board.items.length - liveCount))} 条观察补位</strong>
           </div>
           <div class="hotspot-rank-grid dynamic-hotspot-grid">
             ${visibleItems.map((item, index) => renderDynamicHotspotCard(item, index, { compact: true })).join("")}
@@ -14030,6 +15717,19 @@ function renderTrendHotspotBoard(data = {}) {
   }
 }
 
+function activateHotspotBoardCategory(category = "政治") {
+  if (!hotspotDisplayCategories.includes(category)) return;
+  hotspotActiveCategory = category;
+  document.querySelectorAll("[data-hotspot-tab]").forEach((button) => {
+    const active = button.dataset.hotspotTab === category;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", active ? "true" : "false");
+  });
+  document.querySelectorAll("[data-hotspot-panel]").forEach((panel) => {
+    panel.hidden = panel.dataset.hotspotPanel !== category;
+  });
+}
+
 function setHotspotStatus(text = "", manual = true) {
   const target = $("hotspotStatus");
   if (!target) return;
@@ -14040,15 +15740,25 @@ function setHotspotStatus(text = "", manual = true) {
 
 async function refreshHotspots(showOverlay = true) {
   setHotspotStatus("正在刷新...", true);
-  await loadTrends("", showOverlay);
-  const stamp = new Date().toISOString();
-  try {
-    localStorage.setItem("hotspotLastRefreshDate", stamp.slice(0, 10));
-    localStorage.setItem("hotspotLastRefreshAt", stamp);
-  } catch (error) {
-    // localStorage unavailable is harmless in private mode.
+  const data = await loadTrends("", showOverlay);
+  const meta = hotspotFreshnessMeta(data || {});
+  const stamp = data?.updatedAt || new Date().toISOString();
+  if (!data?.fallback && !["watch", "stale", "fallback"].includes(meta.state)) {
+    try {
+      localStorage.setItem("hotspotLastRefreshDate", stamp.slice(0, 10));
+      localStorage.setItem("hotspotLastRefreshAt", stamp);
+    } catch (error) {
+      // localStorage unavailable is harmless in private mode.
+    }
+  } else {
+    try {
+      localStorage.removeItem("hotspotLastRefreshDate");
+      localStorage.removeItem("hotspotLastRefreshAt");
+    } catch (error) {
+      // localStorage unavailable is harmless in private mode.
+    }
   }
-  setHotspotStatus(`已刷新 · ${formatEta(stamp)}`, true);
+  setHotspotStatus(`${meta.label} · ${meta.ageText}`, true);
 }
 
 async function loadHotspotCache() {
@@ -14136,12 +15846,15 @@ function renderTrends(data = {}) {
       risk: strongestHotspot ? `${strongestHotspot.name}：${strongestHotspot.conclusion}，命中 ${strongestHotspot.count} 条。` : "暂无突出热点，当前没有形成成本、时效、舱位、清关或港口作业结论。",
       cost: "把金额影响拆成运费、燃油、汇率、关税、仓储、查验和客户交付承诺逐项看。",
       action: "把趋势转成业务问题：是否影响报价、舱位、清关资料、认证、港口作业或客户 ETA。",
-      source: sourceDigests.length ? `已逐条提炼 ${sourceDigests.length} 个来源网页。` : (items.length ? `公开消息 ${items.length} 条；更新时间 ${formatEta(data.updatedAt)}。` : "当前为固定观察清单或离线兜底结果。"),
+      source: sourceDigests.length ? `已逐条提炼 ${sourceDigests.length} 条公开标题或摘要。` : (items.length ? `公开消息 ${items.length} 条；更新时间 ${formatEta(data.updatedAt)}。` : "当前为固定观察清单或离线兜底结果。"),
+      evidenceLabel: sourceDigests.length ? "来源摘要支持" : items.length ? "公开摘要参考" : "离线观察",
+      evidenceTone: sourceDigests.length || items.length ? "pending" : "model",
+      evidenceBasis: sourceDigests.length ? `${sourceDigests.length} 条来源的标题/摘要与独立判断` : items.length ? `${items.length} 条公开消息` : "固定观察清单",
+      scope: data.keyword ? `关键词：${data.keyword}` : "当前全球物流与贸易趋势",
+      pending: "事件发生时间、官方确认、适用路线/国家、持续时间和对当前订单的直接关联",
       links: sourceDigests.length ? [] : items.slice(0, 4).map((item) => [item.domain || item.title || "来源", item.url]).filter((item) => item[1])
     })}
     ${renderSourceDigestBoard(sourceDigests, "趋势来源逐条解读")}
-    <strong>综合判断</strong>
-    <p>${escapeHtml(trendSummaryText)}</p>
     <div class="hotspot-strip">
       ${hotspots
         .map((item) => `<span><strong>${escapeHtml(item.name)}</strong>${escapeHtml(item.conclusion)} · ${escapeHtml(String(item.count))} 条</span>`)
@@ -14224,11 +15937,15 @@ function summarizeTrendItems(items = [], keyword = "") {
 
 async function queryPortRisk(event) {
   if (event) event.preventDefault();
-  const port = $("portName").value || "Shanghai Port";
-  const region = $("portRegion").value || "China";
+  const port = $("portName").value.trim();
+  const region = $("portRegion").value.trim();
   const cargo = $("portCargo").value || "Consumer Audio";
   const dg = $("portDgInfo")?.value || "";
   const dgClass = $("portDgClass")?.value || "";
+  if (!port) {
+    renderPortRisk({ ok: false, fallback: false, message: "请先输入港口中文名、英文名或 UN/LOCODE；系统不会默认代入上海港。" });
+    return;
+  }
   const params = new URLSearchParams({ port, region, cargo, dg, dgClass });
   $("portRiskStatus").textContent = "正在查询公开港口风险...";
   if (event) {
@@ -14246,8 +15963,7 @@ async function queryPortRisk(event) {
   }
 }
 
-function fallbackPortRisk(port = "Shanghai Port", cargo = "Consumer Audio", message = "") {
-  const batteryCargo = /battery|电池|危险|dg|hazard/i.test(cargo);
+function fallbackPortRisk(port = "", cargo = "Consumer Audio", message = "") {
   const known = portSuggestions.find((item) => {
     const haystack = normalize([item.name, item.region, ...item.aliases].join(" "));
     const needle = normalize(port);
@@ -14261,21 +15977,35 @@ function fallbackPortRisk(port = "Shanghai Port", cargo = "Consumer Audio", mess
     port: known?.name || port,
     region: known?.region || "",
     cargo,
-    level: batteryCargo ? "Medium" : "Watch",
-    congestionStatus: "未见明确塞港信号",
-    congestionSummary: `${known?.name || port} 当前没有抓到明确拥堵/塞港新闻。建议按正常计划推进，同时向货代确认最新靠泊、提箱和码头预约。`,
-    impact: batteryCargo ? "含电池/DG 货物仍需提前确认船司和码头接受规则。" : "常规货物暂无明显港口异常信号。",
-    recommendation: "出货前仍建议向货代确认 ETA、靠泊码头、免堆期和提箱预约。",
-    summary: message || `${known?.name || port} 暂未获取到实时公开新闻结果，先按手工清单处理。`,
-    links: [
-      ["上港集团箱货查询", "https://www.sipg.com.cn/conquery/index"],
-      ["中国国际贸易单一窗口", "https://www.singlewindow.cn/"]
-    ],
+    level: "Unknown",
+    congestionStatus: "未形成结论",
+    congestionSummary: "实时来源未返回有效证据，因此不判断是否塞港，也不估算延误。",
+    impact: "没有可核验来源时，不输出港口风险等级。",
+    recommendation: "稍后刷新，急单直接向船司、码头或当地代理核验靠泊和提箱安排。",
+    summary: message || `${known?.name || port || "目标港口"} 暂未获取到有效实时证据。`,
+    links: [],
     articles: []
   };
 }
 
 function renderPortRisk(data = {}) {
+  if (!data?.ok) {
+    $("portRiskStatus").textContent = "未形成判断";
+    $("portRiskGrid").innerHTML = renderResultBrief({
+      className: "port-risk-result-brief level-unknown",
+      kicker: "Port Risk Brief",
+      title: data.port || "港口风险暂不可判断",
+      updatedAt: data.updatedAt,
+      conclusion: data.message || data.summary || "当前没有足够证据形成港口风险结论。",
+      risk: "本次不输出塞港状态、延误天数或风险等级。",
+      cost: "本次未形成费用影响判断。",
+      action: "请核对正式港名或 UN/LOCODE；若接口暂时不可用，稍后刷新或打开船司、码头和海事部门官方入口。",
+      source: "未取得可核验的实时来源。",
+      pending: "港口识别、实时海况或港口相关公告",
+      links: Array.isArray(data.links) ? data.links : []
+    });
+    return;
+  }
   const articles = Array.isArray(data.articles) ? data.articles : [];
   const links = Array.isArray(data.links) ? data.links : [];
   const weather = data.weather || {};
@@ -14301,7 +16031,7 @@ function renderPortRisk(data = {}) {
       risk: data.impact || "暂未发现明显影响；仍需关注 ETA、靠泊、提柜、预约和 DG 接收。",
       cost: "港口风险可能影响堆存、滞箱、查验、改配、移箱、拖车和特殊货操作费；以码头/货代账单为准。",
       action: data.recommendation || "出货前向货代确认最新靠泊、截关、提箱预约和免堆免箱期。",
-      source: weatherParts.length ? `${weather.source || "Marine weather"}：${weatherParts.join("，")}` : "公开消息、港口入口和人工核验清单。",
+      source: weatherParts.length ? `${weather.source || "Marine weather"}：${weatherParts.join("，")}。这是港口附近区域网格模式，不是码头或泊位实测。` : "公开消息、港口入口和人工核验清单。",
       links: links.concat(dgSources)
     })}
     <article class="risk-card operation-guide-card">
@@ -14437,7 +16167,7 @@ function parsePercentNumber(value = "") {
   return match ? Number(match[1]) : null;
 }
 
-function getBatteryTransportProfile(input = {}) {
+function getBatteryTransportProfileLegacy(input = {}) {
   const lithiumIon = /锂离子|li-ion|lithium ion/i.test(input.type);
   const lithiumMetal = /锂金属|lithium metal/i.test(input.type);
   const lithium = lithiumIon || lithiumMetal || /锂|lithium/i.test(input.type);
@@ -14629,6 +16359,451 @@ function getBatteryTransportProfile(input = {}) {
   };
 }
 
+function getBatteryTransportProfile(input = {}) {
+  const type = String(input.type || "");
+  const lithiumIon = /锂离子|li-ion|lithium ion/i.test(type);
+  const lithiumMetal = /锂金属|lithium metal/i.test(type);
+  const sodiumIon = /钠离子|sodium ion/i.test(type);
+  const alkaline = /碱性|alkaline/i.test(type);
+  const nimh = /镍氢|nimh|nickel metal hydride/i.test(type);
+  const leadAcid = /铅酸|lead-acid|lead acid/i.test(type);
+  const regulatedBattery = input.included === "yes" && (lithiumIon || lithiumMetal || sodiumIon);
+  const batteryOnly = input.packing === "Battery only";
+  const packedWith = input.packing === "Packed with equipment";
+  const contained = input.packing === "Contained in equipment";
+  const packingKnown = batteryOnly || packedWith || contained;
+  const airLike = input.mode === "Air" || input.mode === "Courier";
+  const sea = input.mode === "Sea";
+  const unitType = input.unitType || "unknown";
+  const wh = Number(input.wh || 0);
+  const lithiumContent = Number(input.lithiumContent || 0);
+  const netMass = Number(input.netMass || 0);
+  const soc = parsePercentNumber(input.soc);
+  const condition = String(input.condition || "");
+  const safetyDamaged = /损坏|鼓包|漏液|过热|短路风险/i.test(condition);
+  const safetyRecalled = /安全原因召回|因电池安全原因召回/i.test(condition);
+  const waste = /废旧|回收|处置/i.test(condition);
+  const prototype = input.docs === "prototype";
+  const nonSafetyReturn = /正常二手|设备故障退运|非安全缺陷|容量衰减|标签错误/i.test(condition);
+  const conditionUnknown = /不确定/i.test(condition);
+  const criticalMissing = [];
+  const pendingChecks = [];
+  const prohibitions = [];
+  const redFlags = [];
+  const documents = [];
+  const handling = [];
+  const nextActions = [];
+  const sources = [
+    ["IATA 2026 Battery Guidance（67th DGR）", "https://www.iata.org/contentassets/05e6d8742b0047259bf3a700bc9d42b9/lithium-battery-guidance-document.pdf"],
+    ["IATA Dangerous Goods FAQ（SDS/UN38.3）", "https://www.iata.org/en/programs/cargo/dgr/faq/"],
+    ["FAA Lithium Battery Resources", "https://www.faa.gov/hazmat/resources/lithium_batteries"],
+    ["PHMSA Lithium Battery Guide for Shippers", "https://www.phmsa.dot.gov/regulatory-compliance/phmsa-guidance/lithium-battery-guide-shippers"],
+    ["IMO Dangerous Goods / IMDG Code", "https://www.imo.org/en/ourwork/safety/pages/dangerousgoods-default.aspx"]
+  ];
+
+  let unNo = "未触发";
+  let pi = "待确认";
+  let section = "";
+  let properName = "待确认";
+  let dgClass = "未判定";
+  let specialProvision = "未判定";
+  let metricConclusion = "未判定";
+  let aircraftConclusion = airLike ? "航空器类型待确认" : "不适用";
+  let socConclusion = airLike ? "按化学体系和包装方式判断" : "海运不按 IATA SOC 规则判断";
+  let smallBattery = null;
+  let approvalNeeded = false;
+
+  if (input.included === "unknown") criticalMissing.push("是否含电池");
+  if (input.included === "yes" && !regulatedBattery && !alkaline && !nimh && !leadAcid) criticalMissing.push("电池化学体系");
+  if (input.included === "yes" && !packingKnown) criticalMissing.push("电池单独、与设备同包装或装在设备中的包装关系");
+  if (input.included === "yes" && conditionUnknown) criticalMissing.push("电池是否存在安全缺陷、召回或废旧状态");
+
+  if (regulatedBattery) {
+    dgClass = "Class 9 电池危险品方向";
+    if (lithiumIon || sodiumIon) {
+      if (wh <= 0) {
+        criticalMissing.push("单芯/电池组额定 Wh");
+      } else if (unitType === "cell") {
+        smallBattery = wh <= 20;
+        metricConclusion = "单芯 " + wh + " Wh；20 Wh 阈值判断为" + (smallBattery ? "小型" : "超过小型阈值");
+      } else if (unitType === "battery") {
+        smallBattery = wh <= 100;
+        metricConclusion = "电池组 " + wh + " Wh；100 Wh 阈值判断为" + (smallBattery ? "小型" : "超过小型阈值");
+      } else if (wh <= 20) {
+        smallBattery = true;
+        metricConclusion = wh + " Wh；无论单芯或电池组均未超过小型阈值";
+      } else if (wh > 100) {
+        smallBattery = false;
+        metricConclusion = wh + " Wh；无论单芯或电池组均超过小型阈值";
+      } else {
+        criticalMissing.push("20-100 Wh 区间必须确认是单芯还是电池组");
+        metricConclusion = wh + " Wh；单芯与电池组适用阈值不同";
+      }
+    }
+    if (lithiumMetal) {
+      if (lithiumContent <= 0) {
+        criticalMissing.push("锂金属单芯/电池组的标称锂含量 g");
+      } else if (unitType === "cell") {
+        smallBattery = lithiumContent <= 1;
+        metricConclusion = "单芯锂含量 " + lithiumContent + " g；1 g 阈值判断为" + (smallBattery ? "小型" : "超过小型阈值");
+      } else if (unitType === "battery") {
+        smallBattery = lithiumContent <= 2;
+        metricConclusion = "电池组锂含量 " + lithiumContent + " g；2 g 阈值判断为" + (smallBattery ? "小型" : "超过小型阈值");
+      } else if (lithiumContent <= 1) {
+        smallBattery = true;
+        metricConclusion = "锂含量 " + lithiumContent + " g；无论单芯或电池组均未超过小型阈值";
+      } else if (lithiumContent > 2) {
+        smallBattery = false;
+        metricConclusion = "锂含量 " + lithiumContent + " g；无论单芯或电池组均超过小型阈值";
+      } else {
+        criticalMissing.push("1-2 g 区间必须确认是单芯还是电池组");
+        metricConclusion = "锂含量 " + lithiumContent + " g；单芯与电池组适用阈值不同";
+      }
+    }
+  }
+
+  if (regulatedBattery && lithiumIon && packingKnown) {
+    unNo = batteryOnly ? "UN3480" : "UN3481";
+    properName = batteryOnly ? "Lithium ion batteries" : packedWith ? "Lithium ion batteries packed with equipment" : "Lithium ion batteries contained in equipment";
+    if (airLike) {
+      section = batteryOnly ? (smallBattery === true ? "IB" : smallBattery === false ? "IA" : "") : (smallBattery === true ? "II" : smallBattery === false ? "I" : "");
+      pi = batteryOnly ? "PI 965" : packedWith ? "PI 966" : "PI 967";
+    }
+  }
+  if (regulatedBattery && lithiumMetal && packingKnown) {
+    unNo = batteryOnly ? "UN3090" : "UN3091";
+    properName = batteryOnly ? "Lithium metal batteries" : packedWith ? "Lithium metal batteries packed with equipment" : "Lithium metal batteries contained in equipment";
+    if (airLike) {
+      section = batteryOnly ? (smallBattery === true ? "IB" : smallBattery === false ? "IA" : "") : (smallBattery === true ? "II" : smallBattery === false ? "I" : "");
+      pi = batteryOnly ? "PI 968" : packedWith ? "PI 969" : "PI 970";
+    }
+  }
+  if (regulatedBattery && sodiumIon && packingKnown) {
+    unNo = batteryOnly ? "UN3551" : "UN3552";
+    properName = batteryOnly ? "Sodium ion batteries" : packedWith ? "Sodium ion batteries packed with equipment" : "Sodium ion batteries contained in equipment";
+    if (airLike) {
+      section = batteryOnly ? "fully-regulated" : (smallBattery === true ? "II" : smallBattery === false ? "I" : "");
+      pi = batteryOnly ? "PI 976" : packedWith ? "PI 977" : "PI 978";
+    }
+  }
+  if (sea && regulatedBattery && packingKnown) {
+    pi = "IMDG Code " + unNo + " 条目";
+    section = smallBattery === true ? "SP188-check" : "fully-regulated";
+    specialProvision = smallBattery === true
+      ? "可核验 IMDG SP188 条件；小型阈值命中不等于自动豁免"
+      : "超过小型阈值，按完整 Class 9 危险品路径预审";
+  }
+  if (airLike && regulatedBattery && packingKnown) {
+    specialProvision = pi + (section && section !== "fully-regulated" ? " Section " + section : " 完整管制路径");
+    if (!section) criticalMissing.push("单芯/电池组阈值，无法确定 IATA Section");
+  }
+
+  if (regulatedBattery && input.docs !== "matched") {
+    if (prototype) {
+      approvalNeeded = true;
+      redFlags.push("未通过 UN38.3 的原型/低产量电池不能走普通货路径；空运只可按 A88、主管机关批准和相应货机条件评估。");
+    } else if (input.docs === "unmatched") {
+      criticalMissing.push("UN38.3 测试摘要与本票电池型号、制造商和参数的一致性");
+    } else {
+      criticalMissing.push("与本票型号匹配的 UN38.3 Test Summary");
+    }
+  }
+
+  if (input.included === "yes" && (safetyDamaged || safetyRecalled)) {
+    if (airLike) {
+      prohibitions.push("存在可能发热、起火或短路的损坏/安全召回电池，IATA A154 下禁止普通航空运输，包括装在设备中的电池");
+    } else {
+      approvalNeeded = true;
+      redFlags.push("损坏或安全召回电池不能按正常 SP188/普货口径处理，海运需 DG 专员、船司和港区按专门条款确认。");
+    }
+  }
+  if (input.included === "yes" && waste) {
+    approvalNeeded = true;
+    redFlags.push(airLike
+      ? "废旧、回收或处置电池涉及 IATA A183/主管机关批准边界，不能按普通退货处理。"
+      : "废旧、回收或处置电池需按 IMDG、船司和目的港废物/危险货物要求单独评估。");
+  }
+  if (input.included === "yes" && nonSafetyReturn) {
+    handling.push("正常退货、设备故障或非安全缺陷不等同于 A154 禁运；仍需制造商确认电池无安全缺陷并给出退运包装方法。");
+  }
+
+  let socMandatory = false;
+  let socRecommended = false;
+  if (airLike && regulatedBattery && lithiumIon) {
+    if (batteryOnly) socMandatory = true;
+    if (packedWith && (smallBattery === false || wh > 2.7)) socMandatory = true;
+    if (contained) socRecommended = true;
+  }
+  if (airLike && regulatedBattery && sodiumIon) {
+    if (batteryOnly) socMandatory = true;
+    else socRecommended = true;
+  }
+  if (socMandatory) {
+    if (soc === null) {
+      criticalMissing.push("2026 IATA 要求适用场景的 SOC");
+      socConclusion = "必须确认不超过 30% SOC";
+    } else if (soc > 30) {
+      approvalNeeded = true;
+      socConclusion = soc + "%：超过 30%，普通路径不可接；需主管机关批准";
+      redFlags.push("当前 SOC 超过 30%；2026 年 PI 965，以及 PI 966 相应场景，不能按普通路径交运。");
+    } else {
+      socConclusion = soc + "%：满足不超过 30% 的 SOC 条件";
+    }
+  } else if (socRecommended) {
+    socConclusion = soc === null
+      ? "PI 967/钠离子随设备场景建议不超过 30% SOC（或设备显示电量不超过 25%）"
+      : soc + "%：该包装场景以降低至 30% SOC 作为安全建议";
+  } else if (airLike && regulatedBattery && lithiumMetal) {
+    socConclusion = "锂金属电池不使用 SOC 阈值；改看锂含量 g";
+  }
+
+  if (airLike && regulatedBattery) {
+    if (batteryOnly && input.aircraft === "passenger") {
+      prohibitions.push(unNo + " 单独电池禁止作为货物装客机，必须改全货机或取得适用批准");
+      aircraftConclusion = "客机腹舱：禁止接收 " + unNo + " 单独电池";
+    } else if (batteryOnly && input.aircraft === "unknown") {
+      criticalMissing.push("单独电池必须确认全货机，不能默认客机可收");
+    } else if (batteryOnly && input.aircraft === "cargo") {
+      aircraftConclusion = "全货机方向；外箱需按适用条款使用 Cargo Aircraft Only 标识";
+    } else if (input.aircraft === "passenger") {
+      aircraftConclusion = "客机腹舱方向；每包电池净重上限按当前 PI/Section 核验";
+    } else if (input.aircraft === "cargo") {
+      aircraftConclusion = "全货机方向；按当前 PI/Section 的货机每包净重上限核验";
+    } else {
+      pendingChecks.push("航司最终使用客机还是全货机");
+    }
+
+    let massLimit = null;
+    if (batteryOnly && input.aircraft === "cargo") {
+      massLimit = lithiumIon && section === "IB" ? 10 : lithiumMetal && section === "IB" ? 2.5 : 35;
+    } else if (!batteryOnly && input.aircraft === "passenger") {
+      massLimit = 5;
+    } else if (!batteryOnly && input.aircraft === "cargo") {
+      massLimit = section === "II" ? 5 : 35;
+    }
+    if (massLimit !== null) {
+      if (!netMass) {
+        pendingChecks.push("每包电池净重 kg，当前适用上限为 " + massLimit + " kg");
+      } else if (netMass > massLimit) {
+        prohibitions.push("每包电池净重 " + netMass + " kg 超过当前组合的 " + massLimit + " kg 上限");
+      } else {
+        aircraftConclusion += "；" + netMass + " kg 未超过 " + massLimit + " kg/包";
+      }
+    }
+  }
+
+  if (input.included === "yes" && !String(input.quantity || "").trim()) {
+    pendingChecks.push("每包设备/电芯/电池组数量，用于判断标记、包装和例外条件");
+  }
+
+  if (input.included === "no") {
+    dgClass = "未触发电池危险品";
+    properName = "无电池声明";
+    pi = "不适用";
+    specialProvision = "不适用";
+    metricConclusion = "不适用";
+    aircraftConclusion = "不适用";
+    socConclusion = "不适用";
+    handling.push("保留供应商无电池声明；另行排查磁性、液体、喷雾、气瓶、化学品和其他危险品。");
+    documents.push("供应商无电池声明或 BOM。");
+  } else if (alkaline || nimh) {
+    dgClass = "不按锂/钠离子 Class 9 直接判断";
+    properName = alkaline ? "Alkaline batteries" : "Nickel-metal hydride batteries";
+    pi = "按具体运输方式和承运人规则确认";
+    metricConclusion = "Wh/锂含量阈值不适用";
+    handling.push("防短路、防误启动、防泄漏并确认数量；镍氢海运还需核对 UN3496/IMDG 适用边界。");
+    pendingChecks.push("承运人对该电池化学体系的接收规则");
+  } else if (leadAcid) {
+    dgClass = "铅酸电池需另行分类";
+    properName = "需判断 spillable / non-spillable";
+    pi = "不能套用锂电池 PI";
+    metricConclusion = "需补密封结构、防漏测试和电解液资料";
+    criticalMissing.push("铅酸电池是否防漏型及适用测试结果");
+  }
+
+  if (input.included === "yes" && regulatedBattery) {
+    documents.push("与本票一致的电池规格书：制造商、型号、单芯/电池组、Wh 或锂含量、数量和每包电池净重。");
+    documents.push("UN38.3 Test Summary：型号、制造商、测试报告编号和 Wh/锂含量必须与货物一致。");
+    if (airLike && section === "II") {
+      documents.push("Section II 通常不因该电池条目单独要求 DGD；仍需按 PI 完成包装、标记/标签、运单信息和承运人检查。");
+    } else if (airLike) {
+      documents.push("当前按完整管制/Section I、IA 或 IB 路径，准备 Shipper's Declaration for Dangerous Goods 并由合格人员复核。");
+    } else if (sea) {
+      documents.push("按 IMDG/船司要求准备危险货物申报、包装证明、标记标签和港区资料；SP188 需逐项满足才可采用例外口径。");
+    }
+    documents.push("SDS/MSDS 不是 IATA 对电池制品本身的统一法定替代文件，也不能替代 UN38.3；中国货站、鉴定机构或承运人要求时再提供。");
+    handling.push("电池端子防短路、内包装隔离、设备防误启动、包内防移动，并保留封箱和标签照片。");
+    if (batteryOnly && airLike) handling.push("单独电池按全货机限制和 Cargo Aircraft Only 标识核验，不能默认客机腹舱可收。");
+    if (section === "II" || section === "SP188-check") handling.push("Section II/SP188 是有条件例外，不等于普通无监管货；数量、包装、标记和承运人差异仍需核验。");
+  }
+
+  let decisionState = "ready";
+  if (prohibitions.length) decisionState = "prohibited";
+  else if (criticalMissing.length) decisionState = "blocked";
+  else if (approvalNeeded) decisionState = "approval";
+  else if (pendingChecks.length) decisionState = "conditional";
+
+  const level = decisionState === "ready" ? "Low" : decisionState === "conditional" ? "Medium" : "High";
+  const headline = input.included === "no"
+    ? "结论：未触发电池 DG，保留无电池声明"
+    : decisionState === "prohibited"
+      ? "结论：当前组合不可按所选普通渠道交运"
+      : decisionState === "blocked"
+        ? "结论：关键信息不足，不能判断是否可收"
+        : decisionState === "approval"
+          ? "结论：涉及主管机关批准或专门 DG 方案"
+          : decisionState === "conditional"
+            ? "结论：UN/PI 已形成，承运接收仍有待核项"
+            : "结论：分类路径清楚，可进入承运人最终预审";
+
+  const routeLabel = [
+    unNo,
+    properName,
+    pi,
+    section && !pi.includes("Section") && !["fully-regulated", "SP188-check"].includes(section) ? "Section " + section : ""
+  ].filter(Boolean).join(" · ");
+  const transportDgConclusion = input.included === "no"
+    ? "本票不按电池危险品处理；仍需排查其他危险品属性。"
+    : decisionState === "prohibited"
+      ? "停止交仓/订舱：" + prohibitions.join("；") + "。"
+      : routeLabel + "。 " + (criticalMissing.length ? "先补：" + criticalMissing.join("、") + "。" : "分类依据已形成。") + (pendingChecks.length ? " 接收前再核：" + pendingChecks.join("、") + "。" : "");
+  const customsDgConclusion = input.included === "no"
+    ? "按真实无电池产品申报并保留 BOM/声明。"
+    : "运输危险品分类不等同于海关危险化学品认定。报关仍按真实货物名称、用途、型号和电池属性申报；移动电源、储能设备、废旧/损坏电池及电池原料另查监管条件。";
+
+  if (criticalMissing.length) redFlags.unshift("缺少会改变结论的字段：" + Array.from(new Set(criticalMissing)).join("、") + "。");
+  if (prohibitions.length) redFlags.unshift(...prohibitions);
+  if (!redFlags.length) redFlags.push(input.included === "no"
+    ? "未触发电池危险品不等于整票一定是普货；仍需排查磁性、液体、喷雾、气瓶和化学品。"
+    : "当前未发现禁运触发点；最终仍以 2026 IATA/现行 IMDG、国家差异和承运人 operator variation 为准。");
+  if (!handling.length) handling.push("按电池化学体系做好端子防短路、绝缘、防移动、防误启动和坚固外包装。");
+  if (!documents.length) documents.push("先取得制造商规格书、运输分类声明和承运人要求的证明文件。");
+  if (input.included === "no") {
+    nextActions.push("保存供应商无电池声明或 BOM，并按真实货物继续排查其他危险品属性。");
+  } else {
+    if (input.carrier) nextActions.push("用“" + input.carrier + "”的最新电池/DG 接收规则复核本票。");
+    if (criticalMissing.length) nextActions.push("先补齐：" + Array.from(new Set(criticalMissing)).join("、") + "。");
+    if (pendingChecks.length) nextActions.push("订舱/交仓前确认：" + Array.from(new Set(pendingChecks)).join("、") + "。");
+    nextActions.push("把 UN/PI/Section、UN38.3 型号一致性、SOC、每包净重和承运人书面确认放入当票证据包。");
+  }
+
+  return {
+    level,
+    decisionState,
+    headline,
+    unNo,
+    pi: pi + (airLike && section && !["fully-regulated", "SP188-check"].includes(section) ? " Section " + section : ""),
+    properName,
+    dgClass,
+    specialProvision,
+    metricConclusion,
+    aircraftConclusion,
+    socConclusion,
+    transportDgConclusion,
+    customsDgConclusion,
+    criticalMissing: Array.from(new Set(criticalMissing)),
+    pendingChecks: Array.from(new Set(pendingChecks)),
+    redFlags: Array.from(new Set(redFlags)),
+    documents: Array.from(new Set(documents)),
+    handling: Array.from(new Set(handling)),
+    nextActions: Array.from(new Set(nextActions)),
+    sources,
+    asOf: "规则基准：IATA DGR 第 67 版（2026，生效至 2026-12-31）；海运需再按当期 IMDG Code 与船司差异复核"
+  };
+}
+
+function runBatteryValidationSuite() {
+  const base = {
+    included: "yes",
+    type: "锂离子 / Li-ion",
+    unitType: "battery",
+    wh: 40,
+    lithiumContent: 0,
+    packing: "Contained in equipment",
+    mode: "Air",
+    aircraft: "passenger",
+    docs: "matched",
+    quantity: "1 台设备",
+    netMass: 0.6,
+    condition: "正常新电池/随产品出货",
+    soc: "30",
+    carrier: ""
+  };
+  const tests = [
+    {
+      title: "正常含锂设备",
+      expected: "UN3481 / PI967 Section II，可进入承运人预审",
+      input: { ...base },
+      check: (profile) => profile.unNo === "UN3481" && /PI 967 Section II/.test(profile.pi) && profile.decisionState === "ready"
+    },
+    {
+      title: "PI966 2026 SOC 超限",
+      expected: "UN3481 / PI966，SOC > 30% 转批准路径",
+      input: { ...base, packing: "Packed with equipment", wh: 10, soc: "45" },
+      check: (profile) => /PI 966 Section II/.test(profile.pi) && profile.decisionState === "approval"
+    },
+    {
+      title: "单独锂离子电池走客机",
+      expected: "UN3480 / PI965，客机禁止",
+      input: { ...base, packing: "Battery only", aircraft: "passenger", soc: "30" },
+      check: (profile) => profile.unNo === "UN3480" && profile.decisionState === "prohibited"
+    },
+    {
+      title: "单独锂离子电池 SOC 45%",
+      expected: "全货机但需主管机关批准",
+      input: { ...base, packing: "Battery only", aircraft: "cargo", soc: "45", netMass: 2 },
+      check: (profile) => profile.decisionState === "approval" && /超过 30%/.test(profile.socConclusion)
+    },
+    {
+      title: "鼓包/过热/短路风险电池",
+      expected: "IATA A154 禁止普通航空运输",
+      input: { ...base, condition: "损坏、鼓包、漏液、过热或短路风险" },
+      check: (profile) => profile.decisionState === "prohibited" && /A154/.test(profile.transportDgConclusion)
+    },
+    {
+      title: "设备故障退运但电池安全",
+      expected: "不自动按 A154 禁运",
+      input: { ...base, condition: "设备故障退运，电池无安全缺陷", soc: "60" },
+      check: (profile) => profile.decisionState !== "prohibited" && /不等同于 A154/.test(profile.handling.join(" "))
+    },
+    {
+      title: "锂金属 1.5g 未说明单芯/电池组",
+      expected: "阻断，要求确认单芯/电池组",
+      input: { ...base, type: "锂金属 / Lithium metal", unitType: "unknown", wh: 0, lithiumContent: 1.5, packing: "Packed with equipment", soc: "" },
+      check: (profile) => profile.decisionState === "blocked" && /单芯还是电池组/.test(profile.criticalMissing.join(" "))
+    },
+    {
+      title: "钠离子电池单独全货机",
+      expected: "UN3551 / PI976，SOC 30%",
+      input: { ...base, type: "钠离子 / Sodium ion", wh: 50, packing: "Battery only", aircraft: "cargo", soc: "30", netMass: 2 },
+      check: (profile) => profile.unNo === "UN3551" && /PI 976/.test(profile.pi) && profile.decisionState === "ready"
+    },
+    {
+      title: "确认无电池",
+      expected: "不触发电池 DG，保留无电池声明",
+      input: { ...base, included: "no", packing: "Unknown", docs: "unknown", condition: "不确定", wh: 0, quantity: "", netMass: 0, soc: "" },
+      check: (profile) => profile.unNo === "未触发" && profile.decisionState === "ready"
+    }
+  ];
+  const rows = tests.map((test) => {
+    const profile = getBatteryTransportProfile(test.input);
+    return { ...test, profile, passed: test.check(profile) };
+  });
+  const passed = rows.filter((row) => row.passed).length;
+  const html = '<div class="hs-suite-summary"><article><span>规则通过</span><strong>' + passed + '/' + rows.length + '</strong><p>覆盖 2026 IATA SOC、UN/PI/Section、客货机、A154、锂金属、钠离子和无电池边界。</p></article></div>' +
+    '<div class="hs-suite-table">' +
+    rows.map((row) =>
+      '<article class="' + (row.passed ? "passed" : "failed") + '">' +
+      '<span>' + (row.passed ? "通过" : "失败") + '</span>' +
+      '<strong>' + escapeHtml(row.title) + '</strong>' +
+      '<p>预期：' + escapeHtml(row.expected) + '</p>' +
+      '<small>当前：' + escapeHtml(row.profile.headline + "；" + row.profile.unNo + "；" + row.profile.pi) + '</small>' +
+      '</article>'
+    ).join("") +
+    '</div>';
+  openResultDialog("电池/DG 规则自检", "Battery Rule Regression · IATA 2026", html);
+}
+
 function renderBatteryProfile(profile = {}) {
   return `
     <div class="dg-result-grid">
@@ -14646,6 +16821,11 @@ function renderBatteryProfile(profile = {}) {
         <span>报关中是否危险品</span>
         <strong>${escapeHtml(profile.customsDgConclusion || "未判定")}</strong>
         <p>运输 DG、海关危险化学品、CCC/监管条件是不同口径，页面会分开提示。</p>
+      </article>
+      <article class="dg-card wide">
+        <span>关键参数判定</span>
+        <strong>${escapeHtml(profile.metricConclusion || "未判定")}</strong>
+        <p>${escapeHtml(profile.aircraftConclusion || "航空器限制待确认")}；${escapeHtml(profile.socConclusion || "SOC 待确认")}</p>
       </article>
       <article class="dg-card">
         <span>必须补齐的文件</span>
@@ -14665,6 +16845,7 @@ function renderBatteryProfile(profile = {}) {
       </article>
       <article class="dg-card wide">
         <span>建议核验来源</span>
+        <p>${escapeHtml(profile.asOf || "按当期 IATA/IMDG 与承运人差异复核。")}</p>
         <div class="source-chip-grid">
           ${profile.sources.map(([title, url]) => `<a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${escapeHtml(title)}</a>`).join("")}
         </div>
@@ -14678,11 +16859,15 @@ function evaluateBattery(event) {
   const input = {
     included: $("batteryIncluded").value,
     type: $("batteryType").value,
+    unitType: $("batteryUnitType")?.value || "unknown",
     wh: Number($("batteryWh").value || 0),
+    lithiumContent: Number($("batteryLithiumContent")?.value || 0),
     packing: $("batteryPacking").value,
     mode: $("transportMode").value,
+    aircraft: $("batteryAircraft")?.value || "unknown",
     docs: $("batteryDocs").value,
     quantity: $("batteryQuantity")?.value || "",
+    netMass: Number($("batteryNetMass")?.value || 0),
     condition: $("batteryCondition")?.value || "",
     soc: $("batterySoc")?.value || "",
     carrier: $("batteryCarrier")?.value || ""
@@ -14732,11 +16917,15 @@ function clearForm() {
 function loadBatteryExample() {
   $("batteryIncluded").value = "yes";
   $("batteryType").value = "锂离子 / Li-ion";
+  $("batteryUnitType").value = "battery";
   $("batteryWh").value = "1.1";
-  $("batteryPacking").value = "Contained in equipment";
+  $("batteryLithiumContent").value = "";
+  $("batteryPacking").value = "Packed with equipment";
   $("transportMode").value = "Air";
-  $("batteryDocs").value = "未确认";
+  $("batteryAircraft").value = "passenger";
+  $("batteryDocs").value = "unknown";
   $("batteryQuantity").value = "每个耳机和充电盒内置小容量电池";
+  $("batteryNetMass").value = "0.08";
   $("batteryCondition").value = "正常新电池/随产品出货";
   $("batterySoc").value = "";
   $("batteryCarrier").value = "空运/快递渠道待确认";
@@ -15120,7 +17309,11 @@ function renderRequirementResult(data = {}) {
   const redFlags = Array.isArray(data.redFlags) ? data.redFlags : [];
   const nextQuestions = Array.isArray(data.nextQuestions) ? data.nextQuestions : [];
   const originAssessment = data.originAssessment && typeof data.originAssessment === "object" ? data.originAssessment : null;
-  const confidenceText = [data.confidenceScore ? `${data.confidenceScore}/100` : "", data.confidenceLabel || ""].filter(Boolean).join(" · ") || "待复核";
+  const confidenceText = tariffCandidates.length && evidence.length
+    ? "规则与税则数据支持"
+    : sources.length || apiStatus.length
+      ? "公开来源支持，需复核适用范围"
+      : "本地规则初判";
   const primaryCandidate = tariffCandidates[0];
   $("requirementResult").innerHTML = `
     ${renderResultBrief({
@@ -15133,6 +17326,11 @@ function renderRequirementResult(data = {}) {
       cost: primaryCandidate ? `${primaryCandidate.codeDisplay || primaryCandidate.code || "候选税号"}：${primaryCandidate.appliedRateType || "适用税率"} ${primaryCandidate.appliedRate || "待确认"}；正式税费仍按申报日和原产国复核。` : "未形成可核算税号时，不建议直接承诺税费、认证费用或清关时效。",
       action: actionItems[0] || nextQuestions[0] || "补齐品名、用途、材质、规格、品牌型号、原产国、图片/规格书后再定案。",
       source: data.source || (apiStatus.length ? apiStatus.map((item) => `${item.name || item.source}: ${item.status || item.message || ""}`).join("；") : "本地规则库 + 官方入口核验。"),
+      evidenceLabel: tariffCandidates.length && evidence.length ? "规则与税则数据支持" : sources.length || apiStatus.length ? "公开来源初判" : "本地规则初判",
+      evidenceTone: tariffCandidates.length && evidence.length ? "verified" : sources.length || apiStatus.length ? "rules" : "model",
+      evidenceBasis: evidence.length ? evidence.map((item) => Array.isArray(item) ? item.join("：") : String(item)).slice(0, 3).join("；") : "品名信号、国家规则与官方核验入口",
+      scope: `${data.market || "目的国待补"} · ${data.product || "产品待补"}`,
+      pending: gaps.concat(nextQuestions).slice(0, 3).join("；") || "准确 HS、原产国、申报日期、产品规格和进口商资质",
       links: sources
     })}
     <article class="requirement-card">
@@ -15150,7 +17348,7 @@ function renderRequirementResult(data = {}) {
           <strong>${escapeHtml((data.signals || []).join("、") || "一般商品")}</strong>
         </div>
         <div>
-          <span>结论可信度</span>
+          <span>证据状态</span>
           <strong>${escapeHtml(confidenceText)}</strong>
         </div>
       </div>
@@ -15817,7 +18015,7 @@ function bindEvents() {
   $("seaPortLookupInput")?.addEventListener("input", () => renderSeaPortLookup($("seaPortLookupInput")?.value || ""));
   $("seaLoadForm")?.addEventListener("submit", evaluateSeaLoad);
   $("loadSeaCalcExample")?.addEventListener("click", loadSeaCalcExample);
-  ["seaLength", "seaWidth", "seaHeight", "seaCartons", "seaGrossWeight", "seaRate", "seaLocalFees", "seaContainerType", "seaPackingMode"].forEach((id) => {
+  ["seaLength", "seaWidth", "seaHeight", "seaCartons", "seaGrossWeight", "seaMinimumWm", "seaRate", "seaLocalFees", "seaContainerType", "seaPackingMode", "seaStackable", "seaPalletLength", "seaPalletWidth", "seaPalletHeight", "seaPalletCount"].forEach((id) => {
     $(id)?.addEventListener("input", () => evaluateSeaLoad({ preventDefault() {} }));
     $(id)?.addEventListener("change", () => evaluateSeaLoad({ preventDefault() {} }));
   });
@@ -15872,7 +18070,7 @@ function bindEvents() {
   $("airportLookupInput")?.addEventListener("input", () => renderAirportLookup($("airportLookupInput")?.value || ""));
   $("airFreightCalcForm")?.addEventListener("submit", evaluateAirFreightCalc);
   $("loadAirCalcExample")?.addEventListener("click", loadAirCalcExample);
-  ["airLength", "airWidth", "airHeight", "airPieces", "airGrossWeight", "airRate", "airSurcharges", "airFreightMode", "airCargoNature"].forEach((id) => {
+  ["airLength", "airWidth", "airHeight", "airPieces", "airGrossWeight", "airDivisor", "airMinimumChargeWeight", "airRate", "airSurcharges", "airFreightMode", "airCargoNature", "airRounding", "airStackable", "airUldType"].forEach((id) => {
     $(id)?.addEventListener("input", () => evaluateAirFreightCalc({ preventDefault() {} }));
     $(id)?.addEventListener("change", () => evaluateAirFreightCalc({ preventDefault() {} }));
   });
@@ -15973,6 +18171,10 @@ function bindEvents() {
   });
 	  $("refreshTrends").addEventListener("click", () => loadTrends($("trendKeyword").value, true));
 	  $("refreshHotspots")?.addEventListener("click", () => refreshHotspots(true));
+	  $("dailyHotspotBoard")?.addEventListener("click", (event) => {
+	    const button = event.target.closest("[data-hotspot-tab]");
+	    if (button) activateHotspotBoardCategory(button.dataset.hotspotTab || "政治");
+	  });
 	  $("trendSearchForm").addEventListener("submit", (event) => {
     event.preventDefault();
     loadTrends($("trendKeyword").value, true);
@@ -16001,6 +18203,7 @@ function bindEvents() {
   });
   $("batteryForm").addEventListener("submit", evaluateBattery);
   $("loadBatteryExample").addEventListener("click", loadBatteryExample);
+  $("runBatterySelfTest")?.addEventListener("click", runBatteryValidationSuite);
   $("resetBattery").addEventListener("click", resetBattery);
   $("issueForm").addEventListener("submit", addIssue);
   $("issueTable").addEventListener("click", (event) => {
@@ -16111,3 +18314,21 @@ renderFeedbacks();
 queryRequirements({ preventDefault() {} });
 renderRisks(["填写产品信息后，这里会显示 HS、3C、Battery/DG、监管条件和人工复核提醒。"]);
 bindEvents();
+const initialSearchQualityAudit = runGlobalSearchQualityAudit();
+document.documentElement.dataset.searchQualityAudit = encodeURIComponent(JSON.stringify({
+  passed: initialSearchQualityAudit.passed,
+  total: initialSearchQualityAudit.total,
+  failed: initialSearchQualityAudit.failed
+}));
+const initialPolicyRelevanceAudit = runPolicyRelevanceQualityAudit();
+document.documentElement.dataset.policyRelevanceAudit = encodeURIComponent(JSON.stringify({
+  passed: initialPolicyRelevanceAudit.passed,
+  total: initialPolicyRelevanceAudit.total,
+  failed: initialPolicyRelevanceAudit.failed
+}));
+const initialDataCoverageAudit = runDataCoverageQualityAudit();
+document.documentElement.dataset.dataCoverageAudit = encodeURIComponent(JSON.stringify({
+  passed: initialDataCoverageAudit.passed,
+  total: initialDataCoverageAudit.total,
+  failed: initialDataCoverageAudit.failed
+}));

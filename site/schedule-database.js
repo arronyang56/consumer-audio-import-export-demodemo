@@ -1,0 +1,354 @@
+window.LOGISTICS_SCHEDULE_DATABASE = {
+  schemaVersion: "1.0",
+  updatedAt: "2026-07-15T00:00:00+08:00",
+  sources: [
+    {
+      id: "maersk-point-to-point",
+      mode: "sea",
+      name: "Maersk Point-to-Point Schedules",
+      url: "https://www.maersk.com/schedules/point-to-point",
+      format: "public-query",
+      cadence: "carrier-live",
+      automation: "manual-capture",
+      note: "公开点到点船期；API 需要应用审批或商业授权。"
+    },
+    {
+      id: "oocl-schedule-download",
+      mode: "sea",
+      name: "OOCL Sailing Schedule Download",
+      url: "https://www.oocl.com/eng/ourservices/eservices/sailingschedule/pages/vss.aspx",
+      format: "xls/pdf",
+      cadence: "daily/weekly",
+      automation: "download-ingestion",
+      note: "按区域和服务下载船期；适合中国港口周度批量入库。"
+    },
+    {
+      id: "hapag-schedule-download",
+      mode: "sea",
+      name: "Hapag-Lloyd Schedule Download",
+      url: "https://www.hapag-lloyd.com/en/online-business/schedule/schedule-download-solution.html",
+      format: "download/query",
+      cadence: "carrier-live",
+      automation: "semi-automatic",
+      note: "可按装港和卸港区域下载；交期承诺前仍查互动船期。"
+    },
+    {
+      id: "one-point-to-point",
+      mode: "sea",
+      name: "ONE Point-to-Point Schedule",
+      url: "https://ecomm.one-line.com/one-ecom/schedule/point-to-point-schedule",
+      format: "excel/pdf",
+      cadence: "carrier-live",
+      automation: "semi-automatic",
+      note: "查询结果可下载 Excel/PDF，包含船名航次、ETD/ETA、转运和 cut-off。"
+    },
+    {
+      id: "cosco-service-schedule",
+      mode: "sea",
+      name: "COSCO Service Schedule",
+      url: "https://lines.coscoshipping.com/home/HelpCenter/business/ServiceSchedule",
+      format: "excel/pdf",
+      cadence: "service-dependent",
+      automation: "download-ingestion",
+      note: "按航线服务下载，适合补中国始发和国内沿海运输班期。"
+    },
+    {
+      id: "cma-cgm-schedules",
+      mode: "sea",
+      name: "CMA CGM Schedules",
+      url: "https://www.cma-cgm.com/ebusiness/schedules",
+      format: "public-query/pdf",
+      cadence: "carrier-live",
+      automation: "semi-automatic",
+      note: "按路线、船舶或港口查询并下载 PDF。"
+    },
+    {
+      id: "lufthansa-cargo-download",
+      mode: "air",
+      name: "Lufthansa Cargo Schedule Downloads",
+      url: "https://www.lufthansa-cargo.com/en/network/schedule-routings",
+      format: "csv/xlsx/xml",
+      cadence: "daily",
+      automation: "download-ingestion",
+      note: "未来 21 天货运路线；结构化文件每日更新，最适合自动入库。"
+    },
+    {
+      id: "cathay-cargo-download",
+      mode: "air",
+      name: "Cathay Cargo Flight Schedule",
+      url: "https://www.cathaycargo.com/en-us/flight-schedule.html",
+      format: "query/xlsx",
+      cadence: "1st/16th monthly",
+      automation: "download-ingestion",
+      note: "月度 Excel 每月 1 日发布、16 日更新；实时查询优先。"
+    },
+    {
+      id: "cargolux-schedule",
+      mode: "air",
+      name: "Cargolux Flight Schedule",
+      url: "https://www.cargolux.com/network/",
+      format: "query/pdf",
+      cadence: "monthly",
+      automation: "pdf-ingestion",
+      note: "货机网络月度 PDF，可补全纯货机航线。"
+    },
+    {
+      id: "aisstream",
+      mode: "sea-position",
+      name: "AISstream",
+      url: "https://aisstream.io/documentation",
+      format: "websocket/json",
+      cadence: "live",
+      automation: "api-key-required",
+      note: "免费注册 key 的全球 AIS 流；用于船位，不提供订舱船期。"
+    },
+    {
+      id: "opensky",
+      mode: "air-position",
+      name: "OpenSky Network",
+      url: "https://openskynetwork.github.io/opensky-api/rest.html",
+      format: "rest/json",
+      cadence: "live/historical",
+      automation: "account-limits",
+      note: "用于航班位置和机场到离港实绩，不代表货运订舱或舱位。"
+    },
+    {
+      id: "aviationweather",
+      mode: "air-weather",
+      name: "AviationWeather Data API",
+      url: "https://aviationweather.gov/data/api/",
+      format: "rest/json/geojson/xml",
+      cadence: "near-real-time",
+      automation: "public-api",
+      note: "METAR、TAF、SIGMET 等官方航空天气；用于解释航班风险，不提供班期。"
+    }
+  ],
+  updatePolicy: {
+    rejectResponses: ["登录页", "验证码页", "Cloudflare/反自动化页", "空文件", "缺少 ETD/ETA 或起降字段的文件"],
+    keepLastGoodSnapshot: true,
+    seaFreshnessDays: 14,
+    airFreshnessDays: 2,
+    conclusionRule: "只有承运人文件中同时命中起点、终点和有效日期时才输出计划时长；旧快照、区域航线图和预测模型不能冒充当前班期。",
+    actualPerformanceRule: "计划班期不能计算平均延误；平均延误只使用已记录的实际离港/到港时间。"
+  },
+  downloads: [
+    {
+      id: "oocl-hksc-japan",
+      sourceId: "oocl-schedule-download",
+      mode: "sea",
+      originScope: "香港及华南出口",
+      destinationScope: "日本",
+      format: "xls",
+      cadence: "weekly",
+      url: "https://www.oocl.com/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20Download/HK%20and%20South%20China/Export%20to%20Asia%20-%20Middle%20East/OUT_ASI_HKG_JPN.xls"
+    },
+    {
+      id: "oocl-hksc-korea",
+      sourceId: "oocl-schedule-download",
+      mode: "sea",
+      originScope: "香港及华南出口",
+      destinationScope: "韩国",
+      format: "xls",
+      cadence: "weekly",
+      url: "https://www.oocl.com/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20Download/HK%20and%20South%20China/Export%20to%20Asia%20-%20Middle%20East/OUT_ASI_HKG_KOR.xls"
+    },
+    {
+      id: "oocl-hksc-middle-east",
+      sourceId: "oocl-schedule-download",
+      mode: "sea",
+      originScope: "香港及华南出口",
+      destinationScope: "中东及红海",
+      format: "xls",
+      cadence: "weekly",
+      url: "https://www.oocl.com/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20Download/HK%20and%20South%20China/Export%20to%20Asia%20-%20Middle%20East/OUT_ASI_HKG_MID.xls"
+    },
+    {
+      id: "oocl-hksc-india-subcontinent",
+      sourceId: "oocl-schedule-download",
+      mode: "sea",
+      originScope: "香港及华南出口",
+      destinationScope: "印度、斯里兰卡及南亚次大陆",
+      format: "xls",
+      cadence: "weekly",
+      url: "https://www.oocl.com/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20Download/HK%20and%20South%20China/Export%20to%20Asia%20-%20Middle%20East/OUT_ASI_HKG_INA_SUBCON_SRI.xls"
+    },
+    {
+      id: "oocl-hksc-north-china",
+      sourceId: "oocl-schedule-download",
+      mode: "sea",
+      originScope: "香港及华南出口",
+      destinationScope: "华北",
+      format: "xls",
+      cadence: "weekly",
+      url: "https://www.oocl.com/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20Download/HK%20and%20South%20China/Export%20to%20Asia%20-%20Middle%20East/OUT_ASI_HKG_NPRC.xls"
+    },
+    {
+      id: "oocl-hksc-southeast-asia",
+      sourceId: "oocl-schedule-download",
+      mode: "sea",
+      originScope: "香港及华南出口",
+      destinationScope: "新加坡、马来西亚、印度尼西亚、柬埔寨及缅甸",
+      format: "xls",
+      cadence: "weekly",
+      url: "https://www.oocl.com/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20Download/HK%20and%20South%20China/Export%20to%20Asia%20-%20Middle%20East/OUT_ASI_HKG_SIN_MAL_INDO.xls"
+    },
+    {
+      id: "oocl-hksc-taiwan",
+      sourceId: "oocl-schedule-download",
+      mode: "sea",
+      originScope: "香港及华南出口",
+      destinationScope: "台湾",
+      format: "xls",
+      cadence: "weekly",
+      url: "https://www.oocl.com/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20Download/HK%20and%20South%20China/Export%20to%20Asia%20-%20Middle%20East/OUT_ASI_HKG_TWN.xls"
+    },
+    {
+      id: "oocl-hksc-philippines",
+      sourceId: "oocl-schedule-download",
+      mode: "sea",
+      originScope: "香港及华南出口",
+      destinationScope: "菲律宾",
+      format: "xls",
+      cadence: "weekly",
+      url: "https://www.oocl.com/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20Download/HK%20and%20South%20China/Export%20to%20Asia%20-%20Middle%20East/OUT_ASI_HKG_PHI.xls"
+    },
+    {
+      id: "oocl-hksc-thailand",
+      sourceId: "oocl-schedule-download",
+      mode: "sea",
+      originScope: "香港及华南出口",
+      destinationScope: "泰国",
+      format: "xls",
+      cadence: "weekly",
+      url: "https://www.oocl.com/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20Download/HK%20and%20South%20China/Export%20to%20Asia%20-%20Middle%20East/OUT_ASI_HKG_THI.xls"
+    },
+    {
+      id: "oocl-hksc-vietnam",
+      sourceId: "oocl-schedule-download",
+      mode: "sea",
+      originScope: "香港及华南出口",
+      destinationScope: "越南",
+      format: "xls",
+      cadence: "weekly",
+      url: "https://www.oocl.com/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20Download/HK%20and%20South%20China/Export%20to%20Asia%20-%20Middle%20East/OUT_ASI_HKG_VND.xls"
+    },
+    {
+      id: "oocl-hksc-africa",
+      sourceId: "oocl-schedule-download",
+      mode: "sea",
+      originScope: "香港及华南出口",
+      destinationScope: "非洲",
+      format: "xls",
+      cadence: "weekly",
+      url: "https://www.oocl.com/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20Download/HK%20and%20South%20China/Export%20to%20Africa/OUT_ASI_HKG_AFR.xls"
+    },
+    {
+      id: "oocl-hksc-oceania",
+      sourceId: "oocl-schedule-download",
+      mode: "sea",
+      originScope: "香港及华南出口",
+      destinationScope: "澳大利亚及新西兰",
+      format: "xls",
+      cadence: "weekly",
+      url: "https://www.oocl.com/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20Download/HK%20and%20South%20China/Export%20to%20Australia%20-%20New%20Zealand/OUT_AUS_HKG_AUS.xls"
+    },
+    {
+      id: "oocl-hksc-europe",
+      sourceId: "oocl-schedule-download",
+      mode: "sea",
+      originScope: "香港及华南出口",
+      destinationScope: "欧洲及地中海",
+      format: "xls",
+      cadence: "weekly",
+      url: "https://www.oocl.com/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20Download/HK%20and%20South%20China/Export%20to%20Europe/OUT_EUR_HKG_EUR.xls"
+    },
+    {
+      id: "oocl-hksc-north-america",
+      sourceId: "oocl-schedule-download",
+      mode: "sea",
+      originScope: "香港及华南出口",
+      destinationScope: "美国及加拿大",
+      format: "xls",
+      cadence: "weekly",
+      url: "https://www.oocl.com/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20Download/HK%20and%20South%20China/Export%20to%20North%20America/OUT_NAM_HKG_NAMR.xls"
+    },
+    {
+      id: "oocl-hksc-latin-america",
+      sourceId: "oocl-schedule-download",
+      mode: "sea",
+      originScope: "香港及华南出口",
+      destinationScope: "墨西哥及拉丁美洲",
+      format: "xls",
+      cadence: "weekly",
+      url: "https://www.oocl.com/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20Download/HK%20and%20South%20China/Export%20to%20Latin%20America/OUT_LAM_HKG_SAMR.xls"
+    },
+    {
+      id: "lufthansa-cargo-all-flights-csv",
+      sourceId: "lufthansa-cargo-download",
+      mode: "air",
+      originScope: "汉莎货运全球网络",
+      destinationScope: "未来21天全部公开班期",
+      format: "csv",
+      cadence: "daily",
+      url: "https://www.lufthansa-cargo.com/documents/20184/1559830/LHcargo_FlightSchedule.csv"
+    },
+    {
+      id: "lufthansa-cargo-all-flights-xlsx",
+      sourceId: "lufthansa-cargo-download",
+      mode: "air",
+      originScope: "汉莎货运全球网络",
+      destinationScope: "未来21天全部公开班期",
+      format: "xlsx",
+      cadence: "daily",
+      url: "https://www.lufthansa-cargo.com/documents/20184/1559830/LHcargo_FlightSchedule.xlsx"
+    },
+    {
+      id: "lufthansa-cargo-all-flights-xml",
+      sourceId: "lufthansa-cargo-download",
+      mode: "air",
+      originScope: "汉莎货运全球网络",
+      destinationScope: "未来21天全部公开班期",
+      format: "xml",
+      cadence: "daily",
+      url: "https://www.lufthansa-cargo.com/documents/20184/1559830/LHcargo_FlightSchedule.xml"
+    }
+  ],
+  records: [
+    {
+      id: "maersk-cnxmn-thlch-20260716-629s",
+      mode: "sea",
+      originCode: "CNXMN",
+      destinationCode: "THLCH",
+      carrier: "Maersk",
+      vessel: "G. Dragon",
+      voyage: "629S",
+      departureDate: "2026-07-16",
+      arrivalDate: "2026-07-24",
+      transitHours: 183,
+      directness: "按船司查询结果",
+      sourceId: "maersk-point-to-point",
+      evidenceType: "carrier-query-capture",
+      capturedAt: "2026-07-15",
+      confidence: "carrier-published",
+      note: "用户提供的马士基点到点船期查询结果；计划船期可能因运营调整而变化。"
+    },
+    {
+      id: "maersk-cnxmn-thlch-20260722-630s",
+      mode: "sea",
+      originCode: "CNXMN",
+      destinationCode: "THLCH",
+      carrier: "Maersk",
+      vessel: "Erasmus Queen",
+      voyage: "630S",
+      departureDate: "2026-07-22",
+      arrivalDate: "2026-07-31",
+      transitHours: 214,
+      directness: "按船司查询结果",
+      sourceId: "maersk-point-to-point",
+      evidenceType: "carrier-query-capture",
+      capturedAt: "2026-07-15",
+      confidence: "carrier-published",
+      note: "用户提供的马士基点到点船期查询结果；计划船期可能因运营调整而变化。"
+    }
+  ]
+};

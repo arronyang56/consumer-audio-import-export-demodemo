@@ -3,6 +3,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type",
   "Access-Control-Allow-Methods": "GET, OPTIONS"
 };
+const { portCoordinates, findPortCoordinate } = require("./lib/port-coordinates");
 
 const weatherSources = [
   {
@@ -219,10 +220,10 @@ const portProfiles = [
     notices: [["山东港口青岛港", "https://www.qingdao-port.com/"]]
   },
   {
-    code: "CNTXG",
+    code: "CNTSN",
     cn: "天津港",
     name: "Tianjin Port",
-    aliases: ["天津", "tianjin", "cntxg", "新港"],
+    aliases: ["天津", "tianjin", "cntsn", "新港"],
     weatherTerms: ["天津", "渤海", "渤海湾", "华北沿海"],
     notices: [["天津港集团", "https://www.tjgportnet.com/"]]
   },
@@ -471,12 +472,30 @@ function termPositions(text = "", term = "", limit = 4) {
 function findPortProfile(query = "", code = "") {
   const hay = normalize(`${query} ${code}`);
   if (!hay) return null;
-  return (
-    portProfiles.find((profile) => {
+  const detailedProfile = portProfiles.find((profile) => {
       const needles = [profile.code, profile.cn, profile.name, ...(profile.aliases || [])].map(normalize);
       return needles.some((needle) => needle && (hay.includes(needle) || needle.includes(hay)));
-    }) || null
-  );
+    }) || null;
+  if (detailedProfile) return detailedProfile;
+  const coordinate = findPortCoordinate(`${query} ${code}`);
+  if (!coordinate) return null;
+  const chinaTerms = coordinate.country === "China"
+    ? coordinate.lat >= 37
+      ? ["中国沿海", "渤海", "黄海", "华北沿海"]
+      : coordinate.lat >= 27
+        ? ["中国沿海", "东海", "华东沿海"]
+        : ["中国沿海", "南海北部", "华南沿海", "台湾海峡"]
+    : [];
+  return {
+    code: coordinate.code,
+    cn: /[\u3400-\u9fff]/.test(query) ? clean(query) : coordinate.name,
+    name: coordinate.name,
+    aliases: coordinate.aliases || [],
+    weatherTerms: [...(coordinate.aliases || []).slice(0, 5), coordinate.name, coordinate.country, ...chinaTerms],
+    notices: coordinate.country === "China"
+      ? [...(coordinate.official ? [coordinate.official] : []), ["中国海事局航行警告", "https://www.msa.gov.cn/"], ["中央气象台", "https://www.nmc.cn/"]]
+      : []
+  };
 }
 
 async function fetchText(url, timeoutMs = 7000) {
@@ -592,13 +611,13 @@ function buildRouteProfile(originProfile = {}, destinationProfile = {}) {
     destinationProfile.name
   );
 
-  const chinaPortPattern = /中国|上海|宁波|舟山|嘉兴|乍浦|温州|台州|厦门|福州|泉州|莆田|湄洲湾|深圳|盐田|蛇口|广州|南沙|珠海|江门|中山|汕头|湛江|钦州|防城港|北海|海口|洋浦|大连|营口|鲅鱼圈|唐山|京唐|曹妃甸|黄骅|秦皇岛|青岛|天津|连云港|cnsha|cnngb|cnzos|cnzap|cnwnz|cntzo|cnxmn|cnfoc|cnqzj|cnput|cnytn|cnszx|cngzg|cnzuh|cnjmn|cnzsn|cnswa|cnzha|cnqzh|cnfan|cnbih|cnhak|cnypg|cndlc|cnyik|cntgs|cnhua|cnqhd|cntao|cntxg|cnlyg|cnfjg|cnprd|cnbbw|cnhin/;
+  const chinaPortPattern = /中国|上海|宁波|舟山|嘉兴|乍浦|温州|台州|太仓|苏州港|厦门|福州|泉州|莆田|湄洲湾|深圳|盐田|蛇口|广州|南沙|珠海|江门|中山|汕头|湛江|钦州|防城港|北海|海口|洋浦|大连|营口|鲅鱼圈|唐山|京唐|曹妃甸|黄骅|秦皇岛|青岛|天津|连云港|cnsha|cnngb|cnzos|cnzap|cnwnz|cntzo|cntxg|cnxmn|cnfoc|cnqzj|cnput|cnytn|cnszx|cngzg|cnzuh|cnjmn|cnzsn|cnswa|cnzha|cnqzh|cnfan|cnbih|cnhak|cnypg|cndlc|cnyik|cntgs|cnhua|cnqhd|cntao|cntsn|cnlyg|cnfjg|cnprd|cnbbw|cnhin/;
   const originChina = profileMatches(originProfile, [chinaPortPattern]);
   const destChina = profileMatches(destinationProfile, [chinaPortPattern]);
-  const eastChinaOrigin = profileMatches(originProfile, [/上海|宁波|舟山|嘉兴|乍浦|温州|台州|东海|浙江|杭州湾|cnsha|cnngb|cnzos|cnzap|cnwnz|cntzo/]);
+  const eastChinaOrigin = profileMatches(originProfile, [/上海|宁波|舟山|嘉兴|乍浦|温州|台州|太仓|苏州港|东海|浙江|杭州湾|cnsha|cnngb|cnzos|cnzap|cnwnz|cntzo|cntxg/]);
   const fujianOrigin = profileMatches(originProfile, [/厦门|福州|泉州|莆田|湄洲湾|福建|台湾海峡|cnxmn|cnfoc|cnqzj|cnput|cnfjg/]);
   const southChinaOrigin = profileMatches(originProfile, [/深圳|盐田|蛇口|广州|南沙|珠海|江门|中山|汕头|湛江|钦州|防城港|北海|海口|洋浦|珠江口|广东|广西|海南|北部湾|南海|cnytn|cnszx|cngzg|cnzuh|cnjmn|cnzsn|cnswa|cnzha|cnqzh|cnfan|cnbih|cnhak|cnypg|cnprd|cnbbw|cnhin/]);
-  const northChinaOrigin = profileMatches(originProfile, [/大连|营口|鲅鱼圈|唐山|京唐|曹妃甸|黄骅|秦皇岛|青岛|天津|连云港|渤海|黄海|山东|辽宁|河北|江苏沿海|cndlc|cnyik|cntgs|cnhua|cnqhd|cntao|cntxg|cnlyg|cnhbw/]);
+  const northChinaOrigin = profileMatches(originProfile, [/大连|营口|鲅鱼圈|唐山|京唐|曹妃甸|黄骅|秦皇岛|青岛|天津|连云港|渤海|黄海|山东|辽宁|河北|江苏沿海|cndlc|cnyik|cntgs|cnhua|cnqhd|cntao|cntsn|cnlyg|cnhbw/]);
   const southeastAsia = profileMatches(destinationProfile, [/新加坡|林查班|泰国|越南|巴生|马来西亚|胡志明|sgsin|thlch|vnsgn|mypkg|southeast|malacca|gulf of thailand/]);
   const usWest = profileMatches(destinationProfile, [/洛杉矶|长滩|los angeles|long beach|uslax|uslgb|california|pacific coast/]);
   const europe = profileMatches(destinationProfile, [/鹿特丹|rotterdam|nlrtm|europe|north sea|地中海|北海/]);
@@ -794,12 +813,13 @@ async function scanWeatherSources(routeProfile = {}) {
       const response = await fetchText(source.url, source.id === "jtwc" ? 8500 : 7000);
       const focusedText = focusWeatherText(response.text);
       const impact = routeImpactForText(focusedText, routeProfile, detectHazards, allWeatherTerms);
+      const maritimeTrafficHit = source.type !== "official-traffic" || /港口|港区|码头|海区|沿海|航道|海峡|水域|航运|船舶|停航|封航/.test(impact.snippet || "");
       return {
         ...source,
         ok: response.ok,
         status: response.status,
-        impactLevel: impact.level,
-        routeRelevant: impact.routeRelevant,
+        impactLevel: maritimeTrafficHit ? impact.level : 0,
+        routeRelevant: Boolean(impact.routeRelevant && maritimeTrafficHit),
         routeArea: impact.routeArea,
         hazards: impact.hazards,
         hits: impact.hits,
@@ -1001,6 +1021,11 @@ exports.handler = async (event = {}) => {
         origin: originProfile,
         destination: destinationProfile,
         route: routeProfile
+      },
+      coverage: {
+        portCoordinateCount: portCoordinates.length,
+        originRecognized: true,
+        destinationRecognized: true
       },
       ...conclusion,
       weatherSources: weatherItems,

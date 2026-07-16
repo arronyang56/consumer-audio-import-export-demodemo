@@ -1,4 +1,5 @@
 const https = require("https");
+const { portCoordinates, findPortCoordinate } = require("./lib/port-coordinates");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -383,20 +384,32 @@ function clean(value) {
 
 function findPortProfile(port = "", region = "") {
   const lower = `${clean(port)} ${clean(region)}`.toLowerCase();
-  if (!lower.trim()) return portProfiles[0];
-  return (
-    portProfiles.find((profile) => {
+  if (!lower.trim()) return null;
+  const detailedProfile = portProfiles.find((profile) => {
       const haystack = [profile.name, profile.region, ...profile.aliases].join(" ").toLowerCase();
       return haystack.includes(lower.trim()) || profile.aliases.some((alias) => lower.includes(alias.toLowerCase()));
-    }) || null
-  );
+    }) || null;
+  if (detailedProfile) return detailedProfile;
+  const coordinate = findPortCoordinate(port);
+  if (!coordinate) return null;
+  return {
+    name: coordinate.name,
+    region: coordinate.country,
+    aliases: [coordinate.code, ...(coordinate.aliases || [])],
+    coordinates: { lat: coordinate.lat, lon: coordinate.lon },
+    baseline: "已识别主流港口，但没有可靠的港口专属基线时不输出拥堵率或固定延误天数；只采用本次命中的实时海况和港口相关消息。",
+    links: coordinate.country === "China"
+      ? [...(coordinate.official ? [coordinate.official] : []), ["中国海事局", "https://www.msa.gov.cn/"], ["中央气象台", "https://www.nmc.cn/"]]
+      : [["IMO GISIS", "https://gisis.imo.org/Public/"], ["UN/LOCODE", "https://unece.org/trade/cefact/unlocode-code-list-country-and-territory"]],
+    checklist: ["确认实际码头、船司靠泊计划和当地代理公告。", "没有港口专属公告命中时，不把新闻或区域天气写成确定延误。"]
+  };
 }
 
 function expandPort(port = "") {
   const cleaned = clean(port);
   const profile = findPortProfile(cleaned);
   const lower = cleaned.toLowerCase();
-  const aliases = new Set([cleaned || profile?.name || "Shanghai Port"]);
+  const aliases = new Set([cleaned || profile?.name || ""]);
   if (profile) {
     aliases.add(profile.name);
     profile.aliases.slice(0, 4).forEach((item) => aliases.add(item));
@@ -659,7 +672,7 @@ function buildOperationGuide(profile, dgAdvice = {}) {
     },
     {
       stage: "进港/靠泊前",
-      action: `${portName} 需让货代确认实际码头、危险品进港窗口、是否要求直装直取或限时堆存；上海、林查班等港口尤其要区分具体码头规则。`,
+      action: `${portName} 需让货代确认实际码头、危险品进港窗口、是否要求直装直取或限时堆存；城市级港名必须继续区分具体港区和码头规则。`,
       owner: "货代/码头/当地代理"
     },
     {
@@ -686,7 +699,6 @@ function buildOperationGuide(profile, dgAdvice = {}) {
 }
 
 function fallback(port, cargo, profile = findPortProfile(port)) {
-  const batteryCargo = /battery|电池|危险|dg|hazard/i.test(cargo);
   const dgAdvice = buildDgAdvice(profile, cargo);
   return {
     ok: false,
@@ -695,12 +707,12 @@ function fallback(port, cargo, profile = findPortProfile(port)) {
     updatedAt: new Date().toISOString(),
     port: profile?.name || port,
     region: profile?.region || "",
-    congestionStatus: "未见明确塞港信号",
-    congestionSummary: `${profile?.name || port} 当前没有抓到明确拥堵/塞港新闻。建议按正常计划推进，同时向货代确认最新靠泊、提箱和码头预约。`,
-    impact: batteryCargo ? "含电池/DG 货物仍需提前确认船司和码头接受规则。" : "常规货物暂无明显港口异常信号。",
-    recommendation: "出货前仍建议向货代确认 ETA、靠泊码头、免堆期和提箱预约。",
-    summary: `${profile?.name || port} 暂未获取到明确实时拥堵新闻。${profile?.baseline ? ` ${profile.baseline}` : ""}`,
-    level: batteryCargo ? "Medium" : "Watch",
+    congestionStatus: "未形成结论",
+    congestionSummary: `${profile?.name || port} 本次没有取得可核验的实时海况或港口相关消息，因此不判断是否塞港。`,
+    impact: "证据不足，本次不输出延误天数或风险等级。",
+    recommendation: "稍后刷新；急单直接向船司、码头或当地代理核验靠泊、提箱和作业窗口。",
+    summary: `${profile?.name || port} 暂未获取到有效实时证据。`,
+    level: "Unknown",
     profileSummary: profile?.baseline || "",
     links: profile?.links?.length ? profile.links : officialPortLinks,
     dgAdvice,
@@ -714,13 +726,30 @@ exports.handler = async (event) => {
   if (event.httpMethod !== "GET") return json(405, { ok: false, message: "Method not allowed" });
 
   const params = event.queryStringParameters || {};
-  const port = clean(params.port) || "Shanghai Port";
-  const region = clean(params.region) || "China";
+  const port = clean(params.port);
+  const region = clean(params.region);
   const cargo = clean(params.cargo) || "Consumer Audio";
   const dgInput = clean(params.dg || params.dgInfo || "");
   const dgClass = clean(params.dgClass || "");
   const cargoForDg = [cargo, dgClass ? `Class ${dgClass}` : "", dgInput].filter(Boolean).join(" ");
   const profile = findPortProfile(port, region);
+  if (!port) {
+    return json(200, {
+      ok: false,
+      fallback: false,
+      message: "请先输入港口中文名、英文名或 UN/LOCODE；系统不会默认代入上海港。",
+      coverage: { portCoordinateCount: portCoordinates.length, portRecognized: false }
+    });
+  }
+  if (!profile) {
+    return json(200, {
+      ok: false,
+      fallback: false,
+      message: `未在主流港口库识别“${port}”，本次不输出拥堵、延误或天气数字。请换用正式港名或 UN/LOCODE。`,
+      port,
+      coverage: { portCoordinateCount: portCoordinates.length, portRecognized: false }
+    });
+  }
   const portTerms = expandPort(port).map((item) => `"${item}"`).join(" OR ");
   const query = `(${portTerms}) (${["congestion", "backlog", "\"berth waiting\"", "\"vessel queue\"", "delay", "strike", "weather", "customs", "terminal", "shipping", "logistics", "\"port disruption\"", "typhoon"].join(" OR ")})`;
 
@@ -762,38 +791,52 @@ exports.handler = async (event) => {
     const batteryCargo = /battery|电池|危险|dg|hazard|un38\.3|un\d{4}|lithium/i.test(cargoForDg);
     const dgAdvice = buildDgAdvice(profile, cargoForDg || cargo, weather, articles);
     const marineWatch = weather?.notes?.some((note) => /浪高偏大|洋流速度偏高/.test(note));
-    const hasCongestion = allSignals.has("拥堵/等待");
+    const hasPortOperationEvidence = displayArticles.length > 0;
+    const hasCongestion = hasPortOperationEvidence && allSignals.has("拥堵/等待");
     const hasOperationRisk = allSignals.has("罢工/劳工") || allSignals.has("天气") || marineWatch;
     const level = allSignals.has("罢工/劳工") || allSignals.has("天气") || allSignals.has("拥堵/等待") || marineWatch
       ? "Watch"
       : batteryCargo
         ? "Medium"
-        : "Low";
+        : hasPortOperationEvidence
+          ? "Low"
+          : "Unknown";
 
     const base = fallback(port, cargo, profile);
     return json(200, {
       ok: true,
-      source: "Google News + industry RSS + GDELT",
+      source: "Open-Meteo Marine + Google News + industry RSS + GDELT",
       updatedAt: new Date().toISOString(),
       port: profile?.name || port,
       region: profile?.region || region,
+      coverage: {
+        portCoordinateCount: portCoordinates.length,
+        portRecognized: true,
+        coordinateMode: "port-vicinity"
+      },
       cargo,
       dgAdvice,
       operationGuide: buildOperationGuide(profile, dgAdvice),
       level,
-      congestionStatus: hasCongestion ? "可能存在拥堵/等待" : hasOperationRisk ? "港口作业需关注" : "未见明显塞港信号",
+      congestionStatus: hasCongestion ? "可能存在拥堵/等待" : hasPortOperationEvidence && hasOperationRisk ? "港口作业需关注" : hasPortOperationEvidence ? "未见直接拥堵信号" : "未取得拥堵证据",
       congestionSummary: hasCongestion
         ? `${profile?.name || port} 的公开消息出现拥堵、等待或压港相关信号，需要向货代确认实际靠泊和提箱安排。`
-        : hasOperationRisk
+        : hasPortOperationEvidence && hasOperationRisk
           ? `${profile?.name || port} 未见明确塞港，但存在天气/劳工/海况等作业风险信号。`
-          : `${profile?.name || port} 公开消息暂未显示明显塞港或拥堵信号。`,
+          : hasPortOperationEvidence
+            ? `${profile?.name || port} 的直接相关公开消息未出现拥堵关键词；这不等同于码头实时无排队。`
+            : `${profile?.name || port} 本次未命中直接相关港口运营消息；正常海况不能证明码头无拥堵。`,
       impact: Array.from(allSignals).length
         ? `风险信号：${Array.from(allSignals).join("、")}。可能影响 ETA、靠泊、提箱预约或清关节奏。`
         : marineWatch
           ? `海况提示：${(weather?.notes || []).join("、")}。建议向货代确认靠泊和提箱安排。`
-          : "暂无明显港口风险信号。",
+          : weather
+            ? "仅取得港口附近区域海况模式，未取得港口运营异常证据；本次不判断塞港状态。"
+            : "未取得可核验的港口运营或海况证据。",
       recommendation: batteryCargo ? "含电池/DG 货物建议提前确认码头危险品受理、MSDS、UN38.3 和船司限制。" : "建议向货代确认最新 ETA、靠泊码头、提箱预约和免堆期。",
-      summary: `${profile?.name || port} 过去一周直接相关风险消息命中 ${displayArticles.length} 条，风险信号：${Array.from(allSignals).join("、") || "未见明显关键词"}。${profile?.baseline ? ` ${profile.baseline}` : ""}`,
+      summary: displayArticles.length
+        ? `${profile?.name || port} 过去一周直接相关风险消息命中 ${displayArticles.length} 条，风险信号：${Array.from(allSignals).join("、") || "未见明显关键词"}。${profile?.baseline ? ` ${profile.baseline}` : ""}`
+        : `${profile?.name || port} 本次未命中直接相关港口运营消息；如有海况数值，仅代表港口附近区域模式，不代表码头实时作业。`,
       profileSummary: profile?.baseline || "",
       links: base.links,
       weather,

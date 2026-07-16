@@ -209,6 +209,33 @@ const mediaFeeds = [
   { name: "Ars Technica", url: "https://feeds.arstechnica.com/arstechnica/index", country: "Global", domain: "arstechnica.com", category: "科技/消费电子" }
 ];
 
+const chinaOfficialListSources = [
+  {
+    name: "海关总署公告",
+    url: "https://www.customs.gov.cn/customs/302249/2480148/index.html",
+    domain: "customs.gov.cn",
+    category: "官方/海关"
+  },
+  {
+    name: "商务部贸易救济调查局",
+    url: "https://tdi.mofcom.gov.cn/",
+    domain: "tdi.mofcom.gov.cn",
+    category: "官方/贸易救济"
+  },
+  {
+    name: "国家认监委强制性产品认证专栏",
+    url: "https://www.cnca.gov.cn/hlwfw/ywzl/qzxcprz/index.html",
+    domain: "cnca.gov.cn",
+    category: "官方/认证合规"
+  },
+  {
+    name: "财政部关税司",
+    url: "https://gss.mof.gov.cn/",
+    domain: "gss.mof.gov.cn",
+    category: "官方/关税政策"
+  }
+];
+
 const marketSources = {
   cn: {
     names: ["中国", "china", "大陆", "cn"],
@@ -477,14 +504,22 @@ async function fetchJson(url) {
   return { ok: response.ok, status: response.status, data };
 }
 
-async function fetchText(url) {
-  const response = await fetch(url, {
-    headers: {
-      Accept: "application/rss+xml,application/xml,text/xml,text/html",
-      "User-Agent": "consumer-audio-import-export-demo/1.0"
-    }
-  });
-  return { ok: response.ok, status: response.status, text: await response.text() };
+async function fetchText(url, timeoutMs = 10000) {
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+  try {
+    const response = await fetch(url, {
+      redirect: "follow",
+      signal: controller ? controller.signal : undefined,
+      headers: {
+        Accept: "application/rss+xml,application/xml,text/xml,text/html",
+        "User-Agent": "LogisMaster-policy-monitor/1.0 (+https://logismaster.cn)"
+      }
+    });
+    return { ok: response.ok, status: response.status, text: await response.text() };
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 function decodeXml(value = "") {
@@ -539,6 +574,57 @@ function parseRssItems(xml = "", source = {}) {
   });
 }
 
+function isOfficialLinkNoise(title = "", href = "") {
+  const cleanTitle = decodeXml(title).replace(/\s+/g, " ").trim();
+  if (cleanTitle.length < 6 || /^(#|javascript:|mailto:)/i.test(String(href || "").trim())) return true;
+  if (/^(?:首页|网站首页|返回网站首页|更多|more|下一页|上一页|政务服务|联系我们|网站地图|通知公告|法律法规|业务专栏|强制性产品认证专栏|目录描述与界定|实施规则|执法单位专区|认证收费|常见问题|财政部微信|视频栏目|新闻动态|工作动态)$/i.test(cleanTitle)) return true;
+  if (/财政部网站\s*视频栏目\s*正式上线|夯实专业基础.*青春力量|举办\s*20\d{2}\s*年.*政策/i.test(cleanTitle)) return true;
+  return false;
+}
+
+function parseOfficialHtmlLinks(html = "", source = {}) {
+  const body = String(html || "")
+    .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[\s\S]*?<\/style>/gi, " ");
+  const rows = [];
+  const anchorPattern = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  let match = anchorPattern.exec(body);
+  while (match && rows.length < 40) {
+    const title = decodeXml(match[2]);
+    const href = String(match[1] || "").trim();
+    if (!isOfficialLinkNoise(title, href)) {
+      let url = "";
+      try {
+        url = new URL(href, source.url).href;
+      } catch {
+        url = "";
+      }
+      if (url) {
+        const listStart = body.lastIndexOf("<li", match.index);
+        const listEnd = body.indexOf("</li>", anchorPattern.lastIndex);
+        const hasLocalList = listStart >= 0 && listEnd >= anchorPattern.lastIndex && listEnd - listStart <= 1600;
+        const rawContext = hasLocalList
+          ? body.slice(listStart, listEnd + 5)
+          : body.slice(Math.max(0, match.index - 120), Math.min(body.length, anchorPattern.lastIndex + 120));
+        const context = decodeXml(rawContext);
+        const dateMatch = context.match(/20\d{2}[年\-\/.]\d{1,2}[月\-\/.]\d{1,2}日?/);
+        const dateText = dateMatch?.[0] || "";
+        rows.push(normalizeArticle({
+          title,
+          url,
+          domain: source.domain || hostFromUrl(url),
+          sourcecountry: "China",
+          seendate: dateText.replace(/年|月/g, "-").replace(/日/g, ""),
+          description: `${source.name}发布页：${title}${dateText ? `（页面日期 ${dateText}）` : ""}。`,
+          category: source.category || "官方/中国政策"
+        }));
+      }
+    }
+    match = anchorPattern.exec(body);
+  }
+  return dedupeArticles(rows);
+}
+
 function clean(value) {
   return String(value || "")
     .trim()
@@ -577,18 +663,119 @@ function relevanceTerms(filters = {}) {
     .filter((term) => term.length >= 2);
 }
 
-function isRelevant(item = {}, filters = {}) {
-  const required = [filters.importCountry, filters.exportCountry, filters.product, filters.keyword]
-    .map((value) => clean(value).toLowerCase())
+function itemEvidenceText(item = {}) {
+  return [
+    item.title,
+    item.description,
+    item.summary,
+    item.takeaway,
+    item.action,
+    item.domain,
+    item.sourceCountry,
+    item.category,
+    item.sourceType
+  ]
     .filter(Boolean)
-    .map((value) => value.split(/\s+/).filter((term) => term.length >= 2));
-  const haystack = `${item.title || ""} ${item.takeaway || ""} ${item.action || ""} ${item.domain || ""} ${item.sourceCountry || ""} ${item.category || ""}`.toLowerCase();
-  if (required.length > 1) {
-    return required.every((group) => !group.length || group.some((term) => haystack.includes(term)));
+    .join(" ")
+    .toLowerCase();
+}
+
+function containsEvidenceTerm(text = "", term = "") {
+  const haystack = String(text || "").toLowerCase();
+  const needle = String(term || "").trim().toLowerCase();
+  if (!needle) return false;
+  if (/^[a-z0-9. -]+$/i.test(needle)) {
+    const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+    return new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, "i").test(haystack);
   }
-  const terms = relevanceTerms(filters);
-  if (!terms.length) return true;
-  return terms.some((term) => haystack.includes(term));
+  return haystack.includes(needle);
+}
+
+function matchesEvidenceGroup(text = "", terms = []) {
+  return terms.some((term) => containsEvidenceTerm(text, term));
+}
+
+function policyProductGroups(filters = {}) {
+  const query = `${filters.product || ""} ${filters.keyword || ""}`.toLowerCase();
+  const adapterQuery = query.replace(/移动电源|充电宝|power\s*bank/g, " ");
+  const groups = [];
+  if (/蓝牙|无线|耳机|音箱|bluetooth|wireless|headphone|earbud|headset|speaker|soundbar/.test(query)) {
+    groups.push(["蓝牙", "无线", "耳机", "音箱", "bluetooth", "wireless", "radio equipment", "headphone", "earbud", "headset", "speaker", "soundbar", "audio equipment"]);
+  }
+  if (/电池|锂|充电宝|移动电源|battery|lithium|power bank/.test(query)) {
+    groups.push(["电池", "锂", "充电宝", "移动电源", "battery", "lithium", "power bank", "un38.3", "dangerous goods"]);
+  }
+  if (/适配器|充电器|电源|adapter|charger|power supply/.test(adapterQuery)) {
+    groups.push(["适配器", "充电器", "电源", "adapter", "charger", "power supply"]);
+  }
+  return groups;
+}
+
+function policyTopicGroups(filters = {}) {
+  const query = `${filters.product || ""} ${filters.keyword || ""} ${filters.direction || ""}`.toLowerCase();
+  const groups = [];
+  if (/关税|税率|301|232|反倾销|反补贴|贸易救济|tariff|duty|trade remed|antidump|countervail/.test(query)) {
+    groups.push(["关税", "税率", "301", "232", "贸易救济", "反倾销", "反补贴", "tariff", "duty", "trade remedy", "antidumping", "anti-dumping", "countervailing"]);
+  }
+  if (/认证|准入|标签|ccc|fcc|ce|red|anatel|nbtc|saber|rohs|certif|compliance|approval/.test(query)) {
+    groups.push(["认证", "准入", "标签", "ccc", "fcc", "ce", "red", "anatel", "nbtc", "saber", "rohs", "certification", "compliance", "approval", "equipment authorization"]);
+  }
+  if (/税号|归类|申报|海关|清关|hs code|classification|customs|clearance/.test(query)) {
+    groups.push(["税号", "归类", "申报", "海关", "清关", "hs code", "classification", "customs", "clearance"]);
+  }
+  if (/制裁|出口管制|禁令|实体清单|sanction|export control|entity list|restriction|ban/.test(query)) {
+    groups.push(["制裁", "出口管制", "禁令", "实体清单", "sanction", "export control", "entity list", "restriction", "ban"]);
+  }
+  return groups;
+}
+
+const strictMarketTerms = {
+  cn: ["中国", "中国原产", "china", "chinese", "prc", "gacc", "customs.gov.cn"],
+  us: ["美国", "特朗普", "川普", "united states", "u.s.", "usa", "american", "trump", "cbp", "ustr", "usitc", "federal register", "federalregister.gov"],
+  uk: ["英国", "united kingdom", "u.k.", "gov.uk", "hmrc", "uk trade tariff"],
+  eu: ["欧盟", "欧洲联盟", "european union", "european commission", "eur-lex", "europa.eu"],
+  br: ["巴西", "brazil", "brasil", "anatel", "receita federal", "siscomex"],
+  th: ["泰国", "thailand", "thai customs", "nbtc", "tisi"],
+  jp: ["日本", "japan", "japanese customs", "meti", "telec"],
+  za: ["南非", "south africa", "sars customs", "itac", "icasa"],
+  au: ["澳大利亚", "australia", "australian border force", "acma"],
+  kr: ["韩国", "south korea", "korea customs", "kats", "rra korea"],
+  vn: ["越南", "vietnam", "vietnam customs", "mic vietnam"],
+  sg: ["新加坡", "singapore", "singapore customs", "imda"],
+  my: ["马来西亚", "malaysia", "malaysian customs", "sirim", "mcmc"],
+  in: ["印度", "india", "cbic", "bis india", "wpc india"],
+  ca: ["加拿大", "canada", "cbsa", "ised canada"],
+  mx: ["墨西哥", "mexico", "snice", "tigie", "ifetel"],
+  id: ["印尼", "印度尼西亚", "indonesia", "dgce", "sdppi"],
+  ph: ["菲律宾", "philippines", "bureau of customs philippines", "ntc philippines"],
+  tr: ["土耳其", "turkey", "turkiye", "btk turkey"],
+  ae: ["阿联酋", "迪拜", "united arab emirates", "uae", "dubai customs", "tdra"],
+  sa: ["沙特", "saudi arabia", "zatca", "saber", "saso"],
+  gcc: ["中东", "gcc", "gulf cooperation council", "saudi arabia", "united arab emirates"]
+};
+
+function policyMarketGroups(filters = {}) {
+  return [filters.importCountry, filters.exportCountry]
+    .filter(Boolean)
+    .map((country) => detectMarkets({ importCountry: country }))
+    .filter((markets) => markets.length)
+    .map((markets) => Array.from(new Set(markets.flatMap((market) => strictMarketTerms[market] || marketSources[market]?.names || []))));
+}
+
+function isRelevant(item = {}, filters = {}) {
+  if (item.entryOnly || item.evidenceMode === "directory") return false;
+  const haystack = itemEvidenceText(item);
+  const productGroups = policyProductGroups(filters);
+  const topicGroups = policyTopicGroups(filters);
+  const marketGroups = policyMarketGroups(filters);
+  if (productGroups.length && !productGroups.every((group) => matchesEvidenceGroup(haystack, group))) return false;
+  if (topicGroups.length && !topicGroups.some((group) => matchesEvidenceGroup(haystack, group))) return false;
+  if (marketGroups.length && !marketGroups.every((group) => matchesEvidenceGroup(haystack, group))) return false;
+  if (!topicGroups.length) {
+    const generalPolicyTerms = ["关税", "海关", "认证", "准入", "法规", "制裁", "出口管制", "tariff", "customs", "certification", "regulation", "sanction", "export control", "trade policy"];
+    if (!matchesEvidenceGroup(haystack, generalPolicyTerms)) return false;
+  }
+  return Boolean(haystack.trim());
 }
 
 function buildQuery(filters = {}) {
@@ -753,6 +940,8 @@ function normalizeOfficialSource([title, url, note], market = "") {
     summary: note || "",
     category: "官方入口",
     sourceType: "官方入口",
+    entryOnly: true,
+    evidenceMode: "directory",
     credibility: { score: 92, label: "高：官方入口", reason: "用于打开原文核验适用范围和最新日期。" },
     takeaway: note,
     action: "记录发布日期、适用产品、实施日期和是否影响当前业务。"
@@ -766,7 +955,9 @@ async function fetchFederalRegister(filters = {}) {
   url.searchParams.set("per_page", "4");
   url.searchParams.set("order", "newest");
   const response = await fetchJson(url);
-  return response.ok && Array.isArray(response.data.results) ? response.data.results.map(normalizeFederalRegister) : [];
+  return response.ok && Array.isArray(response.data.results)
+    ? response.data.results.map(normalizeFederalRegister).filter((item) => isRelevant(item, filters))
+    : [];
 }
 
 async function fetchGovUk(filters = {}) {
@@ -775,7 +966,9 @@ async function fetchGovUk(filters = {}) {
   url.searchParams.set("q", term);
   url.searchParams.set("count", "4");
   const response = await fetchJson(url);
-  return response.ok && Array.isArray(response.data.results) ? response.data.results.map(normalizeGovUk) : [];
+  return response.ok && Array.isArray(response.data.results)
+    ? response.data.results.map(normalizeGovUk).filter((item) => isRelevant(item, filters))
+    : [];
 }
 
 async function fetchGoogleNews(filters = {}) {
@@ -813,6 +1006,17 @@ async function fetchMediaFeeds(filters = {}) {
     const response = await fetchText(source.url);
     if (!response.ok) return [];
     return parseRssItems(response.text, source).filter((item) => isRelevant(item, filters)).slice(0, 3);
+  }));
+  return settled.flatMap((result) => (result.status === "fulfilled" ? result.value : []));
+}
+
+async function fetchChinaOfficialLists(filters = {}) {
+  const settled = await Promise.allSettled(chinaOfficialListSources.map(async (source) => {
+    const response = await fetchText(source.url);
+    if (!response.ok) return [];
+    return parseOfficialHtmlLinks(response.text, source)
+      .filter((item) => isRelevant(item, filters))
+      .slice(0, 5);
   }));
   return settled.flatMap((result) => (result.status === "fulfilled" ? result.value : []));
 }
@@ -898,7 +1102,7 @@ function dedupeArticles(items = []) {
 
 function fallback(message = "", filters = {}) {
   const markets = detectMarkets(filters);
-  const items = [
+  const verificationEntries = [
     ...(markets.length ? marketsOfficialItems(markets) : officialSourceGroups[officialSourceGroups.length - 1].items.map((item) => normalizeOfficialSource(item))),
     ...productOfficialItems(filters)
   ];
@@ -909,12 +1113,16 @@ function fallback(message = "", filters = {}) {
     updatedAt: new Date().toISOString(),
     filters,
     message,
-    summary: "当前没有拿到足够实时新闻，先按对应国家/地区列出常规准入、认证、标签、税号和物流资料口径。",
-    analysis: buildAnalysis(items, filters),
+    evidenceStatus: "source-unavailable",
+    summary: "实时来源暂时不可用，因此不生成新增政策结论；仅保留对应国家和产品的官方核验入口。",
+    analysis: buildAnalysis([], filters),
     sourceBreakdown: [],
-    items
+    verificationEntries,
+    items: []
   };
 }
+
+exports._test = { parseOfficialHtmlLinks, isRelevant, buildQuery };
 
 exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: corsHeaders, body: "" };
@@ -941,31 +1149,48 @@ exports.handler = async (event) => {
     const markets = detectMarkets(filters);
     const fetchFed = !markets.length || markets.includes("us");
     const fetchUk = !markets.length || markets.includes("uk");
-    const [gdeltResult, federalResult, govUkResult, googleNewsResult, mediaFeedsResult] = await Promise.allSettled([
+    const fetchChina = !markets.length || markets.includes("cn");
+    const [gdeltResult, federalResult, govUkResult, chinaOfficialResult, googleNewsResult, mediaFeedsResult] = await Promise.allSettled([
       getJson(url),
       fetchFed ? fetchFederalRegister(filters) : Promise.resolve([]),
       fetchUk ? fetchGovUk(filters) : Promise.resolve([]),
+      fetchChina ? fetchChinaOfficialLists(filters) : Promise.resolve([]),
       fetchGoogleNews(filters),
       fetchMediaFeeds(filters)
     ]);
     const gdeltResponse = gdeltResult.status === "fulfilled" ? gdeltResult.value : null;
-    const gdeltArticles = gdeltResponse?.ok && Array.isArray(gdeltResponse.data?.articles) ? gdeltResponse.data.articles.map(normalizeArticle) : [];
+    const gdeltArticles = gdeltResponse?.ok && Array.isArray(gdeltResponse.data?.articles)
+      ? gdeltResponse.data.articles.map(normalizeArticle).filter((item) => isRelevant(item, filters))
+      : [];
     const federalItems = federalResult.status === "fulfilled" ? federalResult.value : [];
     const govUkItems = govUkResult.status === "fulfilled" ? govUkResult.value : [];
+    const chinaOfficialItems = chinaOfficialResult.status === "fulfilled" ? chinaOfficialResult.value : [];
     const googleNewsItems = googleNewsResult.status === "fulfilled" ? googleNewsResult.value : [];
     const mediaItems = mediaFeedsResult.status === "fulfilled" ? mediaFeedsResult.value : [];
     const officialItems = [...marketsOfficialItems(markets), ...productOfficialItems(filters)];
-    const articles = dedupeArticles([...officialItems, ...federalItems, ...govUkItems, ...googleNewsItems, ...mediaItems, ...gdeltArticles]).slice(0, 18);
-    if (!articles.length) return json(200, fallback("公开政策源暂时没有返回结果。", filters));
+    const articles = dedupeArticles([...chinaOfficialItems, ...federalItems, ...govUkItems, ...googleNewsItems, ...mediaItems, ...gdeltArticles])
+      .filter((item) => isRelevant(item, filters))
+      .slice(0, 18);
+    const verificationEntries = dedupeArticles(officialItems).slice(0, 12);
 
     return json(200, {
       ok: true,
       source: "政策结论",
       updatedAt: new Date().toISOString(),
       filters,
-      summary: "本次逐条提炼来源内容，重点抽取税号、税率、认证、标签、电池/DG、贸易限制、实施日期和适用产品范围。",
+      evidenceStatus: articles.length ? "matched-summary" : "no-match",
+      summary: articles.length
+        ? `找到 ${articles.length} 条同时通过国家/地区、产品和政策主题校验的公开标题或摘要；是否改变税率、准入或申报要求，仍需打开原文确认生效日期和适用范围。`
+        : "本次没有找到同时通过国家/地区、产品和政策主题校验的公告标题或摘要，因此不生成新增政策结论。",
       analysis: buildAnalysis(articles, filters),
-      sourceBreakdown: [],
+      sourceBreakdown: [
+        { source: "中国官方发布页", status: `${chinaOfficialItems.length} 条相关公告` },
+        { source: "Federal Register", status: `${federalItems.length} 条相关公告` },
+        { source: "GOV.UK", status: `${govUkItems.length} 条相关公告` },
+        { source: "Google News/行业 RSS", status: `${googleNewsItems.length + mediaItems.length} 条相关线索` },
+        { source: "GDELT", status: `${gdeltArticles.length} 条相关线索` }
+      ],
+      verificationEntries,
       items: articles
     });
   } catch (error) {

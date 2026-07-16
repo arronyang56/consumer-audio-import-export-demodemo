@@ -4,11 +4,15 @@ const fs = require("fs/promises");
 const path = require("path");
 
 const topics = [
-  { product: "consumer audio battery bluetooth", importCountry: "美国", direction: "出口" },
-  { product: "consumer audio battery bluetooth", importCountry: "欧盟", direction: "出口" },
-  { product: "consumer audio battery bluetooth", importCountry: "英国", direction: "出口" },
-  { product: "consumer audio battery bluetooth", importCountry: "泰国", direction: "出口" },
-  { product: "consumer audio battery bluetooth", importCountry: "日本", direction: "出口" }
+  { product: "锂离子电池 移动电源 充电宝", importCountry: "中国", direction: "进口", keyword: "CCC 认证 海关" },
+  { product: "电源适配器 充电器", importCountry: "中国", direction: "进口", keyword: "CCC 认证 海关" },
+  { product: "蓝牙 无线 音频设备", importCountry: "中国", direction: "进口", keyword: "CCC 认证 海关" },
+  { product: "", importCountry: "中国", direction: "进口", keyword: "贸易救济 反倾销 反补贴" },
+  { product: "蓝牙耳机 无线音箱", exportCountry: "中国", importCountry: "美国", direction: "出口", keyword: "关税 301 海关" },
+  { product: "蓝牙耳机 无线音箱", exportCountry: "中国", importCountry: "欧盟", direction: "出口", keyword: "认证 RED RoHS 海关" },
+  { product: "锂电池 移动电源", exportCountry: "中国", importCountry: "英国", direction: "出口", keyword: "认证 电池 进口" },
+  { product: "蓝牙耳机 无线音箱", exportCountry: "中国", importCountry: "泰国", direction: "出口", keyword: "NBTC TISI 海关" },
+  { product: "蓝牙耳机 无线音箱", exportCountry: "中国", importCountry: "日本", direction: "出口", keyword: "TELEC PSE 海关" }
 ];
 
 const policyCacheKey = "ca:policy-cache";

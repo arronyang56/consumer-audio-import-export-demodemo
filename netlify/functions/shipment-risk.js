@@ -1,22 +1,11 @@
 const https = require("https");
+const { portCoordinates, findPortCoordinate } = require("./lib/port-coordinates");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "Content-Type",
   "Access-Control-Allow-Methods": "GET, OPTIONS"
 };
-
-const portCoordinates = [
-  { name: "Shanghai Port", aliases: ["shanghai", "上海", "cnshg", "cnsgh", "洋山", "外高桥"], lat: 30.626, lon: 122.064 },
-  { name: "Ningbo Zhoushan Port", aliases: ["ningbo", "宁波", "舟山", "cnngb"], lat: 29.868, lon: 122.175 },
-  { name: "Yantian Port", aliases: ["yantian", "盐田", "shenzhen", "深圳", "cnytn"], lat: 22.58, lon: 114.27 },
-  { name: "Laem Chabang Port", aliases: ["laem chabang", "林查班", "莱姆查邦", "thlch"], lat: 13.084, lon: 100.883 },
-  { name: "Singapore Port", aliases: ["singapore", "新加坡", "sgsin"], lat: 1.264, lon: 103.82 },
-  { name: "Port Klang", aliases: ["port klang", "巴生", "mypkg"], lat: 2.999, lon: 101.392 },
-  { name: "Ho Chi Minh / Cat Lai", aliases: ["ho chi minh", "cat lai", "胡志明", "吉莱"], lat: 10.75, lon: 106.79 },
-  { name: "Rotterdam Port", aliases: ["rotterdam", "鹿特丹", "nlrtm"], lat: 51.948, lon: 4.142 },
-  { name: "Los Angeles / Long Beach", aliases: ["los angeles", "long beach", "洛杉矶", "长滩"], lat: 33.74, lon: -118.25 }
-];
 
 function json(statusCode, body) {
   return {
@@ -41,15 +30,6 @@ function toNumber(value) {
 
 function normalize(value = "") {
   return clean(value).toLowerCase().replace(/\s+/g, "");
-}
-
-function findPortCoordinate(value = "") {
-  const needle = normalize(value);
-  if (!needle) return null;
-  return portCoordinates.find((port) => {
-    const haystack = normalize([port.name, ...port.aliases].join(" "));
-    return haystack.includes(needle) || needle.includes(normalize(port.name)) || port.aliases.some((alias) => needle.includes(normalize(alias)));
-  }) || null;
 }
 
 function getJson(url) {
@@ -115,6 +95,20 @@ function maxValue(values = []) {
 }
 
 function summarizeWeather(marine = {}, weather = {}) {
+  const available = Boolean(
+    Object.keys(marine.current || {}).length
+    || Object.keys(marine.hourly || {}).length
+    || Object.keys(weather.current || {}).length
+    || Object.keys(weather.hourly || {}).length
+  );
+  if (!available) {
+    return {
+      level: "未取得实时数据",
+      available: false,
+      summary: "天气和海况接口本次没有返回有效数值，因此不能据此判断航速、靠泊或 ETA 影响。",
+      points: []
+    };
+  }
   const currentMarine = marine.current || {};
   const currentWeather = weather.current || {};
   const waveNow = toNumber(currentMarine.wave_height);
@@ -137,7 +131,7 @@ function summarizeWeather(marine = {}, weather = {}) {
     : level === "中"
       ? "海况或降雨存在中等波动，可能影响靠泊、引航、码头作业或船速。"
       : "当前公开海况预报未显示明显恶劣天气信号，对 ETA 的直接影响偏低。";
-  return { level, summary, points };
+  return { level, available: true, summary, points };
 }
 
 function gdeltQueryForRegion(region = "", destination = "") {
@@ -148,18 +142,48 @@ function gdeltQueryForRegion(region = "", destination = "") {
   return '"military exercise" OR naval OR blockade OR "shipping lane"';
 }
 
+function routeNewsTerms(region = "", destination = "", destinationPort = null) {
+  const base = `${region} ${destination}`;
+  const terms = [destination, destinationPort?.name, destinationPort?.code, ...(destinationPort?.aliases || [])];
+  if (/南海|华南|台湾海峡|中国/.test(base)) terms.push("South China Sea", "Taiwan Strait", "East China Sea", "China", "南海", "台湾海峡", "东海");
+  if (/东海|日本|韩国/.test(base)) terms.push("East China Sea", "Yellow Sea", "Japan", "Korea", "东海", "黄海", "日本", "韩国");
+  if (/马六甲|新加坡/.test(base)) terms.push("Malacca Strait", "Singapore", "马六甲", "新加坡");
+  if (/泰国湾|越南|林查班/.test(base)) terms.push("Gulf of Thailand", "Vietnam", "Thailand", "South China Sea", "泰国湾", "越南", "泰国");
+  if (/红海|苏伊士|亚丁湾/.test(base)) terms.push("Red Sea", "Suez", "Gulf of Aden", "红海", "苏伊士", "亚丁湾");
+  return [...new Set(terms.map(normalize).filter((term) => term.length >= 3))];
+}
+
+function filterRouteRelevantNews(items = [], region = "", destination = "", destinationPort = null) {
+  const terms = routeNewsTerms(region, destination, destinationPort);
+  if (!terms.length) return [];
+  return items.filter((item) => {
+    const text = normalize(`${item.title || ""} ${item.description || ""} ${item.domain || ""}`);
+    const areaHit = terms.some((term) => text.includes(term));
+    const controlHit = /militaryexercise|navaldrill|livefire|livefiring|blockade|missile|navigationwarning|restrictedarea|shippinglane|军演|军事演习|实弹|封锁|禁航|航行警告|限制区/.test(text);
+    return areaHit && controlHit;
+  });
+}
+
 function classifyMilitary(items = []) {
   const text = items.map((item) => `${item.title || ""} ${item.domain || ""}`).join(" ").toLowerCase();
   const hit = /military exercise|naval drill|live fire|blockade|missile|军演|演习|封锁|禁航/.test(text);
   return {
-    level: hit ? "观察" : "未见明显信号",
-    summary: hit ? "过去一周公开新闻中出现海域军事/安全相关信号，建议物流同事关注航行警告和船司绕航通知。" : "过去一周公开新闻未抓到明显军演/禁航信号；仍以航行警告、船司通知和港口公告为准。"
+    level: hit ? "待官方核实" : "未见航线相关信号",
+    confirmed: false,
+    summary: hit
+      ? "过去一周公开新闻中出现同时命中航线区域和管制关键词的线索，但未取得航行警告或船司绕航通知前，不把它作为 ETA 延误事实。"
+      : "过去一周公开新闻未抓到同时命中航线区域和管制关键词的信号；未命中的全球新闻不参与判断。"
   };
 }
 
 function buildEtaImpact(weatherRisk, seasonal, military) {
+  if (!weatherRisk.available) {
+    return military.level === "待官方核实"
+      ? "ETA 影响判断：未取得实时天气海况；虽有航线相关安全新闻线索，但尚无官方航警或船司通知，本次不增加延误天数。"
+      : "ETA 影响判断：未取得实时天气海况或已确认的管制证据，本次不判断 ETA 是否受影响。";
+  }
   if (weatherRisk.level === "高") return "ETA 影响判断：天气海况可能直接影响航速、靠泊或港口作业，建议把 ETA 风险提高一级。";
-  if (military.level === "观察") return "ETA 影响判断：军事/安全新闻需要关注，但是否影响航线要看船司是否发布绕航或禁航通知。";
+  if (military.level === "待官方核实") return "ETA 影响判断：发现航线相关安全新闻线索，但未获官方航警或船司通知确认，当前不据此增加延误天数。";
   if (weatherRisk.level === "中" || seasonal.level === "中高") return "ETA 影响判断：存在中等波动，建议关注未来24-72小时船位更新和目的港靠泊窗口。";
   return "ETA 影响判断：当前公开天气和新闻信号未显示明显延误压力，仍按实时船位和船司 ETA 跟踪。";
 }
@@ -205,14 +229,16 @@ exports.handler = async (event) => {
   const [marineResult, weatherResult, gdeltResult] = await Promise.allSettled([getJson(marineUrl), getJson(weatherUrl), getJson(gdeltUrl)]);
   const marine = marineResult.status === "fulfilled" && marineResult.value.ok ? marineResult.value.data : {};
   const weather = weatherResult.status === "fulfilled" && weatherResult.value.ok ? weatherResult.value.data : {};
-  const newsItems = gdeltResult.status === "fulfilled" && gdeltResult.value.ok && Array.isArray(gdeltResult.value.data.articles)
+  const rawNewsItems = gdeltResult.status === "fulfilled" && gdeltResult.value.ok && Array.isArray(gdeltResult.value.data.articles)
     ? gdeltResult.value.data.articles.slice(0, 5).map((item) => ({
         title: item.title || "",
         url: item.url || "",
         domain: item.domain || "",
-        seendate: item.seendate || ""
+        seendate: item.seendate || "",
+        description: item.description || ""
       }))
     : [];
+  const newsItems = filterRouteRelevantNews(rawNewsItems, region, destination, destPort);
   const weatherRisk = summarizeWeather(marine, weather);
   const seasonal = seasonalRisk(region, new Date());
   const military = classifyMilitary(newsItems);
@@ -223,12 +249,24 @@ exports.handler = async (event) => {
     source: "Open-Meteo Marine/Weather + GDELT DOC",
     updatedAt: new Date().toISOString(),
     coordinateSource: point.source,
+    coordinateNote: point.source === "目的港附近" ? "使用港口附近海域采样点，只用于区域天气/海况，不代表泊位或船舶实时位置。" : "使用船舶当前位置采样。",
+    coverage: {
+      portCoordinateCount: portCoordinates.length,
+      destinationRecognized: Boolean(destPort),
+      destinationCode: destPort?.code || "",
+      destinationName: destPort?.name || ""
+    },
     region,
     destination,
     conclusion,
     weather: weatherRisk,
     seasonal,
-    military: { ...military, items: newsItems },
+    military: { ...military, items: newsItems, rawCount: rawNewsItems.length, routeMatchedCount: newsItems.length },
+    sourceAvailability: {
+      marineWeather: marineResult.status === "fulfilled" && Boolean(marineResult.value.ok),
+      surfaceWeather: weatherResult.status === "fulfilled" && Boolean(weatherResult.value.ok),
+      newsDiscovery: gdeltResult.status === "fulfilled" && Boolean(gdeltResult.value.ok)
+    },
     nextInputs: [
       "MMSI/IMO 可提升船位准确度。",
       "箱号或提单号可进一步查码头/船司最新节点。",

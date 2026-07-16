@@ -15,7 +15,7 @@
         display: none !important;
       }
     </style>
-    <link rel="stylesheet" href="./styles.css?v=20260714-evidence-db-v77" />
+    <link rel="stylesheet" href="./styles.css?v=20260715-calc-review-v80" />
   </head>
   <body class="auth-pending is-public-home">
     <button type="button" class="login-trigger" id="openLoginDialog">登录</button>
@@ -519,12 +519,23 @@
                   <option value="Loudspeaker Driver / Speaker Unit">扬声器单元 / 喇叭零件</option>
                   <option value="Amplifier / Audio Equipment">功放 / 音频扩大器成品</option>
                   <option value="Independent Audio Processor / Electrical Function">音频/音视频处理器</option>
+                  <option value="Radio / Broadcast Receiver">无线电收音机 / 广播接收设备</option>
+                  <option value="Radio / Broadcast Transmitter">无线电广播发送/发射设备</option>
+                  <option value="Radio / Video Equipment Part">收音机/广播电视设备功能板与零件</option>
+                  <option value="Mobile Phone / Communication Device">手机 / 移动通信设备</option>
+                  <option value="Smart Watch / Wearable">智能手表 / 穿戴设备</option>
+                  <option value="Camera / Video Equipment">相机 / 摄像 / 取像设备</option>
+                  <option value="Computer / Network Equipment">计算机 / 路由器 / 网络设备</option>
                   <option value="Audio PCBA / Dedicated Part">功放/音箱用功能板或专用零件</option>
+                  <option value="Electronic Module / General PCBA">通用电子模块 / PCBA</option>
                   <option value="Display / Indicator Panel">显示板 / 指示面板组件</option>
                   <option value="Remote / Accessory">遥控器 / 附件</option>
                   <option value="Cable / Connector">线缆 / 接插件</option>
                   <option value="Repair Parts / Spare Parts">维修件 / 备件</option>
                   <option value="Battery / Power Supply">电池 / 电源</option>
+                  <option value="Household Electrical Appliance">家用电器 / 小家电</option>
+                  <option value="Lighting / LED Product">灯具 / LED 产品</option>
+                  <option value="Toy / Consumer Electronic">玩具 / 消费电子</option>
                   <option value="Packaging / Carton">纸箱 / 包装</option>
                 </select>
               </label>
@@ -732,7 +743,10 @@
                 <p class="eyebrow">Battery & Dangerous Goods / 电池危险品</p>
                 <h2>电池/危险品风险判断</h2>
               </div>
-              <button type="button" class="ghost-button" id="loadBatteryExample">载入耳机样例</button>
+              <div class="action-row compact">
+                <button type="button" class="ghost-button" id="loadBatteryExample">载入耳机样例</button>
+                <button type="button" class="ghost-button" id="runBatterySelfTest">运行电池规则自检</button>
+              </div>
             </div>
 
             <div class="field-grid">
@@ -749,13 +763,28 @@
                 <select id="batteryType">
                   <option>锂离子 / Li-ion</option>
                   <option>锂金属 / Lithium metal</option>
+                  <option>钠离子 / Sodium ion</option>
                   <option>碱性 / Alkaline</option>
+                  <option>镍氢 / NiMH</option>
+                  <option>铅酸 / Lead-acid</option>
                   <option>不确定</option>
                 </select>
               </label>
               <label>
-                额定能量 Wh
+                单芯还是电池组
+                <select id="batteryUnitType">
+                  <option value="battery">电池组 / Battery</option>
+                  <option value="cell">单芯 / Cell</option>
+                  <option value="unknown">不确定</option>
+                </select>
+              </label>
+              <label>
+                额定能量 Wh（锂离子/钠离子）
                 <input id="batteryWh" type="number" min="0" step="0.1" placeholder="如 1.2 / 7.4 / 100" />
+              </label>
+              <label>
+                锂含量 g（锂金属）
+                <input id="batteryLithiumContent" type="number" min="0" step="0.01" placeholder="单芯/电池组标称锂含量" />
               </label>
               <label>
                 包装方式
@@ -776,14 +805,22 @@
                 </select>
               </label>
               <label>
-                文件状态
+                航空器类型（空运/快递）
+                <select id="batteryAircraft">
+                  <option value="unknown">不确定/待承运人确认</option>
+                  <option value="passenger">客机腹舱 / Passenger aircraft</option>
+                  <option value="cargo">全货机 / Cargo aircraft only</option>
+                  <option value="not-applicable">非空运</option>
+                </select>
+              </label>
+              <label>
+                UN38.3 测试摘要
                 <select id="batteryDocs">
-                  <option>MSDS + UN38.3 + 运输危险性鉴定报告 已有</option>
-                  <option>MSDS + UN38.3 已有</option>
-                  <option>缺运输危险性鉴定报告</option>
-                  <option>只有 MSDS</option>
-                  <option>只有 UN38.3</option>
-                  <option>未确认</option>
+                  <option value="matched">已有，且电池型号/制造商/Wh 一致</option>
+                  <option value="unmatched">已有，但型号或参数未核对</option>
+                  <option value="prototype">未测试的原型/低产量电池</option>
+                  <option value="missing">没有测试摘要</option>
+                  <option value="unknown">未确认</option>
                 </select>
               </label>
               <label>
@@ -791,12 +828,20 @@
                 <input id="batteryQuantity" inputmode="numeric" placeholder="例如 2 个设备 / 20 pcs / 不确定" />
               </label>
               <label>
+                每包电池净重 kg
+                <input id="batteryNetMass" type="number" min="0" step="0.01" placeholder="只填电池净重，不是整箱毛重" />
+              </label>
+              <label>
                 电池状态
                 <select id="batteryCondition">
                   <option>正常新电池/随产品出货</option>
+                  <option>正常二手/退货，电池无安全缺陷</option>
+                  <option>设备故障退运，电池无安全缺陷</option>
+                  <option>容量衰减/标签错误等非安全缺陷</option>
+                  <option>损坏、鼓包、漏液、过热或短路风险</option>
+                  <option>因电池安全原因召回</option>
+                  <option>废旧电池/回收/处置</option>
                   <option>不确定</option>
-                  <option>损坏、鼓包、漏液或召回</option>
-                  <option>维修/退运/废旧电池</option>
                 </select>
               </label>
               <label>
@@ -1472,6 +1517,7 @@
                   <label>单箱高 cm<input id="seaHeight" inputmode="decimal" placeholder="如 35" /></label>
                   <label>箱数<input id="seaCartons" inputmode="numeric" placeholder="如 120" /></label>
                   <label>总毛重 kg<input id="seaGrossWeight" inputmode="decimal" placeholder="如 1800" /></label>
+                  <label>最低计费吨 W/M<input id="seaMinimumWm" inputmode="decimal" value="1" placeholder="以货代报价口径为准" /></label>
                   <label>海运费率/柜价 USD<input id="seaRate" inputmode="decimal" placeholder="LCL 按 W/M，FCL 按柜价" /></label>
                   <label>本地/目的港杂费 USD<input id="seaLocalFees" inputmode="decimal" placeholder="THC、文件、订舱、拖车等合计" /></label>
                   <label>
@@ -1493,6 +1539,19 @@
                       <option value="wood">木包装/需熏蒸关注</option>
                     </select>
                   </label>
+                  <label>
+                    货物可叠放
+                    <select id="seaStackable">
+                      <option value="yes">可以叠放</option>
+                      <option value="no">不可叠放</option>
+                    </select>
+                  </label>
+                </div>
+                <div id="seaPalletFields" class="field-grid" hidden>
+                  <label>托盘长 cm<input id="seaPalletLength" inputmode="decimal" placeholder="如 120" /></label>
+                  <label>托盘宽 cm<input id="seaPalletWidth" inputmode="decimal" placeholder="如 100" /></label>
+                  <label>托盘含货高 cm<input id="seaPalletHeight" inputmode="decimal" placeholder="如 150" /></label>
+                  <label>托盘数<input id="seaPalletCount" inputmode="numeric" placeholder="如 10" /></label>
                 </div>
                 <div class="calc-form-actions">
                   <button type="submit" class="primary-button">计算海运装载</button>
@@ -1943,7 +2002,7 @@
             <article class="air-guide-card danger">
               <span>电池/DG</span>
               <strong>先确认能不能飞</strong>
-              <p>含锂电池设备要看 UN38.3、MSDS、PI965/966/967、SOC、包装和承运人限制。电池单独运输比装在设备中更敏感。</p>
+              <p>先确认电池配置、Wh/锂含量、UN38.3 测试概要、适用 PI、SOC、包装、客机/货机限制和承运人差异。SDS 仅在承运人要求时补充，不能替代运输鉴定。</p>
             </article>
             <article class="air-guide-card">
               <span>到达清关</span>
@@ -1983,6 +2042,8 @@
                   <label>单件高 cm<input id="airHeight" inputmode="decimal" placeholder="如 35" /></label>
                   <label>件数<input id="airPieces" inputmode="numeric" placeholder="如 20" /></label>
                   <label>总毛重 kg<input id="airGrossWeight" inputmode="decimal" placeholder="如 180" /></label>
+                  <label>体积重除数<input id="airDivisor" inputmode="numeric" value="6000" placeholder="以承运人报价为准" /></label>
+                  <label>最低计费重 kg<input id="airMinimumChargeWeight" inputmode="decimal" placeholder="如报价规定 45" /></label>
                   <label>空运单价 USD/kg<input id="airRate" inputmode="decimal" placeholder="如 4.5，可不填" /></label>
                   <label>燃油/安检/杂费 USD<input id="airSurcharges" inputmode="decimal" placeholder="如 120，可不填" /></label>
                   <label>
@@ -2002,6 +2063,33 @@
                       <option value="battery-alone">电池单独运输</option>
                       <option value="magnetic">磁性/带喇叭磁钢</option>
                       <option value="sample">样品/维修件</option>
+                    </select>
+                  </label>
+                  <label>
+                    计费重取整
+                    <select id="airRounding">
+                      <option value="1">向上取整至 1 kg</option>
+                      <option value="0.5">向上取整至 0.5 kg</option>
+                      <option value="none">不取整</option>
+                    </select>
+                  </label>
+                  <label>
+                    货物可叠放
+                    <select id="airStackable">
+                      <option value="yes">可以叠放</option>
+                      <option value="no">不可叠放</option>
+                    </select>
+                  </label>
+                </div>
+                <div id="airUldFields" class="field-grid" hidden>
+                  <label>
+                    BSA/ULD 口径
+                    <select id="airUldType">
+                      <option value="unknown">板型/箱型待承运人确认</option>
+                      <option value="PMC">PMC 板</option>
+                      <option value="PAG">PAG 板</option>
+                      <option value="AKE">AKE 箱</option>
+                      <option value="loose">散货舱 / Loose load</option>
                     </select>
                   </label>
                 </div>
@@ -2465,18 +2553,18 @@
               <p class="eyebrow">Port & Logistics Risk</p>
               <h2>港口与物流风险查询</h2>
             </div>
-            <span class="quiet-tag">默认上海港</span>
+            <span class="quiet-tag">不识别就不估算</span>
           </div>
           <form id="portRiskForm" class="query-card customs-query">
             <div class="field-grid">
               <label>
                 港口（中文或英文都可以）
-                <input id="portName" value="上海港" list="portSuggestionsList" autocomplete="off" lang="zh-CN" placeholder="例如：上海港、宁波、盐田、洛杉矶、Rotterdam" />
+                <input id="portName" list="portSuggestionsList" autocomplete="off" lang="zh-CN" placeholder="例如：上海港、宁波、盐田、洛杉矶、Rotterdam" />
                 <datalist id="portSuggestionsList"></datalist>
               </label>
               <label>
                 国家/地区
-                <input id="portRegion" value="中国" lang="zh-CN" placeholder="例如：中国、美国、欧盟、英国" />
+                <input id="portRegion" lang="zh-CN" placeholder="例如：中国、美国、欧盟、英国" />
               </label>
               <label>
                 货物类型
@@ -2673,10 +2761,11 @@
     </div>
 
     <script src="./company-hs-data.js?v=20260610-logistics-intel-v12"></script>
-    <script src="./source-catalog.js?v=20260714-evidence-db-v15"></script>
+    <script src="./source-catalog.js?v=20260714-evidence-db-v17"></script>
+    <script src="./schedule-database.js?v=20260715-schedule-db-v2"></script>
     <script src="./china-tariff-2026.js?v=20260610-logistics-intel-v12"></script>
     <script src="./trade-measures-data.js?v=20260610-logistics-intel-v12"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="./app.js?v=20260714-evidence-db-v94"></script>
+  <script src="./app.js?v=20260715-calc-review-v130"></script>
   </body>
 </html>
