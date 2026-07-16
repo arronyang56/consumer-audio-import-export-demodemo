@@ -6371,6 +6371,59 @@ nav a[href="#learn"]::before {
   font-size: 11px;
 }
 
+.global-answer-dimensions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.global-answer-dimensions section {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #d5dee7;
+  border-top: 3px solid #64748b;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.global-answer-dimensions section[data-tone="verified"] {
+  border-top-color: #0f766e;
+}
+
+.global-answer-dimensions section[data-tone="rules"] {
+  border-top-color: #2563eb;
+}
+
+.global-answer-dimensions section[data-tone="model"],
+.global-answer-dimensions section[data-tone="missing"] {
+  border-top-color: #c27a0a;
+}
+
+.global-answer-dimensions span,
+.global-answer-dimensions strong,
+.global-answer-dimensions small {
+  display: block;
+}
+
+.global-answer-dimensions span {
+  margin-bottom: 4px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.global-answer-dimensions strong {
+  margin-bottom: 4px;
+  color: #172334;
+  font-size: 13px;
+}
+
+.global-answer-dimensions small {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .global-ai-pending {
   padding: 10px 12px;
   border: 1px solid rgba(217, 119, 6, 0.28);
@@ -7119,6 +7172,15 @@ nav a[href="#learn"]::before {
   color: #64748b;
   font-size: 11px;
   line-height: 1.45;
+}
+
+.weather-risk-evidence {
+  padding: 8px 10px;
+  border-left: 3px solid #64748b;
+  background: rgba(255, 255, 255, 0.68);
+  color: #475569;
+  font-size: 12px;
+  font-weight: 760;
 }
 
 body[data-active-module]:not([data-active-module="dashboard"]) .global-query-panel {
@@ -17654,6 +17716,7 @@ body[data-active-module="air-fees"] .ops-fee-hero::after {
   .live-intent-actions,
   .global-ai-action-grid,
   .global-ai-metric-grid,
+  .global-answer-dimensions,
   .global-evidence-grid,
   .global-answer-contract,
   .result-brief-evidence,
@@ -17675,6 +17738,7 @@ body[data-active-module="air-fees"] .ops-fee-hero::after {
   .live-intent-actions,
   .global-ai-action-grid,
   .global-ai-metric-grid,
+  .global-answer-dimensions,
   .global-evidence-grid,
   .global-answer-contract,
   .global-answer-evidence,

@@ -10,36 +10,42 @@ const weatherSources = [
     id: "nmc-alert",
     name: "中央气象台气象灾害预警",
     url: "https://www.nmc.cn/publish/alarm.html",
+    group: "nmc",
     type: "official-weather"
   },
   {
     id: "nmc-typhoon-warning",
     name: "中央气象台台风预警",
     url: "https://www.nmc.cn/publish/typhoon/warning.html",
+    group: "nmc",
     type: "official-weather"
   },
   {
     id: "nmc-typhoon-track",
     name: "中央气象台台风路径",
     url: "https://www.nmc.cn/publish/typhoon/typhoon_new.html",
+    group: "nmc",
     type: "official-weather"
   },
   {
     id: "nmc-marine",
     name: "中央气象台海区预报",
     url: "https://www.nmc.cn/publish/marine/newcoastal.html",
+    group: "nmc",
     type: "official-marine"
   },
   {
     id: "nmc-traffic",
     name: "中央气象台交通气象",
     url: "https://www.nmc.cn/publish/traffic.html",
+    group: "nmc",
     type: "official-traffic"
   },
   {
     id: "jtwc",
     name: "JTWC Tropical Cyclone Warnings",
     url: "https://www.metoc.navy.mil/jtwc/jtwc.html",
+    group: "jtwc",
     type: "official-weather"
   }
 ];
@@ -49,24 +55,28 @@ const controlSources = [
     id: "china-msa-navwarn",
     name: "中国海事局航行警告",
     url: "https://www.msa.gov.cn/page/article.do?channelId=94e7e863-8099-444d-a9d5-86725dfc26d8",
+    group: "china-msa",
     type: "navigation-warning"
   },
   {
     id: "nga-msi",
     name: "NGA Maritime Safety Information",
     url: "https://msi.nga.mil/",
+    group: "nga-msi",
     type: "navigation-warning"
   },
   {
     id: "mpa-port-marine-notices",
     name: "MPA Singapore Notices",
     url: "https://www.mpa.gov.sg/",
+    group: "mpa-singapore",
     type: "port-control"
   },
   {
     id: "suez-canal-authority",
     name: "Suez Canal Authority",
     url: "https://www.suezcanal.gov.eg/English/Pages/default.aspx",
+    group: "suez-canal-authority",
     type: "canal-control"
   }
 ];
@@ -532,6 +542,40 @@ function snippetAround(text = "", terms = []) {
   return source.slice(start, end).replace(/\s+/g, " ").trim();
 }
 
+function validUtcDate(year, month, day) {
+  const candidate = new Date(Date.UTC(year, month - 1, day));
+  if (
+    candidate.getUTCFullYear() !== year
+    || candidate.getUTCMonth() !== month - 1
+    || candidate.getUTCDate() !== day
+  ) return null;
+  return candidate.getTime();
+}
+
+function contentFreshness(text = "", now = Date.now(), maxAgeDays = 14) {
+  const value = String(text || "");
+  const timestamps = [];
+  const fullDatePattern = /(20\d{2})[年\-\/.](\d{1,2})[月\-\/.](\d{1,2})日?/g;
+  const monthDayPattern = /(?:^|[^\d年])(\d{1,2})月(\d{1,2})日/g;
+  let match;
+  while ((match = fullDatePattern.exec(value))) {
+    const time = validUtcDate(Number(match[1]), Number(match[2]), Number(match[3]));
+    if (time && time <= now + 2 * 86400000) timestamps.push(time);
+  }
+  while ((match = monthDayPattern.exec(value))) {
+    const time = validUtcDate(new Date(now).getUTCFullYear(), Number(match[1]), Number(match[2]));
+    if (time && time <= now + 2 * 86400000) timestamps.push(time);
+  }
+  if (!timestamps.length) return { status: "undated", publishedAt: "", ageDays: null };
+  const latest = Math.max(...timestamps);
+  const ageDays = Math.max(0, Math.floor((now - latest) / 86400000));
+  return {
+    status: ageDays <= maxAgeDays ? "recent" : "stale",
+    publishedAt: new Date(latest).toISOString().slice(0, 10),
+    ageDays
+  };
+}
+
 function focusWeatherText(text = "") {
   const source = String(text || "");
   const printIndex = source.indexOf("打印");
@@ -659,7 +703,7 @@ function routeAreaHit(context = "", routeProfile = {}) {
 
 function routeImpactForText(sourceText = "", routeProfile = {}, detector = detectHazards, impactTerms = allWeatherTerms) {
   if (!sourceText || !routeProfile?.terms?.length) {
-    return { level: 0, routeRelevant: false, hits: [], hazards: [], snippet: "", routeArea: "" };
+    return { level: 0, routeRelevant: false, hits: [], hazards: [], snippet: "", routeArea: "", freshnessStatus: "undated", publishedAt: "" };
   }
   const contexts = [];
   impactTerms.forEach((term) => {
@@ -677,14 +721,18 @@ function routeImpactForText(sourceText = "", routeProfile = {}, detector = detec
   const hazards = detector(targetContext);
   const routeHit = routeAreaHit(targetContext, routeProfile);
   const eventHits = hazards.flatMap((hazard) => hazard.hits);
-  const routeRelevant = Boolean(directContext && hazards.length);
+  const freshness = contentFreshness(targetContext);
+  const routeRelevant = Boolean(directContext && hazards.length && freshness.status !== "stale");
   return {
     level: routeRelevant ? 2 : hazards.length ? 1 : 0,
     routeRelevant,
     hazards,
     hits: compactUnique([...eventHits.slice(0, 5), ...routeHit.matched.slice(0, 5)]),
     snippet: (targetContext || snippetAround(sourceText, impactTerms)).replace(/\s+/g, " ").trim(),
-    routeArea: routeHit.area || routeProfile.label
+    routeArea: routeHit.area || routeProfile.label,
+    freshnessStatus: freshness.status,
+    publishedAt: freshness.publishedAt,
+    ageDays: freshness.ageDays
   };
 }
 
@@ -798,12 +846,17 @@ function noticeImpactForText(text = "", profile = null) {
   const eventHits = noticeTerms.filter((term) => termMatches(text, term));
   const portHits = portTerms.filter((term) => lower.includes(normalize(term))).slice(0, 4);
   const hazards = uniqueHazards([...detectHazards(text), ...detectControlHazards(text)]);
-  const matched = eventHits.length > 0 && portHits.length > 0;
+  const snippet = eventHits.length && portHits.length ? snippetAround(text, [...eventHits, ...portHits]) : "";
+  const freshness = contentFreshness(snippet);
+  const matched = eventHits.length > 0 && portHits.length > 0 && freshness.status !== "stale";
   return {
     matched,
     hazards,
     hits: [...new Set([...eventHits.slice(0, 4), ...portHits])],
-    snippet: matched ? snippetAround(text, [...eventHits, ...portHits]) : ""
+    snippet: matched ? snippet : "",
+    freshnessStatus: freshness.status,
+    publishedAt: freshness.publishedAt,
+    ageDays: freshness.ageDays
   };
 }
 
@@ -823,7 +876,10 @@ async function scanWeatherSources(routeProfile = {}) {
         routeArea: impact.routeArea,
         hazards: impact.hazards,
         hits: impact.hits,
-        snippet: impact.snippet
+        snippet: impact.snippet,
+        freshnessStatus: impact.freshnessStatus,
+        publishedAt: impact.publishedAt,
+        ageDays: impact.ageDays
       };
     })
   );
@@ -838,7 +894,9 @@ async function scanWeatherSources(routeProfile = {}) {
         routeRelevant: false,
         hazards: [],
         hits: [],
-        snippet: ""
+        snippet: "",
+        freshnessStatus: "undated",
+        publishedAt: ""
       };
     })
     .filter((item) => item.routeRelevant && Number(item.impactLevel || 0) >= 2);
@@ -861,7 +919,10 @@ async function scanControlSources(routeProfile = {}) {
         routeArea: impact.routeArea,
         hazards: impact.hazards,
         hits: impact.hits,
-        snippet: impact.snippet
+        snippet: impact.snippet,
+        freshnessStatus: impact.freshnessStatus,
+        publishedAt: impact.publishedAt,
+        ageDays: impact.ageDays
       };
     })
   );
@@ -878,7 +939,9 @@ async function scanControlSources(routeProfile = {}) {
         routeRelevant: false,
         hazards: [],
         hits: [],
-        snippet: ""
+        snippet: "",
+        freshnessStatus: "undated",
+        publishedAt: ""
       };
     })
     .filter((item) => item.routeRelevant && Number(item.impactLevel || 0) >= 2);
@@ -895,12 +958,18 @@ async function scanPortNotices(profile) {
         port: profile.cn || profile.name,
         name,
         url,
+        group: (() => {
+          try { return new URL(url).hostname.replace(/^www\./, ""); } catch (_) { return name; }
+        })(),
         ok: response.ok,
         status: response.status,
         impact: impact.matched ? "matched" : "manual-check",
         hazards: impact.hazards,
         hits: impact.hits,
-        snippet: impact.snippet
+        snippet: impact.snippet,
+        freshnessStatus: impact.freshnessStatus,
+        publishedAt: impact.publishedAt,
+        ageDays: impact.ageDays
       };
     })
   );
@@ -912,12 +981,15 @@ async function scanPortNotices(profile) {
         port: profile.cn || profile.name,
         name,
         url,
+        group: name,
         ok: false,
         status: "unverified",
         impact: "manual-check",
         hazards: [],
         hits: [],
-        snippet: ""
+        snippet: "",
+        freshnessStatus: "undated",
+        publishedAt: ""
       };
     })
     .filter((item) => item.impact === "matched");
@@ -931,20 +1003,54 @@ function conclusionHazards(weatherItems = [], noticeItems = [], controlItems = [
   ]);
 }
 
+function normalizedEvidenceGroup(item = {}) {
+  const value = String(item.group || item.id || item.url || item.name || "unknown").toLowerCase();
+  if (/nmc(?:\.cn)?|中央气象台/.test(value)) return "nmc";
+  if (/msa(?:\.gov)?|海事局/.test(value)) return "china-msa";
+  if (/mpa(?:\.gov)?|maritime and port authority/.test(value)) return "mpa-singapore";
+  return value.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0];
+}
+
+function independentEvidenceSummary(weatherItems = [], noticeItems = [], controlItems = []) {
+  const groups = new Map();
+  const addItems = (items, category, recentWeight, undatedWeight) => {
+    items.forEach((item) => {
+      const group = normalizedEvidenceGroup(item);
+      const recent = item.freshnessStatus === "recent";
+      const weight = recent ? recentWeight : undatedWeight;
+      const current = groups.get(group);
+      if (!current || weight > current.weight) groups.set(group, { group, category, weight, recent });
+    });
+  };
+  addItems(weatherItems.filter((item) => item.impactLevel >= 2), "weather", 30, 18);
+  addItems(controlItems.filter((item) => item.impactLevel >= 2), "control", 35, 20);
+  addItems(noticeItems.filter((item) => item.impact === "matched"), "notice", 35, 20);
+  const rows = [...groups.values()];
+  return {
+    groups: rows,
+    groupCount: rows.length,
+    recentCount: rows.filter((item) => item.recent).length,
+    score: rows.reduce((total, item) => total + item.weight, 0),
+    label: `${rows.length} 组独立来源 · ${rows.filter((item) => item.recent).length} 组提取到 14 天内发布日期`
+  };
+}
+
 function buildRiskConclusion(weatherItems = [], noticeItems = [], controlItems = [], originProfile = null, destinationProfile = null, routeProfile = {}) {
   const directWeather = weatherItems.filter((item) => item.impactLevel >= 2);
   const controlHits = controlItems.filter((item) => item.impactLevel >= 2);
   const noticeHits = noticeItems.filter((item) => item.impact === "matched");
-  const score = directWeather.length * 35 + controlHits.length * 35 + noticeHits.length * 30;
+  const evidence = independentEvidenceSummary(directWeather, noticeHits, controlHits);
+  const score = evidence.score;
   const route = `${originProfile?.cn || "出发港"} → ${destinationProfile?.cn || "目的港"}`;
   const hazards = conclusionHazards(weatherItems, noticeItems, controlItems);
   const hazardText = hazards.length ? hazards.map((item) => item.label).join("、") : "天气/海况/管制异常";
   const hazardActions = hazards.map((item) => item.action).slice(0, 3);
   const routeAreaText = routeProfile?.areas?.length ? routeProfile.areas.slice(0, 3).join("、") : routeProfile?.label || "常规航线";
-  if (score >= 60) {
+  if (score >= 60 && evidence.groupCount >= 2) {
     return {
       riskLevel: "high",
       label: "航线影响偏高",
+      evidenceSummary: evidence.label,
       hazards,
       summary: `${route}：官方来源出现与${routeAreaText}相关的${hazardText}信号，预计可能造成靠泊、开航、绕航、等待或集疏运窗口不确定。`,
       actions: [
@@ -959,6 +1065,7 @@ function buildRiskConclusion(weatherItems = [], noticeItems = [], controlItems =
     return {
       riskLevel: "elevated",
       label: "航线影响需关注",
+      evidenceSummary: evidence.label,
       hazards,
       summary: `${route}：抓到与${routeAreaText}相关的${hazardText}信号，但未确认形成封港或停工结论；预计影响以短时等待、靠泊波动或改配复核为主。`,
       actions: [
@@ -972,6 +1079,7 @@ function buildRiskConclusion(weatherItems = [], noticeItems = [], controlItems =
   return {
     riskLevel: "watch",
     label: "暂未核实到直接影响",
+    evidenceSummary: evidence.label,
     hazards,
     summary: `${route}：本次自动扫描未抓到位于${routeAreaText}且与常规航线相关的公开天气、海况、军演/管制或码头限作业公告；不输出额外延误结论。`,
     actions: [
@@ -1031,7 +1139,7 @@ exports.handler = async (event = {}) => {
       weatherSources: weatherItems,
       controlEvents: controlItems,
       portNotices,
-      sourceNote: "只列出正文命中且与常规航线区域相关的官方来源；未命中、无关区域或抓不到正文的来源不会展示。"
+      sourceNote: "只列正文命中且与常规航线区域相关的来源；超过 14 天的已识别旧公告被排除，未提取到发布日期的内容只作线索，同一机构多个页面不重复抬高风险。"
     });
   } catch (error) {
     return json(200, {
@@ -1048,4 +1156,14 @@ exports.handler = async (event = {}) => {
       portNotices: []
     });
   }
+};
+
+exports._private = {
+  buildRiskConclusion,
+  buildRouteProfile,
+  contentFreshness,
+  findPortProfile,
+  independentEvidenceSummary,
+  noticeImpactForText,
+  routeImpactForText
 };

@@ -10926,6 +10926,8 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
 
   const metrics = [];
   const hasRoutePair = Boolean(route.origin && route.destination);
+  const wantsPrice = concerns.some((item) => item.id === "price");
+  const wantsRisk = concerns.some((item) => item.id === "risk");
   if ((mode === "Air" || mode === "Courier") && hasRoutePair && originAir && destinationAir) {
     const origin = originAir;
     const destination = destinationAir;
@@ -10935,9 +10937,9 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
     const modeledFlightTime = flightHoursText(hours);
     const evidence = businessEvidenceForRoute("air", origin, destination, { unit: "KG" });
     const assessment = airportPrecheckAssessment(cargo, evidence);
-    metrics.push([evidence.quote ? "近期业务报价" : "空运模型预算", evidence.quote ? formatEvidencePrice(evidence) : rate.label]);
+    if (wantsPrice) metrics.push([evidence.quote ? "近期业务报价" : "空运模型预算", evidence.quote ? formatEvidencePrice(evidence) : rate.label]);
     metrics.push([evidence.transit ? "历史实绩时效" : "基础时效模型", evidence.transit ? formatEvidenceTransit(evidence) : modeledFlightTime]);
-    metrics.push(["敏感货预审", assessment.level]);
+    if (wantsRisk || cargo !== "general") metrics.push(["货物风险判断", primaryProduct || cargo !== "general" ? assessment.level : "货物信息不足"]);
   }
   if (mode === "Sea" && hasRoutePair && originPort && destinationPort) {
     const origin = originPort;
@@ -10946,11 +10948,11 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
     const rate = seaMarketRateEstimate(origin, destination, "40HQ", cargo);
     const days = routeDaysForPorts(origin, destination);
     const evidence = businessEvidenceForRoute("sea", origin, destination, { unit: "40HQ" });
-    metrics.push([evidence.quote ? "近期业务报价" : "海运模型预算", evidence.quote ? formatEvidencePrice(evidence) : rate.label]);
+    if (wantsPrice) metrics.push([evidence.quote ? "近期业务报价" : "海运模型预算", evidence.quote ? formatEvidencePrice(evidence) : rate.label]);
     metrics.push([evidence.transit ? "历史实绩航程" : "航程模型", evidence.transit ? formatEvidenceTransit(evidence) : routeDaysText(days)]);
-    if (evidence.delay) metrics.push(["历史到港偏差", formatEvidenceDelay(evidence)]);
+    if (wantsRisk && evidence.delay) metrics.push(["历史到港偏差", formatEvidenceDelay(evidence)]);
   }
-  const productLabel = primaryProduct?.label || (hs ? `HS ${hs}` : airport?.cn || port?.cn || "待识别货物");
+  const productLabel = primaryProduct?.label || (hs ? `HS ${hs}` : hasRoutePair ? "货物待补" : airport?.cn || port?.cn || "待识别货物");
   const concernText = concerns.map((item) => item.label).join(" + ");
   const routeLabel = intelligenceRouteLabel({ originLabel, destinationLabel, route });
   const conclusion = primaryProduct
@@ -11223,6 +11225,132 @@ function sourceDirectoryFreshness(sources = []) {
   return `来源目录最近核验 ${new Date(timestamps[0]).toISOString().slice(0, 10)}`;
 }
 
+function evidenceAgeDays(record = {}) {
+  const time = evidenceRecordTime(record);
+  if (!time) return null;
+  return Math.max(0, Math.floor((Date.now() - time) / 86400000));
+}
+
+function buildGlobalEvidenceDecisionProfile(query = "", intel = {}, context = {}) {
+  const concernIds = new Set((intel.concerns || []).map((item) => item.id));
+  const routeEvidence = context.routeEvidence || {};
+  const routeRecognition = context.routeRecognition || {};
+  const routeComplete = Boolean(intel.route?.origin && intel.route?.destination);
+  const routeModel = (intel.metrics || []).some(([label, value]) => /模型/.test(label) && !/覆盖不足/.test(String(value || "")));
+  const dimensions = [];
+  const toneForGrade = (grade) => grade >= 3 ? "verified" : grade === 2 ? "rules" : grade === 1 ? "model" : "missing";
+  const add = (id, label, grade, status, detail) => {
+    if (dimensions.some((item) => item.id === id)) return;
+    dimensions.push({ id, label, grade, tone: toneForGrade(grade), status, detail });
+  };
+
+  if (routeComplete) {
+    add(
+      "route",
+      "路线",
+      routeRecognition.complete ? 3 : 0,
+      routeRecognition.complete ? "两端已识别" : "地点未完整识别",
+      routeRecognition.complete ? intel.routeLabel : "需要标准港口 UN/LOCODE 或机场 IATA 代码。"
+    );
+  } else {
+    const directLocation = findAirportCodeProfile(query) || findPortRiskProfile(query);
+    if (directLocation) add("location", "地点/代码", 3, "代码识别可用", directLocation.iata || directLocation.icao || directLocation.code || directLocation.cn || directLocation.name);
+  }
+
+  if (concernIds.has("price")) {
+    const latestQuote = routeEvidence.quotes?.[0];
+    const age = latestQuote ? evidenceAgeDays(latestQuote) : null;
+    if (latestQuote && age !== null && age <= 14) {
+      add("price", "价格", 3, "近期实单报价", `${age} 天前 · ${formatEvidencePrice(routeEvidence)}；仍需核有效期、附加费和包含项。`);
+    } else if (latestQuote) {
+      add("price", "价格", 2, "历史报价参考", `${age ?? "未知"} 天前 · ${formatEvidencePrice(routeEvidence)}；需要重新询价。`);
+    } else if ((intel.metrics || []).some(([label]) => /模型预算/.test(label))) {
+      add("price", "价格", 1, "仅有模型预算", "未命中同航线近期有效报价，不能直接对客报价。");
+    } else {
+      add("price", "价格", 0, "没有可用报价", "需要路线、货型、数量/重量、出运周和承运人有效报价。");
+    }
+  }
+
+  if (routeComplete && /Air|Courier|Sea/.test(intel.mode || "")) {
+    const latestActual = routeEvidence.actuals?.[0];
+    const actualAge = latestActual ? evidenceAgeDays(latestActual) : null;
+    if (latestActual && actualAge !== null && actualAge <= 180) {
+      add("transit", "运输时效", 3, "近期运输实绩", `${routeEvidence.actuals.length} 票 · ${formatEvidenceTransit(routeEvidence)}；只代表已录入样本。`);
+    } else if (latestActual) {
+      add("transit", "运输时效", 2, "历史运输实绩", `${actualAge ?? "未知"} 天前 · ${formatEvidenceTransit(routeEvidence)}；需要近期样本复核。`);
+    } else if (routeEvidence.officialSchedules?.length) {
+      add("transit", "运输时效", 3, "承运人计划班期", `${routeEvidence.officialSchedules.length} 条 · ${routeEvidence.schedule?.rangeText || "计划时效待核"}；不是实际履约。`);
+    } else if (routeModel) {
+      add("transit", "运输时效", 1, "仅有航程模型", "没有同航线实绩或有效承运人计划，不能承诺交期。");
+    } else {
+      add("transit", "运输时效", 0, "时效资料不足", "没有实绩、有效承运人计划或可适用模型。");
+    }
+  }
+
+  if (concernIds.has("risk")) {
+    const latestOutcome = routeEvidence.outcomes?.[0];
+    const outcomeAge = latestOutcome ? evidenceAgeDays(latestOutcome) : null;
+    if (latestOutcome && outcomeAge !== null && outcomeAge <= 180) {
+      add("risk", "风险", 3, "近期业务结果", `${routeEvidence.outcomes.length} 票查验/预审记录；样本量不足时不外推概率。`);
+    } else if (latestOutcome) {
+      add("risk", "风险", 2, "历史业务结果", `${outcomeAge ?? "未知"} 天前；只能帮助识别风险点，不能代表当前查验率。`);
+    } else if (routeRecognition.any || intel.primaryProduct) {
+      add("risk", "风险", 1, "规则/模型初判", "没有同航线近期结果；天气、管制和口岸异常需实时命中后再定级。");
+    } else {
+      add("risk", "风险", 0, "风险资料不足", "未识别完整路线或货物，也没有业务结果。");
+    }
+  }
+
+  if (concernIds.has("customs")) {
+    if (intel.hs && intel.country) add("customs", "关务/税则", 2, "具备规则核验条件", `已识别 HS ${intel.hs} 和 ${intel.country}；仍需核官方税则、监管条件、原产国和申报日期。`);
+    else if (intel.hs || intel.primaryProduct) {
+      const missingParts = [!intel.hs ? "HS" : "", !intel.country ? "目的国" : "", "原产国", "完整规格", "官方当前税则核验"].filter(Boolean);
+      add("customs", "关务/税则", 1, "只能归类初筛", `还缺${missingParts.join("、")}。`);
+    } else add("customs", "关务/税则", 0, "关务输入不足", "需要真实品名、用途、材质/构成、HS 候选、原产国和目的国。");
+  }
+
+  if (concernIds.has("docs")) {
+    if (intel.primaryProduct && intel.country) add("docs", "单证", 2, "可生成核验清单", "已识别货物和目的地区域；具体模板仍需交易主体、金额、条款和运输信息。");
+    else add("docs", "单证", 1, "通用清单初判", "货物或目的国信息不完整，不能判断全部必需文件。");
+  }
+
+  if (concernIds.has("policy")) {
+    add("policy", "政策/准入", 0, "公告正文未读取", "当前只识别主题和官方入口；必须核发布主体、生效日期、适用范围及后续修订。");
+  }
+
+  if (!dimensions.length) add("lookup", "查询结果", 1, "已定位查询方向", "还没有足够业务字段形成可执行结论。");
+  const minimumGrade = Math.min(...dimensions.map((item) => item.grade));
+  const isDirectCode = dimensions.length === 1 && dimensions[0].id === "location" && dimensions[0].grade >= 3;
+  let label = "仅供初筛";
+  let tone = "model";
+  let summary = "当前至少一个关键维度只有模型或通用规则，不能直接用于报价、交期或申报。";
+  if (isDirectCode) {
+    label = "代码识别可用";
+    tone = "verified";
+    summary = "地点和标准代码可以直接使用；价格、时效或风险需要补完整路线后另行判断。";
+  } else if (minimumGrade === 0) {
+    label = "不能直接执行";
+    tone = "missing";
+    summary = `${dimensions.filter((item) => item.grade === 0).map((item) => item.label).join("、")}缺少可核验证据，当前只给查询方向和下一步。`;
+  } else if (minimumGrade === 2) {
+    label = "可用于方案核验";
+    tone = "rules";
+    summary = "已有规则或历史业务依据，可以形成方案，但执行前仍需补当前官方/承运人证据。";
+  } else if (minimumGrade >= 3) {
+    label = "有业务证据支持";
+    tone = "verified";
+    summary = "关键维度已命中近期实绩、有效承运人计划或可靠代码；仍需核对样本适用条件。";
+  }
+  return {
+    label,
+    tone,
+    summary,
+    minimumGrade,
+    dimensions,
+    pending: dimensions.filter((item) => item.grade <= 1).map((item) => `${item.label}：${item.detail}`)
+  };
+}
+
 function buildGlobalEvidenceAssessment(query = "", candidates = [], intel = {}, sources = []) {
   const routeRecognition = globalRouteRecognition(intel);
   const routeEvidence = globalRouteEvidence(intel);
@@ -11250,7 +11378,10 @@ function buildGlobalEvidenceAssessment(query = "", candidates = [], intel = {}, 
   if (intel.primaryProduct) used.push(`产品规则库：${intel.primaryProduct.label}`);
   if (intel.hs) used.push(`用户输入 HS：${intel.hs}`);
   if (routeRecognition.any) used.push(`地点库：${intel.routeLabel}`);
-  if (hasModel) used.push("价格/航程模型：仅用于预算或初筛");
+  if (hasModel) {
+    const modelLabels = (intel.metrics || []).filter(([label]) => /模型|预算/.test(label)).map(([label]) => label);
+    used.push(`${modelLabels.join("、") || "模型结果"}：仅用于预算或初筛`);
+  }
   if (!used.length) used.push("关键词、编号格式与模块路由规则");
 
   let label = "资料不足";
@@ -11292,7 +11423,7 @@ function buildGlobalEvidenceAssessment(query = "", candidates = [], intel = {}, 
     ? `业务/班期证据最近日期 ${String(evidenceDates[0]).slice(0, 10)}；${sourceDirectoryFreshness(sources)}`
     : sourceDirectoryFreshness(sources);
   const scope = [modeLabel(intel.mode), routeRecognition.any ? intel.routeLabel : "", intel.productLabel, intel.country].filter((item) => item && !/待补|待识别/.test(item)).join(" · ") || "仅适用于当前输入";
-  return {
+  const result = {
     label,
     tone,
     explanation,
@@ -11304,6 +11435,8 @@ function buildGlobalEvidenceAssessment(query = "", candidates = [], intel = {}, 
     routeRecognition,
     routeEvidence
   };
+  result.decisionProfile = buildGlobalEvidenceDecisionProfile(query, intel, result);
+  return result;
 }
 
 function buildGlobalAnswerContract(query = "", target = {}, intel = {}, assessment = {}) {
@@ -11325,7 +11458,12 @@ function buildGlobalAnswerContract(query = "", target = {}, intel = {}, assessme
     const schedule = assessment.routeEvidence?.schedule || {};
     conclusion = `${intel.routeLabel} 已识别，并命中 ${schedule.count || 0} 条${schedule.carriers?.join("、") || "承运人"}计划班期，计划航程 ${schedule.rangeText || "待核验"}。这不是区域模型，但仍属于计划 ETD/ETA，不能当作实际到港或平均延误。`;
   } else if (routeComplete && routeRecognized && (intel.metrics || []).some(([label]) => /模型|预算/.test(label))) {
-    conclusion = `${intel.routeLabel} 已识别，但没有同航线实单。页面中的价格和航程属于模型预算，不应直接写入客户报价或交期承诺。`;
+    const modeledParts = [
+      concernIds.has("price") ? "价格" : "",
+      (intel.metrics || []).some(([label]) => /航程|时效/.test(label)) ? "航程/时效" : "",
+      concernIds.has("risk") ? "风险" : ""
+    ].filter(Boolean);
+    conclusion = `${intel.routeLabel} 已识别，但没有同航线实单。当前${modeledParts.join("、") || "结果"}只属于规则或模型初判，不应直接写入客户报价、交期承诺或风险定级。`;
   } else if (routeComplete && !routeRecognized) {
     conclusion = `当前地点库没有完整识别“${intel.route.origin} → ${intel.route.destination}”，因此不提供航程、价格或风险数字。请补标准港口 UN/LOCODE 或机场 IATA 代码后再查。`;
   } else if (findAirportCodeProfile(query)) {
@@ -11344,14 +11482,24 @@ function buildGlobalAnswerContract(query = "", target = {}, intel = {}, assessme
   if (policyQuery) impacts.push("政策是否影响当前订单，取决于生效日期、HS、原产国、进口国和豁免条款");
   if (!impacts.length) impacts.push(target.reason || "系统已识别最相关的查询方向");
 
+  const pendingItems = Array.from(new Set([
+    ...(assessment.decisionProfile?.pending || []),
+    ...(intel.missing || [])
+  ].filter(Boolean).map((item) => String(item).trim().replace(/[。；\s]+$/g, ""))));
   return {
     conclusion,
     basis: assessment.used?.join("；") || "按当前输入做意图识别。",
     impact: `${impacts.join("；").replace(/[。；]+$/g, "")}。`,
     action: policyQuery
       ? "先进入政策模块读取最新公告正文，确认发布主体、生效日期、适用 HS、原产国、进口国和豁免条款，再决定是否调整报价、申报或出运。"
-      : intel.action,
-    pending: intel.missing?.length ? intel.missing.join("；") : "正式执行前复核承运人、官方规则和查询时间。"
+      : concernIds.has("risk")
+        ? "进入风险预警中心核对路线天气、海况/航空天气、管制活动和口岸公告；只有命中当前路线且有有效来源时才提高风险等级。"
+        : concernIds.has("price")
+          ? "先按货型、数量/计费重和出运周取得船司、航司或大型货代的当前有效报价，再核附加费、有效期和包含项。"
+          : concernIds.has("customs")
+            ? "补齐真实规格、HS 候选、原产国、目的国和申报日期，再用官方税则与监管条件逐项核验。"
+            : intel.action,
+    pending: pendingItems.length ? pendingItems.join("；") : "正式执行前复核承运人、官方规则和查询时间。"
   };
 }
 
@@ -11555,9 +11703,13 @@ function buildGlobalSearchAnswer(query = "", candidates = []) {
   const selectedSources = selectEvidenceSourcesForQuery(value, candidates, intel);
   const assessment = buildGlobalEvidenceAssessment(value, candidates, intel, selectedSources);
   const contract = buildGlobalAnswerContract(value, target, intel, assessment);
+  const decisionProfile = assessment.decisionProfile || { label: assessment.label, tone: assessment.tone, summary: assessment.explanation, dimensions: [] };
+  const hasRoutePair = Boolean(intel.route?.origin && intel.route?.destination);
   const subject = intel.products.length
     ? `${intel.productLabel} · ${intel.routeLabel}`
-    : airport
+    : hasRoutePair
+      ? intel.routeLabel
+      : airport
       ? `${airport.cn}（${airport.iata}）`
       : port && intel.mode !== "Air" && intel.mode !== "Courier"
         ? `${port.cn || port.name}（${port.code || "港口"}）`
@@ -11569,7 +11721,7 @@ function buildGlobalSearchAnswer(query = "", candidates = []) {
       <div class="global-ai-head">
         <span>直接结论</span>
         <strong>${escapeHtml(subject)}</strong>
-        <small data-tone="${escapeHtml(assessment.tone)}">${escapeHtml(`${assessment.label} · ${modeLabel(intel.mode)}`)}</small>
+        <small data-tone="${escapeHtml(decisionProfile.tone)}">${escapeHtml(`${decisionProfile.label} · ${modeLabel(intel.mode)}`)}</small>
       </div>
       <div class="global-answer-contract">
         <section class="primary">
@@ -11589,11 +11741,22 @@ function buildGlobalSearchAnswer(query = "", candidates = []) {
           <p>${escapeHtml(contract.action)}</p>
         </section>
       </div>
-      <div class="global-answer-evidence" data-tone="${escapeHtml(assessment.tone)}">
-        <div><span>证据状态</span><strong>${escapeHtml(assessment.label)}</strong></div>
-        <p>${escapeHtml(assessment.explanation)}</p>
+      <div class="global-answer-evidence" data-tone="${escapeHtml(decisionProfile.tone)}">
+        <div><span>结论可用性</span><strong>${escapeHtml(decisionProfile.label)}</strong></div>
+        <p>${escapeHtml(decisionProfile.summary)}</p>
         <small>${escapeHtml(`适用范围：${assessment.scope} · ${assessment.freshness}`)}</small>
       </div>
+      ${decisionProfile.dimensions?.length ? `
+        <div class="global-answer-dimensions" aria-label="各维度证据等级">
+          ${decisionProfile.dimensions.map((item) => `
+            <section data-tone="${escapeHtml(item.tone)}">
+              <span>${escapeHtml(item.label)}</span>
+              <strong>${escapeHtml(item.status)}</strong>
+              <small>${escapeHtml(item.detail)}</small>
+            </section>
+          `).join("")}
+        </div>
+      ` : ""}
       <div class="global-ai-signal-row">
         <span>货物：${escapeHtml(intel.productLabel)}</span>
         <span>路线：${escapeHtml(intel.routeLabel)}</span>
@@ -11838,12 +12001,12 @@ function renderGlobalSearchResult(query = "") {
 }
 
 const globalSearchQualityCases = [
-  { query: "PVG", modules: ["codes"], evidence: /地点库命中/ },
-  { query: "特朗普对中国蓝牙耳机进口关税有什么影响", modules: ["policy"], evidence: /待查公告正文/, country: "美国", noRoute: true },
-  { query: "特朗普最近有什么物流影响", modules: ["trends"], evidence: /待查公告正文/ },
+  { query: "PVG", modules: ["codes"], evidence: /地点库命中/, decision: /代码识别可用/ },
+  { query: "特朗普对中国蓝牙耳机进口关税有什么影响", modules: ["policy"], evidence: /待查公告正文/, decision: /不能直接执行/, country: "美国", noRoute: true },
+  { query: "特朗普最近有什么物流影响", modules: ["trends"], evidence: /待查公告正文/, decision: /不能直接执行/ },
   { query: "上海港到洛杉矶港风险", modules: ["risk-center"] },
   { query: "上海到洛杉矶海运价格", modules: ["sea-market"] },
-  { query: "PVG到LAX空运风险", modules: ["risk-center"] },
+  { query: "PVG到LAX空运风险", modules: ["risk-center"], decision: /仅供初筛/, basisNot: /价格/ },
   { query: "PVG到LAX锂电池空运多少钱，有什么风险？", modules: ["decision", "air-market"], evidence: /规则初判|实单/ },
   { query: "小港A到小港B海运多久", modules: ["decision"], evidence: /资料不足/, basisNot: /地点库/ },
   { query: "CAIU9615034", modules: ["customs"] },
@@ -11864,6 +12027,7 @@ function runGlobalSearchQualityAudit() {
     const checks = [
       testCase.modules.includes(target.module),
       !testCase.evidence || testCase.evidence.test(assessment.label),
+      !testCase.decision || testCase.decision.test(assessment.decisionProfile?.label || ""),
       !testCase.country || intel.country === testCase.country,
       !testCase.noRoute || (!intel.route.origin && !intel.route.destination),
       !testCase.basisNot || !testCase.basisNot.test((assessment.used || []).join(" "))
@@ -11872,6 +12036,7 @@ function runGlobalSearchQualityAudit() {
       query: testCase.query,
       module: target.module || "none",
       evidence: assessment.label,
+      decision: assessment.decisionProfile?.label || "",
       country: intel.country || "",
       route: intel.routeLabel,
       pass: checks.every(Boolean)
@@ -12715,13 +12880,18 @@ function renderWeatherSourceRows(items = [], emptyText = "暂无来源") {
       ${relevantItems
         .slice(0, 8)
         .map((item) => {
-          const status = item.eventType === "control" ? "管制" : item.impact === "matched" || Number(item.impactLevel || 0) >= 2 ? "命中" : "相关";
+          const status = item.freshnessStatus === "undated"
+            ? "日期待核"
+            : item.eventType === "control"
+              ? "管制"
+              : item.impact === "matched" || Number(item.impactLevel || 0) >= 2 ? "命中" : "相关";
           const showHazards = item.impact === "matched" || item.routeRelevant || Number(item.impactLevel || 0) >= 2;
           const hazardText = showHazards && Array.isArray(item.hazards) && item.hazards.length
             ? `类型：${item.hazards.map((hazard) => hazard.label || hazard.id).join("、")}`
             : "";
           const routeText = item.routeArea ? `航线区域：${item.routeArea}` : "";
-          const detail = [routeText, hazardText, item.snippet || (Array.isArray(item.hits) && item.hits.length ? `关键词：${item.hits.join("、")}` : "")].filter(Boolean).join("；");
+          const freshnessText = item.publishedAt ? `发布日期：${item.publishedAt}` : item.freshnessStatus === "undated" ? "正文未提取到发布日期，只作线索" : "";
+          const detail = [freshnessText, routeText, hazardText, item.snippet || (Array.isArray(item.hits) && item.hits.length ? `关键词：${item.hits.join("、")}` : "")].filter(Boolean).join("；");
           return `
             <a href="${escapeHtml(item.url || "#")}" target="_blank" rel="noreferrer">
               <span>${escapeHtml(status)}</span>
@@ -12749,6 +12919,7 @@ function renderPortWeatherRiskCard(data = {}, origin = {}, destination = {}) {
         <b>${escapeHtml(formatEta(data.updatedAt || new Date().toISOString()))}</b>
       </div>
       <p>${escapeHtml(data.summary || `${origin.cn || origin.name || "出发港"} → ${destination.cn || destination.name || "目的港"}：正在核验天气、海况和码头作业公告。`)}</p>
+      <p class="weather-risk-evidence">${escapeHtml(`证据独立性：${data.evidenceSummary || "尚无可计分的独立来源"}`)}</p>
       <div class="weather-risk-actions">
         ${actions.slice(0, 4).map((item) => `<p>${escapeHtml(item)}</p>`).join("")}
       </div>
@@ -12768,7 +12939,7 @@ function renderPortWeatherRiskCard(data = {}, origin = {}, destination = {}) {
           ${renderWeatherSourceRows(notices, "未发现两端港口官网公告命中天气或作业限制。")}
         </div>
       </div>
-      <p class="weather-risk-note">${escapeHtml(data.sourceNote || "只列出正文命中且与常规航线相关的来源；不相关或未命中的来源不会出现在页面。")}</p>
+      <p class="weather-risk-note">${escapeHtml(data.sourceNote || "只列正文命中且与常规航线相关的来源；旧公告排除，未提取日期的内容只作线索，同一机构不重复计分。")}</p>
     </article>
   `;
 }

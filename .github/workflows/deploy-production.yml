@@ -35,7 +35,9 @@ jobs:
           node --check netlify/functions/access-auth.js
           node --check netlify/functions/schedule-records.js
           node --check netlify/functions/evidence-records.js
+          node --check netlify/functions/weather-risk.js
           node scripts/data-store-self-test.js
+          node scripts/weather-risk-self-test.js
 
       - name: Validate deployment secrets
         env:
