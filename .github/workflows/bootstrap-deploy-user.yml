@@ -1,0 +1,84 @@
+name: Bootstrap Restricted Deploy User
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PROD_APP_DIR: ${{ vars.PROD_APP_DIR || '/opt/hs-platform' }}
+      PROD_BACKUP_DIR: ${{ vars.PROD_BACKUP_DIR || '/opt/hs-platform-backups' }}
+      PROD_DEPLOY_USER: ${{ vars.PROD_DEPLOY_USER || 'logismaster-deploy' }}
+      PROD_SERVICE_NAME: ${{ vars.PROD_SERVICE_NAME || 'hs-platform' }}
+      PROD_SSH_PORT: ${{ vars.PROD_SSH_PORT || '22' }}
+
+    steps:
+      - name: Validate root bootstrap secrets
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+        run: |
+          test -n "$PROD_SSH_HOST" || { echo "Missing secret PROD_SSH_HOST"; exit 1; }
+          test "$PROD_SSH_USER" = "root" || { echo "Bootstrap must run once while PROD_SSH_USER is root"; exit 1; }
+          test -n "$PROD_SSH_KEY" || { echo "Missing secret PROD_SSH_KEY"; exit 1; }
+
+      - name: Configure SSH
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$PROD_SSH_KEY" > ~/.ssh/logismaster_deploy_key
+          chmod 600 ~/.ssh/logismaster_deploy_key
+          ssh-keyscan -p "$PROD_SSH_PORT" "$PROD_SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Create restricted deploy account
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
+        run: |
+          ssh -i ~/.ssh/logismaster_deploy_key -p "$PROD_SSH_PORT" "$PROD_SSH_USER@$PROD_SSH_HOST" \
+            "set -euo pipefail
+             deploy_user='$PROD_DEPLOY_USER'
+             printf '%s' \"\$deploy_user\" | grep -Eq '^[a-z][a-z0-9-]{2,31}$'
+             if ! id -u \"\$deploy_user\" >/dev/null 2>&1; then
+               useradd --create-home --shell /bin/bash \"\$deploy_user\"
+             fi
+             deploy_home=\$(getent passwd \"\$deploy_user\" | cut -d: -f6)
+             key_line=\$(grep -F 'logismaster-github-actions-2026-07-16' /root/.ssh/authorized_keys | tail -n 1)
+             test -n \"\$key_line\"
+             install -d -m 700 -o \"\$deploy_user\" -g \"\$deploy_user\" \"\$deploy_home/.ssh\"
+             printf '%s\n' \"\$key_line\" > \"\$deploy_home/.ssh/authorized_keys\"
+             chown \"\$deploy_user:\$deploy_user\" \"\$deploy_home/.ssh/authorized_keys\"
+             chmod 600 \"\$deploy_home/.ssh/authorized_keys\"
+             test -s '$PROD_APP_DIR/.runtime/hs-platform-auth.env'
+             mkdir -p '$PROD_BACKUP_DIR'
+             chown -R \"\$deploy_user:\$deploy_user\" '$PROD_APP_DIR' '$PROD_BACKUP_DIR'
+             install -d -m 755 /etc/systemd/system/'$PROD_SERVICE_NAME'.service.d
+             printf '%s\n' '[Service]' 'EnvironmentFile=-$PROD_APP_DIR/.runtime/hs-platform-auth.env' > /etc/systemd/system/'$PROD_SERVICE_NAME'.service.d/20-auth-env.conf
+             printf '%s\n' \"\$deploy_user ALL=(root) NOPASSWD: /usr/bin/systemctl restart $PROD_SERVICE_NAME, /usr/bin/systemctl is-active --quiet $PROD_SERVICE_NAME\" > /etc/sudoers.d/logismaster-deploy
+             chmod 440 /etc/sudoers.d/logismaster-deploy
+             visudo -cf /etc/sudoers.d/logismaster-deploy
+             systemctl daemon-reload
+             systemctl restart '$PROD_SERVICE_NAME'
+             systemctl is-active --quiet '$PROD_SERVICE_NAME'
+             rm -f /etc/hs-platform-auth.env
+             clean_keys=\$(mktemp)
+             grep -vF 'logismaster-github-actions-2026-07-16' /root/.ssh/authorized_keys > \"\$clean_keys\" || true
+             install -m 600 \"\$clean_keys\" /root/.ssh/authorized_keys
+             rm -f \"\$clean_keys\""
+
+      - name: Verify restricted deployment login
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+        run: |
+          ssh -i ~/.ssh/logismaster_deploy_key -p "$PROD_SSH_PORT" "$PROD_DEPLOY_USER@$PROD_SSH_HOST" \
+            "test -w '$PROD_APP_DIR' && \
+             test -w '$PROD_BACKUP_DIR' && \
+             sudo -n /usr/bin/systemctl is-active --quiet '$PROD_SERVICE_NAME'"

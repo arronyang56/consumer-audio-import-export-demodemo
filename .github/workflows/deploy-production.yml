@@ -1,5 +1,8 @@
 name: Deploy Production
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
@@ -16,13 +19,14 @@ jobs:
     timeout-minutes: 20
     env:
       PROD_APP_DIR: ${{ vars.PROD_APP_DIR || '/opt/hs-platform' }}
+      PROD_BACKUP_DIR: ${{ vars.PROD_BACKUP_DIR || '/opt/hs-platform-backups' }}
       PROD_SERVICE_NAME: ${{ vars.PROD_SERVICE_NAME || 'hs-platform' }}
       PROD_SSH_PORT: ${{ vars.PROD_SSH_PORT || '22' }}
       PROD_HEALTH_URLS: ${{ vars.PROD_HEALTH_URLS || 'https://logismaster.cn/health https://156-238-241-168.sslip.io/health' }}
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Validate deployment secrets
         env:
@@ -90,19 +94,17 @@ jobs:
             "set -euo pipefail
              release=/tmp/hs-platform-${GITHUB_SHA}.tar.gz
              envfile=/tmp/hs-platform-${GITHUB_SHA}.env
-             backup=/root/hs-platform-backup-\$(date +%Y%m%d-%H%M%S).tar.gz
-             mkdir -p '$PROD_APP_DIR'
-             if [ -d '$PROD_APP_DIR/site' ]; then tar -czf \"\$backup\" -C '$PROD_APP_DIR' .; fi
+             runtime_dir='$PROD_APP_DIR/.runtime'
+             backup='$PROD_BACKUP_DIR/hs-platform-backup-'\$(date +%Y%m%d-%H%M%S).tar.gz
+             mkdir -p '$PROD_APP_DIR' '$PROD_BACKUP_DIR' \"\$runtime_dir\"
+             if [ -d '$PROD_APP_DIR/site' ]; then tar --exclude='.runtime' -czf \"\$backup\" -C '$PROD_APP_DIR' .; fi
              tar -xzf \"\$release\" -C '$PROD_APP_DIR'
-             install -m 600 \"\$envfile\" /etc/hs-platform-auth.env
-             mkdir -p /etc/systemd/system/'$PROD_SERVICE_NAME'.service.d
-             printf '%s\n' '[Service]' 'EnvironmentFile=-/etc/hs-platform-auth.env' > /etc/systemd/system/'$PROD_SERVICE_NAME'.service.d/20-auth-env.conf
-             systemctl daemon-reload
+             install -m 600 \"\$envfile\" \"\$runtime_dir/hs-platform-auth.env\"
              rm -f \"\$release\"
              rm -f \"\$envfile\"
-             systemctl restart '$PROD_SERVICE_NAME'
+             sudo -n /usr/bin/systemctl restart '$PROD_SERVICE_NAME'
              sleep 3
-             systemctl is-active --quiet '$PROD_SERVICE_NAME'"
+             sudo -n /usr/bin/systemctl is-active --quiet '$PROD_SERVICE_NAME'"
 
       - name: Verify production health
         env:

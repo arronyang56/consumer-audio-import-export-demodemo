@@ -1,5 +1,8 @@
 name: Monitor Production
 
+permissions:
+  contents: read
+
 on:
   schedule:
     - cron: "*/15 * * * *"
@@ -14,7 +17,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Check production endpoints
         run: node scripts/health-check.js
