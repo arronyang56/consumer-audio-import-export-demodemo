@@ -112,7 +112,7 @@ const marketSources = {
   ca: { names: ["加拿大", "canada", "vancouver"], sources: [["CBSA Customs Tariff", "https://www.cbsa.gc.ca/trade-commerce/tariff-tarif/menu-eng.html", "加拿大海关税则。"], ["ISED Canada", "https://ised-isde.canada.ca/", "加拿大无线和产品合规。"]] },
   br: { names: ["巴西", "brazil", "brasil", "santos"], sources: [["Receita Federal Classificação", "https://www.gov.br/receitafederal/pt-br/assuntos/aduana-e-comercio-exterior/classificacao-fiscal-de-mercadorias", "巴西 NCM/商品归类。"], ["Portal Siscomex", "https://www.gov.br/siscomex/pt-br", "巴西外贸单一门户。"], ["ANATEL", "https://www.gov.br/anatel/pt-br/regulado/certificacao-de-produtos", "巴西无线/通信产品认证。"], ["INMETRO", "https://www.gov.br/inmetro/pt-br/assuntos/regulamentacao/avaliacao-da-conformidade/produtos-e-servicos-regulados", "巴西受监管产品和合格评定。"]] },
   mx: { names: ["墨西哥", "mexico", "méxico", "manzanillo"], sources: [["SNICE TIGIE", "https://www.snice.gob.mx/cs/avi/snice/tfinicio.html", "墨西哥税则和修改信息。"], ["SAT Mexico", "https://www.sat.gob.mx/", "墨西哥税务和海关入口。"], ["IFETEL", "https://www.ift.org.mx/", "墨西哥无线监管。"]] },
-  id: { names: ["印尼", "印度尼西亚", "indonesia", "jakarta"], sources: [["Indonesia Customs DGCE", "https://www.beacukai.go.id/", "印尼海关入口。"], ["Indonesia National Single Window", "https://www.insw.go.id/", "印尼单一窗口。"], ["SDPPI", "https://sertifikasi.postel.go.id/", "印尼无线/通信设备认证。"]] },
+  id: { names: ["印尼", "印度尼西亚", "indonesia", "jakarta"], sources: [["Indonesia Customs DGCE", "https://www.beacukai.go.id/", "印尼海关、保税物流和进出口通告。"], ["Indonesia National Single Window", "https://www.insw.go.id/", "印尼单一窗口、商品和许可信息。"], ["Ministry of Trade Indonesia", "https://www.kemendag.go.id/", "印尼贸易政策、进出口规定和市场信息。"], ["Ministry of Transportation Indonesia", "https://dephub.go.id/", "港口、航运、航空和运输管制公告。"], ["Pelindo", "https://www.pelindo.co.id/", "印尼主要港口运营和码头动态。"], ["BMKG", "https://www.bmkg.go.id/", "印尼官方天气、海况、地震和预警。"], ["SDPPI", "https://sertifikasi.postel.go.id/", "印尼无线/通信设备认证。"]] },
   ph: { names: ["菲律宾", "philippines", "manila"], sources: [["Philippines Tariff Commission", "https://tariffcommission.gov.ph/", "菲律宾税则和归类资料。"], ["Bureau of Customs Philippines", "https://customs.gov.ph/", "菲律宾海关入口。"], ["NTC Philippines", "https://ntc.gov.ph/", "菲律宾无线通信监管。"]] },
   tr: { names: ["土耳其", "turkey", "turkiye", "türkiye"], sources: [["Turkey Trade Ministry", "https://ticaret.gov.tr/", "土耳其贸易和进口监管。"], ["Turkey Tariff Search", "https://uygulama.gtb.gov.tr/Tara/", "土耳其税则查询。"], ["BTK Turkey", "https://www.btk.gov.tr/", "土耳其通信监管。"]] },
   ae: { names: ["阿联酋", "uae", "united arab emirates", "迪拜", "dubai"], sources: [["Dubai Customs", "https://www.dubaicustoms.gov.ae/", "迪拜海关入口。"], ["Dubai Trade", "https://www.dubaitrade.ae/", "迪拜贸易和清关服务。"], ["TDRA UAE", "https://tdra.gov.ae/", "阿联酋通信/无线设备监管。"]] },
@@ -226,7 +226,7 @@ function parseRssItems(xml = "", source = {}) {
     return {
       title: title.replace(/\s+-\s+[^-]{2,40}$/g, "") || sourceName || "RSS item",
       url: link,
-      domain: source.domain || hostFromUrl(link) || sourceName,
+      domain: source.domain || (/\./.test(sourceName) ? sourceName : "") || hostFromUrl(link) || sourceName,
       sourceCountry: source.country || "Global",
       seendate: published,
       language: "",
@@ -282,7 +282,7 @@ function isRelevant(item = {}, keyword = "") {
   if (isTrendNoise(item)) return false;
   const cleaned = cleanKeyword(keyword);
   if (!cleaned) return isOfficialLike(item) || hasBusinessContext(item);
-  const haystack = `${item.title || ""} ${item.takeaway || ""} ${item.takeawayZh || ""} ${item.domain || ""} ${item.sourceCountry || ""} ${item.category || ""}`.toLowerCase();
+  const haystack = `${item.title || ""} ${item.description || ""} ${item.summary || ""} ${item.takeaway || ""} ${item.takeawayZh || ""} ${item.domain || ""} ${item.sourceCountry || ""} ${item.category || ""}`.toLowerCase();
   const market = detectMarket(cleaned);
   if (market) {
     const marketHaystack = `${item.title || ""} ${item.domain || ""} ${item.sourceCountry || ""}`.toLowerCase();
@@ -367,7 +367,13 @@ function normalizeGovUk(result = {}) {
 
 function detectMarket(keyword = "") {
   const lower = cleanKeyword(keyword).toLowerCase();
-  return Object.entries(marketSources).find(([, config]) => config.names.some((name) => lower.includes(name.toLowerCase())))?.[0] || "";
+  const matches = Object.entries(marketSources).flatMap(([market, config]) =>
+    config.names
+      .map((name) => String(name || "").toLowerCase())
+      .filter((name) => name && lower.includes(name))
+      .map((name) => ({ market, length: name.length }))
+  );
+  return matches.sort((a, b) => b.length - a.length)[0]?.market || "";
 }
 
 function normalizeOfficialSource([title, url, note], market = "") {
@@ -455,6 +461,29 @@ async function fetchGoogleNews(keyword = "") {
   })
     .filter((item) => isRelevant(item, keyword))
     .slice(0, 6);
+}
+
+async function fetchMarketOfficialNews(market = "", keyword = "") {
+  const siteTerms = {
+    id: "(site:beacukai.go.id OR site:insw.go.id OR site:kemendag.go.id OR site:dephub.go.id OR site:pelindo.co.id OR site:bmkg.go.id)"
+  };
+  if (!siteTerms[market]) return [];
+  const focus = keyword || marketSources[market]?.names?.[0] || "";
+  const term = `${siteTerms[market]} ${focus} (logistics OR customs OR trade OR port OR shipping OR weather OR regulation) when:30d`;
+  const url = new URL("https://news.google.com/rss/search");
+  url.searchParams.set("q", term);
+  url.searchParams.set("hl", "id");
+  url.searchParams.set("gl", "ID");
+  url.searchParams.set("ceid", "ID:id");
+  const response = await fetchText(url);
+  if (!response.ok) return [];
+  return parseRssItems(response.text, {
+    name: "Indonesia official search",
+    country: marketSources[market]?.names?.[0] || "",
+    category: "官方/物流与贸易"
+  })
+    .filter((item) => isRelevant(item, keyword || marketSources[market]?.names?.[0] || ""))
+    .slice(0, 8);
 }
 
 async function fetchMediaFeeds(keyword = "") {
@@ -590,7 +619,8 @@ function buildTrendSummary(items = [], indicators = [], keyword = "") {
 }
 
 function buildTrendInsights(items = [], indicators = [], keyword = "") {
-  const text = items.map((item) => `${item.title} ${item.category} ${item.takeawayZh || item.takeaway}`).join(" ").toLowerCase();
+  const evidenceItems = items.filter((item) => !item.baseline && !/manual checklist/i.test(String(item.domain || "")));
+  const text = evidenceItems.map((item) => `${item.title} ${item.category} ${item.takeawayZh || item.takeaway}`).join(" ").toLowerCase();
   const insights = [
     {
       title: "贸易/海关",
@@ -613,7 +643,7 @@ function buildTrendInsights(items = [], indicators = [], keyword = "") {
       impact: "关注制裁、出口管制、突发事件、进口限制和客户市场需求变化。"
     }
   ];
-  if (keyword) insights.unshift({ title: "本次关键词", signal: keyword, impact: "已按关键词优先筛选；如果结果少，建议换国家英文名、港口英文名或更宽泛的业务词。" });
+  if (keyword) insights.unshift({ title: "本次关键词", signal: keyword, impact: evidenceItems.length ? `已取得 ${evidenceItems.length} 条通过相关性校验的公开内容。` : "未取得可核验的新发布；下方官方入口不计入实时结果。" });
   return insights;
 }
 
@@ -649,14 +679,15 @@ exports.handler = async (event) => {
   url.searchParams.set("sort", "datedesc");
 
   try {
-    const [gdeltResult, federalResult, govUkResult, worldBankResult, fxResult, googleNewsResult, mediaFeedsResult] = await Promise.allSettled([
+    const [gdeltResult, federalResult, govUkResult, worldBankResult, fxResult, googleNewsResult, mediaFeedsResult, marketOfficialNewsResult] = await Promise.allSettled([
       getJson(url),
       !market || market === "us" ? fetchFederalRegister(keyword) : Promise.resolve([]),
       !market || market === "uk" ? fetchGovUk(keyword) : Promise.resolve([]),
       fetchWorldBankIndicators(),
       fetchFxRates(),
       fetchGoogleNews(keyword),
-      fetchMediaFeeds(keyword)
+      fetchMediaFeeds(keyword),
+      fetchMarketOfficialNews(market, keyword)
     ]);
     const gdeltResponse = gdeltResult.status === "fulfilled" ? gdeltResult.value : null;
     const gdeltArticles = gdeltResponse?.ok && Array.isArray(gdeltResponse.data?.articles)
@@ -671,8 +702,9 @@ exports.handler = async (event) => {
     ];
     const googleNewsItems = filterForKeyword(googleNewsResult.status === "fulfilled" ? googleNewsResult.value : []);
     const mediaItems = filterForKeyword(mediaFeedsResult.status === "fulfilled" ? mediaFeedsResult.value : []);
+    const marketOfficialNewsItems = filterForKeyword(marketOfficialNewsResult.status === "fulfilled" ? marketOfficialNewsResult.value : []);
     const officialItems = marketOfficialItems(market);
-    const articles = dedupeArticles([...officialItems, ...federalItems, ...govUkItems, ...googleNewsItems, ...mediaItems, ...gdeltArticles]).slice(0, keyword ? 14 : 18);
+    const articles = dedupeArticles([...marketOfficialNewsItems, ...federalItems, ...govUkItems, ...googleNewsItems, ...mediaItems, ...gdeltArticles]).slice(0, keyword ? 14 : 18);
 
     if (!articles.length) {
       const fallbackTrendItems = keywordFallbackItems(keyword);
@@ -686,9 +718,10 @@ exports.handler = async (event) => {
           ? `暂时没有拿到“${keyword}”相关公开新闻，但已尝试补充官方公告、宏观指标和汇率数据。`
           : "公开新闻接口暂时没有返回结果，先按基础观察清单和公开指标观察。",
         indicators,
-        insights: buildTrendInsights(fallbackTrendItems, indicators, keyword),
+        insights: buildTrendInsights([], indicators, keyword),
         items: fallbackTrendItems,
         sourceBreakdown: [
+          { source: "目标国家官方站点", status: `${marketOfficialNewsItems.length} 条相关发布` },
           { source: "Federal Register", status: `${federalItems.length} 条` },
           { source: "GOV.UK", status: `${govUkItems.length} 条` },
           { source: "Google News", status: `${googleNewsItems.length} 条` },
@@ -696,6 +729,7 @@ exports.handler = async (event) => {
           { source: "GDELT", status: `${gdeltArticles.length} 条` },
           { source: "World Bank / FX", status: `${indicators.length} 个指标` }
         ],
+        verificationEntries: officialItems,
         message: "Public trend sources did not return article results."
       });
     }
@@ -709,6 +743,7 @@ exports.handler = async (event) => {
       indicators,
       insights: buildTrendInsights(articles, indicators, keyword),
       sourceBreakdown: [
+        { source: "目标国家官方站点", status: `${marketOfficialNewsItems.length} 条相关发布` },
         { source: "Federal Register", status: `${federalItems.length} 条` },
         { source: "GOV.UK", status: `${govUkItems.length} 条` },
         { source: "Google News", status: `${googleNewsItems.length} 条` },
@@ -716,6 +751,7 @@ exports.handler = async (event) => {
         { source: "GDELT", status: `${gdeltArticles.length} 条` },
         { source: "World Bank / FX", status: `${indicators.length} 个指标` }
       ],
+      verificationEntries: officialItems,
       items: articles
     });
   } catch (error) {
@@ -730,8 +766,9 @@ exports.handler = async (event) => {
         ? `搜索“${keyword}”时公开新闻接口暂时不可用，先显示基础观察清单。`
         : "公开新闻接口暂时不可用，先显示基础观察清单。",
       indicators: [],
-      insights: buildTrendInsights(fallbackTrendItems, [], keyword),
+      insights: buildTrendInsights([], [], keyword),
       items: fallbackTrendItems,
+      verificationEntries: marketOfficialItems(market),
       message: error.message || "Global trend query failed."
     });
   }

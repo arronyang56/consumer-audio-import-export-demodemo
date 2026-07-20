@@ -1043,6 +1043,90 @@ function productOfficialItems(filters = {}) {
   return items.map((item) => normalizeOfficialSource(item));
 }
 
+function buildPolicyBaseline(filters = {}) {
+  const countryText = `${filters.importCountry || ""} ${filters.exportCountry || ""}`.toLowerCase();
+  const productText = `${filters.product || ""} ${filters.keyword || ""}`.toLowerCase();
+  const isGermany = /德国|germany|deutschland/.test(countryText);
+  const isEu = isGermany || /欧盟|欧洲|european union|\beu\b|france|netherlands|italy|spain|法国|荷兰|意大利|西班牙/.test(countryText);
+  const isVietnam = /越南|vietnam/.test(countryText);
+  const isPhone = /手机|智能手机|mobile\s*phone|smartphone|cellular\s*phone/.test(productText);
+  const definition = "“变化”是指与上一次已保存的官方政策基线相比，法规状态、生效日期、适用国家/产品/HS、税率或贸易措施、认证/标签、申报资料或过渡期至少一项发生可核验改变。没有检索到新增公告，不等于现行政策不存在，也不等于政策一定没有变化。";
+  const genericSources = [];
+  const currentRules = [];
+  const materials = ["商业发票、装箱单、运输单证", "准确商品描述、候选 HS、原产国和成交方式", "进口商/收货人主体、税号及授权资料"];
+
+  if (isEu) {
+    currentRules.push("进口税费：先用欧盟 TARIC/Access2Markets 按完整 CN/TARIC 编码、原产国和申报日期核验；德国进口增值税通常为 19%，手机示例税率不能替代具体商品编码查询。");
+    currentRules.push("市场准入：无线/蜂窝手机属于欧盟无线电设备法规范围，上市前需完成适用的符合性评估、CE 标识、EU Declaration of Conformity 和技术文件。");
+    currentRules.push("环保责任：电子电气设备需核对 RoHS；在德国投放市场还要核对 WEEE/生产者责任、回收标识及当地责任主体。");
+    materials.push("EU Declaration of Conformity、适用测试报告/技术文件、CE 标签和说明书");
+    materials.push("RoHS/材料合规声明、WEEE/德国生产者责任信息和回收标识");
+    genericSources.push(
+      ["EU Access2Markets", "https://trade.ec.europa.eu/access-to-markets/en/home", "按产品和贸易路线查询关税、进口程序、原产地及文件。"],
+      ["EU TARIC", "https://ec.europa.eu/taxation_customs/dds2/taric/taric_consultation.jsp", "核验申报日适用的欧盟税则和监管措施。"],
+      ["EU Radio Equipment Directive", "https://single-market-economy.ec.europa.eu/single-market/goods/european-standards/harmonised-standards/radio-equipment_en", "无线设备法规和协调标准官方入口。"],
+      ["EU RoHS", "https://environment.ec.europa.eu/topics/waste-and-recycling/rohs-directive_en", "电子电气设备有害物质限制官方说明。"],
+      ["German Customs", "https://www.zoll.de/EN/Businesses/businesses_node.html", "德国商业进口、关税和进口增值税官方入口。"]
+    );
+  }
+
+  if (isEu && isPhone) {
+    currentRules.push("手机专项：自 2024-12-28 起，欧盟通用充电要求已适用于手持手机；有线充电接口、USB-C/充电协议、是否随附充电器及包装图示需核对。适用于 2025-08-01 起投放市场的联网无线设备网络安全要求也要纳入 RED 技术评估。");
+    materials.push("USB-C/充电协议规格、是否随附充电器的包装图示、用户说明");
+    materials.push("蜂窝/Wi-Fi/蓝牙频段、射频/EMC/安全及适用网络安全测试证据");
+    genericSources.push(["EU Common Charger", "https://single-market-economy.ec.europa.eu/sectors/electrical-and-electronic-engineering-industries-eei/radio-equipment-directive-red/one-common-charging-solution-all_en", "手机等设备通用充电接口、充电协议和包装图示要求。"]);
+  }
+
+  if (isVietnam) {
+    currentRules.push("原产地/越南出口：如主张 EU-Vietnam FTA 优惠，必须按协定规则核对原产资格和声明文本；不能只凭“越南发货”认定越南原产。");
+    materials.push("原产地证据、供应链/BOM 依据及符合协定要求的原产声明（如主张优惠）");
+    genericSources.push(
+      ["EU-Vietnam Free Trade Agreement", "https://trade.ec.europa.eu/access-to-markets/en/content/eu-vietnam-free-trade-agreement", "原产地、优惠关税和清关文件官方说明。"],
+      ["Vietnam Customs", "https://www.customs.gov.vn/", "越南出口海关和手续入口。"]
+    );
+  }
+
+  if (!currentRules.length) {
+    currentRules.push("当前基线：先核对目的国税则/监管措施、产品认证和标签、进口商资质、原产地、申报资料及运输限制；未读到匹配官方正文前，不推断具体税率或准入结论。");
+  }
+
+  const sources = genericSources.map(([title, url, note]) => ({ title, url, note, domain: hostFromUrl(url) }));
+  return {
+    status: "current-baseline",
+    asOf: new Date().toISOString().slice(0, 10),
+    scope: [filters.exportCountry && `出口国 ${filters.exportCountry}`, filters.importCountry && `进口国 ${filters.importCountry}`, filters.product && `产品 ${filters.product}`].filter(Boolean).join(" · ") || "当前筛选条件",
+    definition,
+    headline: isGermany && isPhone
+      ? "德国进口手机即使没有发现新增公告，也仍有明确现行要求：税则/进口税、RED/CE、USB-C、RoHS/WEEE、进口商和原产地文件必须逐项核对。"
+      : "本次变化监测必须建立在现行政策基线上；未命中新增公告时，仍按下面的现行要求和材料清单执行。",
+    currentRules: Array.from(new Set(currentRules)),
+    materials: Array.from(new Set(materials)),
+    sources,
+    coverage: sources.length
+      ? `本基线命中 ${sources.length} 个与当前国家/产品直接相关的官方入口；入口用于核验正文，不能冒充已读取的新增公告。`
+      : "当前只形成通用基线；补充国家、产品和 HS 后再缩小到具体官方来源。"
+  };
+}
+
+function baselineVerificationItems(baseline = {}) {
+  return (baseline.sources || []).map((source) => ({
+    title: source.title,
+    url: source.url,
+    domain: source.domain || hostFromUrl(source.url),
+    sourceCountry: "",
+    seendate: baseline.asOf || "",
+    description: source.note || "",
+    summary: source.note || "",
+    category: "现行政策基线",
+    sourceType: "官方入口",
+    entryOnly: true,
+    evidenceMode: "directory",
+    credibility: { score: 94, label: "高：官方入口", reason: "用于核对当前政策正文、适用范围和生效日期。" },
+    takeaway: source.note || "",
+    action: "按具体商品编码、原产国、申报日期和产品型号核验。"
+  }));
+}
+
 function buildAnalysis(items = [], filters = {}) {
   const categories = Array.from(new Set(items.map((item) => item.category).filter(Boolean)));
   const officialCount = items.filter((item) => item.credibility?.score >= 90).length;
@@ -1102,9 +1186,11 @@ function dedupeArticles(items = []) {
 
 function fallback(message = "", filters = {}) {
   const markets = detectMarkets(filters);
+  const baseline = buildPolicyBaseline(filters);
   const verificationEntries = [
     ...(markets.length ? marketsOfficialItems(markets) : officialSourceGroups[officialSourceGroups.length - 1].items.map((item) => normalizeOfficialSource(item))),
-    ...productOfficialItems(filters)
+    ...productOfficialItems(filters),
+    ...baselineVerificationItems(baseline)
   ];
   return {
     ok: false,
@@ -1115,6 +1201,7 @@ function fallback(message = "", filters = {}) {
     message,
     evidenceStatus: "source-unavailable",
     summary: "实时来源暂时不可用，因此不生成新增政策结论；仅保留对应国家和产品的官方核验入口。",
+    baseline,
     analysis: buildAnalysis([], filters),
     sourceBreakdown: [],
     verificationEntries,
@@ -1147,6 +1234,7 @@ exports.handler = async (event) => {
 
   try {
     const markets = detectMarkets(filters);
+    const baseline = buildPolicyBaseline(filters);
     const fetchFed = !markets.length || markets.includes("us");
     const fetchUk = !markets.length || markets.includes("uk");
     const fetchChina = !markets.length || markets.includes("cn");
@@ -1171,7 +1259,7 @@ exports.handler = async (event) => {
     const articles = dedupeArticles([...chinaOfficialItems, ...federalItems, ...govUkItems, ...googleNewsItems, ...mediaItems, ...gdeltArticles])
       .filter((item) => isRelevant(item, filters))
       .slice(0, 18);
-    const verificationEntries = dedupeArticles(officialItems).slice(0, 12);
+    const verificationEntries = dedupeArticles([...officialItems, ...baselineVerificationItems(baseline)]).slice(0, 16);
 
     return json(200, {
       ok: true,
@@ -1179,6 +1267,7 @@ exports.handler = async (event) => {
       updatedAt: new Date().toISOString(),
       filters,
       evidenceStatus: articles.length ? "matched-summary" : "no-match",
+      baseline,
       summary: articles.length
         ? `找到 ${articles.length} 条同时通过国家/地区、产品和政策主题校验的公开标题或摘要；是否改变税率、准入或申报要求，仍需打开原文确认生效日期和适用范围。`
         : "本次没有找到同时通过国家/地区、产品和政策主题校验的公告标题或摘要，因此不生成新增政策结论。",

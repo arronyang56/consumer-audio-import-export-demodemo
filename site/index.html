@@ -15,7 +15,7 @@
         display: none !important;
       }
     </style>
-    <link rel="stylesheet" href="./styles.css?v=20260716-risk-evidence-v83" />
+    <link rel="stylesheet" href="./styles.css?v=20260720-change-review-v84" />
   </head>
   <body class="auth-pending is-public-home">
     <button type="button" class="login-trigger" id="openLoginDialog">登录</button>
@@ -1787,6 +1787,11 @@
             <span>报关草稿 · 不是正式申报</span>
             <div>
               <button type="button" class="secondary-button" id="loadDeclarationExample">载入样例</button>
+              <button type="button" class="secondary-button" id="linkDeclarationFromHs">带入当前归类</button>
+              <label class="secondary-button declaration-import-button" title="支持 JSON、CSV 和本平台导出的 XLS 草稿">
+                导入草稿
+                <input id="importDeclarationFile" type="file" accept=".json,.csv,.xls,text/csv,application/json,application/vnd.ms-excel" hidden />
+              </label>
               <button type="button" class="secondary-button" id="validateDeclarationDoc">检查必填项</button>
               <button type="button" class="secondary-button" id="downloadDeclarationExcel">生成 Excel 报关单</button>
               <button type="button" class="primary-button" id="printDeclarationDoc">导出 PDF</button>
@@ -2821,10 +2826,10 @@
 
     <script src="./company-hs-data.js?v=20260610-logistics-intel-v12"></script>
     <script src="./source-catalog.js?v=20260716-source-policy-v19"></script>
-    <script src="./schedule-database.js?v=20260716-source-policy-v4"></script>
+    <script src="./schedule-database.js?v=20260720-carrier-snapshot-v5"></script>
     <script src="./china-tariff-2026.js?v=20260610-logistics-intel-v12"></script>
     <script src="./trade-measures-data.js?v=20260610-logistics-intel-v12"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="./app.js?v=20260716-risk-evidence-v142"></script>
+  <script src="./app.js?v=20260720-change-review-v143"></script>
   </body>
 </html>

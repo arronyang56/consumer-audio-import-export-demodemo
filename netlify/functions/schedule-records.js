@@ -9,6 +9,8 @@ const MAX_STORED_RECORDS = 5000;
 const ALLOWED_SOURCE_IDS = new Set([
   "maersk-point-to-point",
   "oocl-schedule-download",
+  "oocl-eax1-service",
+  "oocl-seap-service",
   "hapag-schedule-download",
   "one-point-to-point",
   "cosco-service-schedule",
