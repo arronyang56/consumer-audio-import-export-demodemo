@@ -11,8 +11,10 @@ const topics = [
   { product: "蓝牙耳机 无线音箱", exportCountry: "中国", importCountry: "美国", direction: "出口", keyword: "关税 301 海关" },
   { product: "蓝牙耳机 无线音箱", exportCountry: "中国", importCountry: "欧盟", direction: "出口", keyword: "认证 RED RoHS 海关" },
   { product: "锂电池 移动电源", exportCountry: "中国", importCountry: "英国", direction: "出口", keyword: "认证 电池 进口" },
-  { product: "蓝牙耳机 无线音箱", exportCountry: "中国", importCountry: "泰国", direction: "出口", keyword: "NBTC TISI 海关" },
-  { product: "蓝牙耳机 无线音箱", exportCountry: "中国", importCountry: "日本", direction: "出口", keyword: "TELEC PSE 海关" }
+  { product: "蓝牙耳机 无线音箱", exportCountry: "中国", importCountry: "越南", direction: "出口", keyword: "海关 无线认证 进口政策" },
+  { product: "蓝牙耳机 无线音箱", exportCountry: "中国", importCountry: "印度尼西亚", direction: "出口", keyword: "BTKI SDPPI 进口政策" },
+  { product: "蓝牙耳机 无线音箱", exportCountry: "中国", importCountry: "日本", direction: "出口", keyword: "TELEC PSE 海关" },
+  { product: "蓝牙耳机 无线音箱", exportCountry: "中国", importCountry: "韩国", direction: "出口", keyword: "KC RRA 海关" }
 ];
 
 const policyCacheKey = "ca:policy-cache";
@@ -178,9 +180,9 @@ function buildHotspotBoards(topicResults = []) {
   const categories = ["政治", "科技", "金融"];
   const boards = categories.map((category) => ({
     category,
-    items: allItems.filter((item) => item.hotCategory === category).slice(0, 8)
+    items: allItems.filter((item) => item.hotCategory === category).slice(0, 10)
   }));
-  return { allItems: allItems.slice(0, 24), boards };
+  return { allItems: allItems.slice(0, 30), boards };
 }
 
 exports.handler = async () => {
@@ -191,10 +193,19 @@ exports.handler = async () => {
       results.push({
         topic,
         summary: data.summary || "",
-        items: (data.items || []).slice(0, 3).map((item) => ({
+        evidenceStatus: data.evidenceStatus || "",
+        recordBreakdown: data.recordBreakdown || {},
+        items: (data.items || []).slice(0, 6).map((item) => ({
           title: item.title,
           url: item.url,
-          takeaway: item.takeaway || item.takeawayZh || ""
+          takeaway: item.takeaway || item.takeawayZh || "",
+          recordType: item.recordType || "news-analysis",
+          bodyEvidence: Boolean(item.bodyEvidence),
+          publishedAt: item.publishedAt || item.seendate || "",
+          effectiveAt: item.effectiveAt || "",
+          appliesTo: item.appliesTo || "",
+          businessImpact: item.businessImpact || item.action || "",
+          evidenceStatement: item.evidenceStatement || ""
         }))
       });
     } catch (error) {

@@ -329,6 +329,7 @@ const marketSources = {
     terms: ["Korea customs", "KCS", "KC certification", "RRA"],
     sources: [
       ["Korea Customs Service", "https://www.customs.go.kr/english/main.do", "韩国海关和进口政策入口。"],
+      ["KCS FTA Portal", "https://customs.go.kr/engportal/main.do", "韩国优惠税率、原产地规则和 FTA 清关资料。"],
       ["KATS", "https://www.kats.go.kr/en/main.do", "韩国标准和 KC 认证参考。"],
       ["RRA Korea", "https://www.rra.go.kr/en/index.do", "韩国无线/电磁兼容监管入口。"]
     ]
@@ -339,6 +340,8 @@ const marketSources = {
     sources: [
       ["Vietnam Customs", "https://www.customs.gov.vn/", "越南海关公告和手续入口。"],
       ["Vietnam National Single Window", "https://vnsw.gov.vn/", "越南单一窗口。"],
+      ["Vietnam National Trade Repository", "https://vntr.moit.gov.vn/", "越南关税、非关税措施和贸易救济状态。"],
+      ["Vietnam Ministry of Industry and Trade", "https://moit.gov.vn/en", "越南进出口政策和贸易救济公告。"],
       ["MIC Vietnam", "https://mic.gov.vn/", "越南无线/通信设备监管参考。"]
     ]
   },
@@ -401,7 +404,9 @@ const marketSources = {
     terms: ["Indonesia customs", "DGCE", "INSW", "SDPPI", "SNI"],
     sources: [
       ["Indonesia Customs DGCE", "https://www.beacukai.go.id/", "印尼海关入口。"],
-      ["Indonesia National Single Window", "https://www.insw.go.id/", "印尼单一窗口。"],
+      ["Indonesia Customs Tariff BTKI", "https://www.beacukai.go.id/btki-dan-tarif", "印尼官方 BTKI 税则、税率和商品分类入口。"],
+      ["Indonesia National Trade Repository", "https://insw.go.id/intr", "印尼税则、许可和限制措施查询。"],
+      ["Indonesia Trade Regulation Database", "https://jdih.kemendag.go.id/peraturan", "印尼贸易部现行进出口法规。"],
       ["SDPPI", "https://sertifikasi.postel.go.id/", "印尼无线/通信设备认证。"]
     ]
   },
@@ -875,6 +880,47 @@ function actionFor(article = {}) {
   return "提取发布日期、实施日期、适用产品、国家/地区和订单影响项。";
 }
 
+function firstPolicyDate(text = "", anchorPattern = null) {
+  const value = String(text || "");
+  const scoped = anchorPattern ? value.match(anchorPattern)?.[0] || "" : value;
+  const match = (scoped || value).match(/20\d{2}(?:年|[-/.])\d{1,2}(?:月|[-/.])\d{1,2}日?/);
+  return match ? match[0].replace(/年|月/g, "-").replace(/日/g, "").replace(/[/.]/g, "-") : "";
+}
+
+function enrichPolicyRecord(item = {}, filters = {}) {
+  const title = String(item.title || "").trim();
+  const body = String(item.description || item.summary || "").trim();
+  const normalizedTitle = title.toLowerCase().replace(/\s+/g, " ");
+  const normalizedBody = body.toLowerCase().replace(/\s+/g, " ");
+  const official = (item.credibility?.score || 0) >= 90 || /官方|政府|official/i.test(String(item.sourceType || ""));
+  const bodyEvidence = body.length >= 32 && normalizedBody !== normalizedTitle && !normalizedBody.startsWith("用于打开原文核验");
+  const combined = `${title} ${body}`;
+  const changeSignal = /发布|修订|调整|废止|生效|实施|延长|暂停|新增|取消|公告|regulation|rule|amend|effective|implement|extend|suspend|repeal|introduc|impos/i.test(combined);
+  const effectiveAt = firstPolicyDate(combined, /(?:自|从|于|effective|apply|implementation|实施|生效)[^。.;；]{0,55}20\d{2}(?:年|[-/.])\d{1,2}(?:月|[-/.])\d{1,2}日?/i);
+  let recordType = "news-analysis";
+  if (item.entryOnly || item.evidenceMode === "directory") recordType = "official-entry";
+  else if (official && bodyEvidence && changeSignal) recordType = "new-change";
+  else if (official && bodyEvidence) recordType = "current-policy";
+  else if (official && !bodyEvidence) recordType = "official-entry";
+  const product = filters.product || "输入产品待细化";
+  const market = [filters.exportCountry, filters.importCountry].filter(Boolean).join(" → ") || item.sourceCountry || "适用市场待核验";
+  const entryOnly = recordType === "official-entry";
+  return {
+    ...item,
+    recordType,
+    bodyEvidence,
+    evidenceMode: entryOnly ? "directory" : bodyEvidence ? "body-summary" : "title-summary",
+    entryOnly,
+    publishedAt: item.publishedAt || item.seendate || firstPolicyDate(combined),
+    effectiveAt,
+    appliesTo: `${market} · ${product}`,
+    businessImpact: actionFor(item),
+    evidenceStatement: bodyEvidence
+      ? "已取得正文摘要或官方摘要；仍需打开原文核对条款、附件和后续修订。"
+      : "未取得正文证据，只能作为官方入口或新闻线索，不能据此判断政策已经变化。"
+  };
+}
+
 function normalizeArticle(article = {}) {
   const domain = article.domain || "";
   return {
@@ -1048,12 +1094,49 @@ function buildPolicyBaseline(filters = {}) {
   const productText = `${filters.product || ""} ${filters.keyword || ""}`.toLowerCase();
   const isGermany = /德国|germany|deutschland/.test(countryText);
   const isEu = isGermany || /欧盟|欧洲|european union|\beu\b|france|netherlands|italy|spain|法国|荷兰|意大利|西班牙/.test(countryText);
+  const isChina = /中国|china|\bcn\b/.test(countryText);
+  const isUs = /美国|united states|\busa?\b/.test(countryText);
+  const isUk = /英国|united kingdom|\buk\b/.test(countryText);
   const isVietnam = /越南|vietnam/.test(countryText);
+  const isIndonesia = /印尼|印度尼西亚|indonesia/.test(countryText);
+  const isJapan = /日本|japan/.test(countryText);
+  const isKorea = /韩国|south korea|korea/.test(countryText);
   const isPhone = /手机|智能手机|mobile\s*phone|smartphone|cellular\s*phone/.test(productText);
   const definition = "“变化”是指与上一次已保存的官方政策基线相比，法规状态、生效日期、适用国家/产品/HS、税率或贸易措施、认证/标签、申报资料或过渡期至少一项发生可核验改变。没有检索到新增公告，不等于现行政策不存在，也不等于政策一定没有变化。";
   const genericSources = [];
   const currentRules = [];
   const materials = ["商业发票、装箱单、运输单证", "准确商品描述、候选 HS、原产国和成交方式", "进口商/收货人主体、税号及授权资料"];
+
+  if (isChina) {
+    currentRules.push("中国税则/申报：按 2026 年进出口税则和规范申报目录核对 10 位海关商品编号、税率、监管条件及申报要素；税号不能单靠商品俗称确定。");
+    currentRules.push("中国产品准入：电源、移动电源/锂电池、音视频和信息技术设备按现行 CCC 目录界定；蓝牙、Wi-Fi、蜂窝等无线发射功能另核 SRRC 型号核准和代码标注。");
+    materials.push("中国申报要素、用途/材质/功能/品牌型号、CCC/SRRC 证书或目录外说明");
+    genericSources.push(
+      ["中国 2026 年进出口税则", "https://gss.mof.gov.cn/", "财政部关税司税则和关税政策入口。"],
+      ["海关总署公告", "http://www.customs.gov.cn/customs/302249/2480148/index.html", "海关商品编号、规范申报和监管公告。"],
+      ["国家认监委 CCC 实施规则", "https://www.cnca.gov.cn/hlwfw/ywzl/qzxcprz/ssgz/art/2026/art_5261f654e02d45edaf0805fb268c9fc9.html", "现行强制性产品认证实施规则。"],
+      ["工信部无线电发射设备型号核准", "https://ythzxfw.miit.gov.cn/bssx/axy/wxdhwxtx/art/2020/art_e00be70da40a4355afe7b869eba30fdb.html", "SRRC 办事和材料要求。"]
+    );
+  }
+
+  if (isUs) {
+    currentRules.push("美国进口：按 USITC HTS、原产国和进口日期核对基础税率及 301/232/贸易救济措施；产品准入再按 FCC、CPSC 等主管机关边界核验。");
+    materials.push("美国 HTS 候选、原产地证据、CBP 估价/归类依据、FCC 授权资料（无线产品）");
+    genericSources.push(
+      ["USITC HTS", "https://hts.usitc.gov/", "美国商品编码和税率。"],
+      ["CBP Trade Remedies", "https://www.cbp.gov/trade/programs-administration/trade-remedies", "美国 301/232 和贸易救济执行入口。"],
+      ["Federal Register", "https://www.federalregister.gov/", "美国法规和正式公告原文。"]
+    );
+  }
+
+  if (isUk) {
+    currentRules.push("英国进口：用 UK Trade Tariff 按 commodity code、原产国和申报日期核对 duty/VAT、暂停减免、许可和文件代码；禁限清单需按主管部门复核。");
+    materials.push("英国 commodity code、CDS 申报字段、原产地、进口商 EORI/VAT 和适用产品合规资料");
+    genericSources.push(
+      ["UK Trade Tariff", "https://www.gov.uk/trade-tariff", "英国商品编码、税率和措施。"],
+      ["UK Import Prohibitions and Restrictions", "https://www.gov.uk/government/publications/prohibitions-and-restrictions-for-imports-and-exports", "英国进口禁限清单和主管部门。"]
+    );
+  }
 
   if (isEu) {
     currentRules.push("进口税费：先用欧盟 TARIC/Access2Markets 按完整 CN/TARIC 编码、原产国和申报日期核验；德国进口增值税通常为 19%，手机示例税率不能替代具体商品编码查询。");
@@ -1078,11 +1161,42 @@ function buildPolicyBaseline(filters = {}) {
   }
 
   if (isVietnam) {
+    currentRules.push("越南进口：按 Vietnam National Trade Repository/海关核对 AHTN 税号、MFN/优惠税率、非关税措施、进口许可和产品主管部门要求。");
     currentRules.push("原产地/越南出口：如主张 EU-Vietnam FTA 优惠，必须按协定规则核对原产资格和声明文本；不能只凭“越南发货”认定越南原产。");
     materials.push("原产地证据、供应链/BOM 依据及符合协定要求的原产声明（如主张优惠）");
     genericSources.push(
       ["EU-Vietnam Free Trade Agreement", "https://trade.ec.europa.eu/access-to-markets/en/content/eu-vietnam-free-trade-agreement", "原产地、优惠关税和清关文件官方说明。"],
-      ["Vietnam Customs", "https://www.customs.gov.vn/", "越南出口海关和手续入口。"]
+      ["Vietnam Customs", "https://www.customs.gov.vn/", "越南进出口海关和手续入口。"],
+      ["Vietnam National Trade Repository", "https://vntr.moit.gov.vn/", "越南关税、非关税措施和贸易救济状态。"]
+    );
+  }
+
+  if (isIndonesia) {
+    currentRules.push("印度尼西亚进口：按 BTKI/INSW INTR 核对 AHTN 商品编码、MFN/优惠税率、lartas 禁限和进口许可；无线设备另核 SDPPI 认证。");
+    materials.push("BTKI 税号、INTR 许可/限制结果、进口商许可和 SDPPI/SNI 资料（如适用）");
+    genericSources.push(
+      ["Indonesia Customs BTKI", "https://www.beacukai.go.id/btki-dan-tarif", "印尼官方税则和分类。"],
+      ["Indonesia National Trade Repository", "https://insw.go.id/intr", "印尼许可和限制措施查询。"],
+      ["Indonesia Trade Regulation Database", "https://jdih.kemendag.go.id/peraturan", "印尼贸易部现行进出口法规。"]
+    );
+  }
+
+  if (isJapan) {
+    currentRules.push("日本进口：按 Japan Customs 最新税则、原产地和申报日期核对税率及进口相关法规；无线/电气产品再按 MIC/METI 的 TELEC/PSE 边界核验。");
+    materials.push("日本统计品目号、原产地证据、进口相关法令清单和 PSE/无线资料（如适用）");
+    genericSources.push(
+      ["Japan Customs Tariff 2026", "https://www.customs.go.jp/english/tariff/index.htm", "日本现行进口税则。"],
+      ["Japan Import-related Laws", "https://www.customs.go.jp/english/tariff/2026_04_01/data/import.htm", "日本海关列示的进口相关法令。"]
+    );
+  }
+
+  if (isKorea) {
+    currentRules.push("韩国进口：按 Korea Customs 当前税率优先顺序、商品编码和 FTA 原产地规则核对税费；电气/无线产品再核 KC/KATS/RRA 要求。");
+    materials.push("韩国 HS、FTA 原产声明、进口申报资料和 KC/RRA 资料（如适用）");
+    genericSources.push(
+      ["Korea Customs Service", "https://www.customs.go.kr/english/main.do", "韩国海关和关税制度。"],
+      ["KCS FTA Portal", "https://customs.go.kr/engportal/main.do", "韩国优惠税率和原产地规则。"],
+      ["KATS", "https://www.kats.go.kr/en/main.do", "韩国标准和 KC 认证入口。"]
     );
   }
 
@@ -1209,7 +1323,7 @@ function fallback(message = "", filters = {}) {
   };
 }
 
-exports._test = { parseOfficialHtmlLinks, isRelevant, buildQuery };
+exports._test = { parseOfficialHtmlLinks, isRelevant, buildQuery, enrichPolicyRecord };
 
 exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: corsHeaders, body: "" };
@@ -1256,10 +1370,19 @@ exports.handler = async (event) => {
     const googleNewsItems = googleNewsResult.status === "fulfilled" ? googleNewsResult.value : [];
     const mediaItems = mediaFeedsResult.status === "fulfilled" ? mediaFeedsResult.value : [];
     const officialItems = [...marketsOfficialItems(markets), ...productOfficialItems(filters)];
-    const articles = dedupeArticles([...chinaOfficialItems, ...federalItems, ...govUkItems, ...googleNewsItems, ...mediaItems, ...gdeltArticles])
+    const discovered = dedupeArticles([...chinaOfficialItems, ...federalItems, ...govUkItems, ...googleNewsItems, ...mediaItems, ...gdeltArticles])
       .filter((item) => isRelevant(item, filters))
-      .slice(0, 18);
-    const verificationEntries = dedupeArticles([...officialItems, ...baselineVerificationItems(baseline)]).slice(0, 16);
+      .map((item) => enrichPolicyRecord(item, filters));
+    const articles = discovered.filter((item) => !item.entryOnly).slice(0, 18);
+    const verificationEntries = dedupeArticles([
+      ...officialItems,
+      ...discovered.filter((item) => item.entryOnly),
+      ...baselineVerificationItems(baseline)
+    ]).map((item) => enrichPolicyRecord(item, filters)).slice(0, 20);
+    const recordBreakdown = articles.reduce((result, item) => {
+      result[item.recordType] = (result[item.recordType] || 0) + 1;
+      return result;
+    }, { "current-policy": 0, "new-change": 0, "news-analysis": 0, "official-entry": verificationEntries.length });
 
     return json(200, {
       ok: true,
@@ -1267,6 +1390,7 @@ exports.handler = async (event) => {
       updatedAt: new Date().toISOString(),
       filters,
       evidenceStatus: articles.length ? "matched-summary" : "no-match",
+      recordBreakdown,
       baseline,
       summary: articles.length
         ? `找到 ${articles.length} 条同时通过国家/地区、产品和政策主题校验的公开标题或摘要；是否改变税率、准入或申报要求，仍需打开原文确认生效日期和适用范围。`

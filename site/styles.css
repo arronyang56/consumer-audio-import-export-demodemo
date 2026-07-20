@@ -4513,6 +4513,11 @@ nav a:hover::before {
   margin-top: 14px;
 }
 
+.decision-result-grid > .result-brief-card,
+.decision-result-grid > .decision-card.wide {
+  grid-column: 1 / -1;
+}
+
 .tariff-check-panel {
   align-self: start;
 }
@@ -13535,7 +13540,7 @@ body[data-active-module="air-calc"] .calc-live-result {
 
 .result-brief-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -13609,6 +13614,41 @@ body[data-active-module="air-calc"] .calc-live-result {
   line-height: 1.45;
 }
 
+.result-impact-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.result-impact-grid section {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(100, 116, 139, 0.2);
+  border-top: 3px solid #c27a0a;
+  border-radius: 8px;
+  background: #fffaf0;
+}
+
+.result-impact-grid section[data-state="none"] {
+  border-top-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.result-impact-grid b {
+  display: block;
+  color: #334155;
+  font-size: 11.5px;
+  font-weight: 900;
+}
+
+.result-impact-grid p {
+  margin: 5px 0 0;
+  color: #586978;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
 .result-brief-links {
   display: flex;
   flex-wrap: wrap;
@@ -13625,6 +13665,98 @@ body[data-active-module="air-calc"] .calc-live-result {
   font-size: 12px;
   font-weight: 850;
   text-decoration: none;
+}
+
+.china-compliance-profile {
+  padding: 14px;
+  border: 1px solid rgba(24, 121, 96, 0.3);
+  border-left: 4px solid #187960;
+  border-radius: 8px;
+  background: #f5fbf8;
+}
+
+.china-compliance-head span,
+.china-compliance-evidence span {
+  display: block;
+  color: #187960;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.china-compliance-head strong {
+  display: block;
+  margin-top: 5px;
+  color: #1d2935;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.china-compliance-head p,
+.china-compliance-grid p,
+.china-compliance-evidence p,
+.china-compliance-evidence li {
+  color: #4f626d;
+  font-size: 12.5px;
+  line-height: 1.52;
+}
+
+.china-compliance-grid,
+.china-compliance-evidence {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.china-compliance-grid article,
+.china-compliance-evidence article {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(24, 121, 96, 0.16);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.china-compliance-grid span {
+  display: block;
+  color: #1d2935;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.china-compliance-grid p,
+.china-compliance-evidence p {
+  margin: 6px 0 0;
+}
+
+.china-compliance-evidence ul {
+  margin: 7px 0 0;
+  padding-left: 18px;
+}
+
+.china-compliance-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.china-compliance-links a {
+  padding: 6px 8px;
+  border: 1px solid rgba(24, 121, 96, 0.24);
+  border-radius: 6px;
+  background: #fff;
+  color: #0f6c55;
+  font-size: 11.5px;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+@media (max-width: 720px) {
+  .china-compliance-grid,
+  .china-compliance-evidence {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .source-digest-board {
@@ -13866,6 +13998,10 @@ body[data-active-module="air-calc"] .calc-live-result {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .result-impact-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .result-brief-grid section:last-child {
     grid-column: 1 / -1;
   }
@@ -13880,6 +14016,11 @@ body[data-active-module="air-calc"] .calc-live-result {
   .result-brief-grid section:last-child {
     grid-column: auto;
     min-height: auto;
+  }
+
+  .result-brief-evidence,
+  .result-impact-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
