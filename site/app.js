@@ -10701,6 +10701,11 @@ function runScheduleDatabaseQualityAudit() {
   const downloads = Array.isArray(database.downloads) ? database.downloads : [];
   const records = Array.isArray(database.records) ? database.records : [];
   const audits = records.map((record) => ({ record, audit: auditCarrierScheduleRecord(record, database) }));
+  const validAudits = audits.filter((item) => item.audit.valid);
+  const currentOfficialServiceIds = new Set(validAudits
+    .filter((item) => item.record.evidenceType === "carrier-official-pdf")
+    .map((item) => item.record.sourceId));
+  const currentRoutes = new Set(validAudits.map((item) => `${item.record.originCode}->${item.record.destinationCode}`));
   const sourceIds = new Set(sources.map((source) => source.id));
   const firstRecord = records[0] || {};
   const staleProbe = auditCarrierScheduleRecord({
@@ -10730,7 +10735,9 @@ function runScheduleDatabaseQualityAudit() {
   const cases = [
     { name: "班期来源目录", actual: sources.length, minimum: 10 },
     { name: "官方可下载文件", actual: downloads.length, minimum: 15 },
-    { name: "当前有效承运人班期", actual: audits.filter((item) => item.audit.valid).length, minimum: 2 },
+    { name: "当前有效承运人班期", actual: validAudits.length, minimum: 100 },
+    { name: "当前有效官方 PDF 服务", actual: currentOfficialServiceIds.size, minimum: 8 },
+    { name: "当前有效承运人路线", actual: currentRoutes.size, minimum: 25 },
     { name: "班期字段完整", actual: audits.filter((item) => item.audit.reasons.every((reason) => !/缺失|无效/.test(reason))).length, minimum: records.length },
     { name: "班期来源已登记", actual: records.filter((record) => sourceIds.has(record.sourceId)).length, minimum: records.length },
     { name: "过期记录不进入结论", actual: !staleProbe.valid && staleProbe.reasons.some((reason) => /抓取已超过/.test(reason)) ? 1 : 0, minimum: 1 },
@@ -12820,22 +12827,25 @@ function renderCarrierScheduleEvidenceCard(schedule = {}) {
     `;
   }
   if (!schedule.records?.length) return "";
-  const source = schedule.sources?.[0];
+  const visibleRecords = schedule.records.slice(0, 12);
+  const remainingCount = Math.max(0, schedule.records.length - visibleRecords.length);
+  const sourceLinks = (schedule.sources || []).filter((source) => source?.url).slice(0, 5);
   return `
     <article class="market-rate-card wide business-evidence-card verified carrier-schedule-evidence-card">
       <span>承运人计划班期 · ${escapeHtml(String(schedule.records.length))} 条</span>
       <strong>${escapeHtml(schedule.rangeText)}</strong>
       <p>这是承运人发布的计划 ETD/ETA，不是实际履约时效；系统据此替代区域航程模型，但不据此计算平均延误。</p>
       <div class="business-evidence-facts">
-        ${schedule.records.map((record) => `
+        ${visibleRecords.map((record) => `
           <p>
             <b>${escapeHtml(`${record.carrier || "承运人"} · ${record.vessel || "船名待补"} ${record.voyage || ""}`.trim())}</b>
             ${escapeHtml(`${record.departureDate || "ETD待补"} → ${record.arrivalDate || "ETA待补"} · ${scheduleTransitDuration(record.transitHours)}`)}
           </p>
         `).join("")}
       </div>
+      ${remainingCount ? `<small>先显示最近 12 条，另有 ${escapeHtml(String(remainingCount))} 条较晚航次已纳入区间计算。</small>` : ""}
       <small>${escapeHtml(`${schedule.freshnessText || `抓取/录入日期 ${schedule.lastCaptured || "待补"}`}；计划可能调整，订舱前重查当前航次。`)}</small>
-      ${source?.url ? `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">打开 ${escapeHtml(source.name || "承运人船期")}</a>` : ""}
+      ${sourceLinks.length ? `<div class="carrier-schedule-source-links">${sourceLinks.map((source) => `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">打开 ${escapeHtml(source.name || "承运人船期")}</a>`).join("")}</div>` : ""}
     </article>
   `;
 }

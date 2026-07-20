@@ -17051,6 +17051,12 @@ body[data-active-module="hotspots"] .hotspot-column {
   text-decoration: none;
 }
 
+.carrier-schedule-source-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+
 .business-evidence-facts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

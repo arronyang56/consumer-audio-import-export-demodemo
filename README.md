@@ -57,3 +57,24 @@ Persistent runtime records are stored under `LOCAL_DATA_DIR` (defaults to `.data
 - `business-evidence-records.json` stores authenticated, sanitized quote and shipment evidence.
 
 The deployment archive excludes `.data`, so releases do not overwrite runtime records. Back up this directory with the application backup and never commit it to Git.
+
+## Official schedule snapshots
+
+`site/generated-schedule-records.js` is generated from carrier-published schedule PDFs. It must not be edited by hand.
+
+- Service URLs and port-code mappings live in `scripts/oocl-schedule-services.json`.
+- `scripts/refresh-schedule-database.py` rejects HTML/Cloudflare pages, stale files, mismatched service titles, incomplete voyages, invalid dates, and implausible transit times.
+- A failed refresh keeps the last good file unchanged. The frontend independently excludes snapshots older than its freshness window.
+- Planned ETD/ETA records are never used as actual delay evidence.
+
+For a browser-assisted refresh, download the listed official PDFs into one directory and run:
+
+```sh
+python3 -m pip install --requirement requirements-schedule.txt
+python3 scripts/refresh-schedule-database.py \
+  --manifest scripts/oocl-schedule-services.json \
+  --input-dir /path/to/downloaded-pdfs \
+  --output site/generated-schedule-records.js
+```
+
+The scheduled GitHub workflow attempts the same strict import daily. If the carrier blocks unattended downloads, it preserves the current snapshot instead of bypassing the block or publishing guessed data.

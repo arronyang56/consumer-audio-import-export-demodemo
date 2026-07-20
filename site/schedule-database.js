@@ -1,5 +1,5 @@
 window.LOGISTICS_SCHEDULE_DATABASE = {
-  schemaVersion: "1.2",
+  schemaVersion: "1.3",
   updatedAt: "2026-07-20T00:00:00+08:00",
   sources: [
     {
@@ -540,3 +540,38 @@ window.LOGISTICS_SCHEDULE_DATABASE = {
     }
   ]
 };
+
+(() => {
+  const generated = window.LOGISTICS_GENERATED_SCHEDULE_DATA;
+  const database = window.LOGISTICS_SCHEDULE_DATABASE;
+  if (!generated || !database || !generated.services) return;
+
+  const services = Object.values(generated.services).filter((service) => service?.snapshot?.status === "validated");
+  const generatedSources = services.map((service) => service.source).filter(Boolean);
+  const generatedDownloads = services.map((service) => service.download).filter(Boolean);
+  const generatedRecords = services.flatMap((service) => Array.isArray(service.records) ? service.records : []);
+  const generatedSourceIds = new Set(generatedSources.map((source) => source.id));
+
+  database.sources = [
+    ...(database.sources || []).filter((source) => !generatedSourceIds.has(source.id)),
+    ...generatedSources
+  ];
+  database.downloads = [
+    ...(database.downloads || []).filter((download) => !generatedDownloads.some((item) => item.id === download.id)),
+    ...generatedDownloads
+  ];
+  database.records = [
+    ...(database.records || []).filter((record) => !generatedSourceIds.has(record.sourceId)),
+    ...generatedRecords
+  ];
+  database.updatedAt = generated.updatedAt || database.updatedAt;
+  database.generatedSnapshot = {
+    publisher: generated.publisher || "",
+    sourcePage: generated.sourcePage || "",
+    serviceCount: Number(generated.serviceCount || services.length),
+    recordCount: Number(generated.recordCount || generatedRecords.length),
+    routeCount: Number(generated.routeCount || 0),
+    updatedAt: generated.updatedAt || "",
+    failures: generated.lastRefresh?.failures || []
+  };
+})();
