@@ -11260,6 +11260,7 @@ function detectGlobalConcerns(query = "") {
     if (!concerns.some((item) => item.id === id)) concerns.push({ id, label });
   };
   if (/价格|报价|费用|成本|运费|多少钱|rate|fee|cost|price/.test(text)) push("price", "价格/成本");
+  if (/船期|航程|时效|etd|eta|schedule|transit/.test(text)) push("schedule", "船期/时效");
   if (/风险|预警|查验|延误|拥堵|退仓|塞港|delay|risk|inspection|congestion/.test(text)) push("risk", "风险/时效");
   if (/税号|hs|hscode|归类|关税|税率|申报|监管条件|tariff|duty|customs/.test(text)) push("customs", "关务/税则");
   if (/单证|文件|资料|发票|箱单|报关单|产地证|msds|un38|鉴定|invoice|packing|declaration|certificate|document/.test(text)) push("docs", "单证/文件");
@@ -12374,8 +12375,6 @@ function classifyGlobalSearch(raw = "") {
   const trackingLike = /\b1Z[0-9A-Z]{8,}\b/i.test(query) || explicitTrackingLike || numericTrackingLike;
   const airportMatchLike = hasCodeMatch(airportCodeData, query, ["iata", "icao", "name", "cn", "city", "country", "aliases"]);
   const portMatchLike = hasCodeMatch(seaPortCodeData, query, ["code", "name", "cn", "country", "aliases"]);
-  const vesselIntent = /船名|船期|船位|船舶|航次|位置|定位|eta|vessel|voyage|mmsi|imo/.test(text);
-  const vesselNameLike = /^[A-Z][A-Z0-9.' -]{2,40}$/i.test(intentCleanQuery) && /[A-Z]/i.test(intentCleanQuery) && !/\d{8,10}/.test(intentCleanQuery) && !airportMatchLike && !portMatchLike;
   const marketPriceLike = /价格|报价|运价|海运费|空运费|运费|多少钱|预算|价目|freight|rate|quote|market/.test(text);
   const opsFeeLike = /港杂|码头费|码头|操作费|本地费|堆存|滞箱|滞港|仓储|安检|货站|换单|文件费|thc|terminal|handling|storage|demurrage|detention|surcharge|附加费|charge|fee/.test(text);
   const genericFeeLike = /费用|收费|成本|cost|tariff/.test(text);
@@ -12386,6 +12385,9 @@ function classifyGlobalSearch(raw = "") {
   const hasRoutePair = Boolean(route.origin && route.destination);
   const routeAirportPair = hasRoutePair && findAirportRiskProfile(route.origin) && findAirportRiskProfile(route.destination);
   const routePortPair = hasRoutePair && findPortRiskProfile(route.origin) && findPortRiskProfile(route.destination);
+  const routeScheduleIntent = /船期|航程|时效|etd|eta|schedule|transit/.test(text) && hasRoutePair && routePortPair;
+  const vesselIntent = /船名|船位|船舶|航次|位置|定位|vessel|voyage|mmsi|imo/.test(text) || (/eta/.test(text) && !routeScheduleIntent);
+  const vesselNameLike = /^[A-Z][A-Z0-9.' -]{2,40}$/i.test(intentCleanQuery) && /[A-Z]/i.test(intentCleanQuery) && !/\d{8,10}/.test(intentCleanQuery) && !airportMatchLike && !portMatchLike;
   const explicitAirLike = /空运|机场|航空|快件|快递|dhl|ups|fedex|sf|顺丰|awb|iata|货站/.test(text) || trackingLike || airportCodeOnly;
   const explicitSeaLike = /海运|港口|码头|船|船期|箱号|提单|港杂|堆存|冷箱|危险品|oog|bbk|reefer|dg|vessel|port|container/.test(text) || portCodeOnly;
   const ambiguousCityRouteLike = routeAirportPair && routePortPair && !explicitAirLike && !explicitSeaLike;
@@ -12424,7 +12426,7 @@ function classifyGlobalSearch(raw = "") {
     add("trends", "政策/热点趋势影响", "识别为政治人物、选举、地缘或贸易热点，直接搜索公开趋势并生成物流/关务影响判断。", policyHardLike ? 124 : 136, { trend: query });
     add("policy", "政策变化雷达", "如果它关联关税、制裁、出口管制或海关公告，可继续看政策来源和实施日期。", policyHardLike ? 138 : 98, { policy: query });
   }
-  if ((vesselIntent || vesselNameLike) && !containerLike && !trackingLike && !feeLike && !policyLike && !documentLike) {
+  if ((vesselIntent || vesselNameLike) && !routeScheduleIntent && !containerLike && !trackingLike && !feeLike && !policyLike && !documentLike) {
     add("shipment", "船期和船舶位置", "识别为船名、航次、IMO/MMSI 或船舶位置查询，直接进入船舶位置界面。", 132, { vessel: extractVesselQuery(query) });
   }
   if (documentLike && /报关单|declaration|申报单/.test(text)) {
@@ -12469,7 +12471,7 @@ function classifyGlobalSearch(raw = "") {
   if (riskCenterLike && !airLike && !seaLike && /航线|海域|红海|巴拿马|台风|大风|阵风|强风|海雾|大雾|低能见度|雷暴|强对流|暴雨|洪水|冰雪|暴雪|冻雨|寒潮|高温|沙尘|风暴潮|巨浪|涌浪|suez|panama|route|typhoon|fog|gale|storm|thunderstorm|flood|snow|ice|heatwave|dust|swell/.test(text)) {
     add("trends", "天气/航线事件趋势", "这是天气、海况或航线事件问题；先进入趋势模块看公开来源和业务影响，港口/机场输入完整时可继续进风险中心。", 104, { trend: query });
   }
-  if (/船名|船期|船位|eta|vessel|voyage|mmsi|imo/.test(text) || (seaLike && /[a-z]/i.test(query) && /\s/.test(query) && !feeLike)) {
+  if ((/船名|船位|vessel|voyage|mmsi|imo/.test(text) || (/eta/.test(text) && !routeScheduleIntent) || (seaLike && /[a-z]/i.test(query) && /\s/.test(query) && !feeLike && !routeScheduleIntent)) && !routeScheduleIntent) {
     add("shipment", "船期和船舶位置", "看起来是船名、航次、MMSI/IMO 或 ETA 查询。", 96, { vessel: extractVesselQuery(query) });
   }
   if ((airportCodeOnly || /机场代码|iata|icao/.test(text)) && !feeLike) {
