@@ -1,5 +1,5 @@
 window.LOGISTICS_SCHEDULE_DATABASE = {
-  schemaVersion: "1.4",
+  schemaVersion: "1.5",
   updatedAt: "2026-07-21T00:00:00+08:00",
   sources: [
     {
@@ -233,6 +233,37 @@ window.LOGISTICS_SCHEDULE_DATABASE = {
     { id: "base-cntxg-krpus", originCode: "CNTXG", destinationCode: "KRPUS", rangeDays: [3, 6], confidence: "baseline-lane", sourceIds: ["cosco-service-schedule", "oocl-schedule-download"], note: "天津到釜山为华北-东北亚短程，需确认是否直靠。" },
     { id: "base-cndlc-krpus", originCode: "CNDLC", destinationCode: "KRPUS", rangeDays: [2, 5], confidence: "baseline-lane", sourceIds: ["cosco-service-schedule", "oocl-schedule-download"], note: "大连到釜山基准区间较短，冬季天气和港口窗口需复核。" },
 
+    { id: "base-cnsha-deham", originCode: "CNSHA", destinationCode: "DEHAM", rangeDays: [30, 42], confidence: "baseline-lane", sourceIds: ["oocl-hksc-europe", "hapag-schedule-download", "dcsa-commercial-schedules"], note: "上海到汉堡按远东-北欧服务基准；红海绕航、转运和内陆铁路会明显改变 ETA。" },
+    { id: "base-cnsha-beanr", originCode: "CNSHA", destinationCode: "BEANR", rangeDays: [30, 42], confidence: "baseline-lane", sourceIds: ["oocl-hksc-europe", "hapag-schedule-download", "dcsa-commercial-schedules"], note: "上海到安特卫普/布鲁日按北欧干线基准；目的港拥堵和内陆派送需单独核验。" },
+    { id: "base-cnsha-aejea", originCode: "CNSHA", destinationCode: "AEJEA", rangeDays: [16, 24], confidence: "baseline-lane", sourceIds: ["oocl-hksc-middle-east", "maersk-point-to-point", "dcsa-commercial-schedules"], note: "上海到杰贝阿里通常经中东主干或转运服务；需核自由区/本地进口口径。" },
+    { id: "base-cnsha-sajed", originCode: "CNSHA", destinationCode: "SAJED", rangeDays: [22, 34], confidence: "baseline-lane", sourceIds: ["oocl-hksc-middle-east", "maersk-point-to-point", "dcsa-commercial-schedules"], note: "上海到吉达受红海服务调整影响较大，承诺交期前必须复核船司当前挂靠。" },
+    { id: "base-cnsha-ausyd", originCode: "CNSHA", destinationCode: "AUSYD", rangeDays: [17, 26], confidence: "baseline-lane", sourceIds: ["oocl-hksc-oceania", "one-point-to-point"], note: "上海到悉尼按澳洲主干服务基准；AQIS/木包装和目的港窗口不含在航程内。" },
+    { id: "base-cnsha-aumel", originCode: "CNSHA", destinationCode: "AUMEL", rangeDays: [18, 27], confidence: "baseline-lane", sourceIds: ["oocl-hksc-oceania", "one-point-to-point"], note: "上海到墨尔本按澳洲主干服务基准；需核是否直航及目的港提柜预约。" },
+    { id: "base-cnsha-innsa", originCode: "CNSHA", destinationCode: "INNSA", rangeDays: [12, 20], confidence: "baseline-lane", sourceIds: ["oocl-hksc-india-subcontinent", "maersk-point-to-point"], note: "上海到那瓦舍瓦/JNPT 按印度西岸服务基准；印度清关和内陆段需另核。" },
+    { id: "base-cnsha-inmun", originCode: "CNSHA", destinationCode: "INMUN", rangeDays: [13, 21], confidence: "baseline-lane", sourceIds: ["oocl-hksc-india-subcontinent", "maersk-point-to-point"], note: "上海到蒙德拉按印度西岸服务基准；中转和铁路衔接会影响实际交付。" },
+    { id: "base-cnsha-phmnl", originCode: "CNSHA", destinationCode: "PHMNL", rangeDays: [5, 10], confidence: "baseline-lane", sourceIds: ["oocl-hksc-philippines", "one-point-to-point"], note: "上海到马尼拉为近洋航线，菲律宾目的港清关资料和进口商能力影响较大。" },
+    { id: "base-cnsha-twkhh", originCode: "CNSHA", destinationCode: "TWKHH", rangeDays: [2, 5], confidence: "baseline-lane", sourceIds: ["oocl-hksc-taiwan", "cosco-service-schedule"], note: "上海到高雄为近洋短程，台风季和港口窗口需复核。" },
+
+    { id: "base-cnnGB-deham", originCode: "CNNGB", destinationCode: "DEHAM", rangeDays: [30, 42], confidence: "baseline-lane", sourceIds: ["oocl-hksc-europe", "hapag-schedule-download"], note: "宁波到汉堡按远东-北欧基准，红海绕航和转运安排需实时复核。" },
+    { id: "base-cnnGB-aejea", originCode: "CNNGB", destinationCode: "AEJEA", rangeDays: [16, 24], confidence: "baseline-lane", sourceIds: ["oocl-hksc-middle-east", "maersk-point-to-point"], note: "宁波到杰贝阿里为中东主通道，需核船司挂靠和中转。" },
+    { id: "base-cnnGB-ausyd", originCode: "CNNGB", destinationCode: "AUSYD", rangeDays: [17, 26], confidence: "baseline-lane", sourceIds: ["oocl-hksc-oceania", "one-point-to-point"], note: "宁波到悉尼按澳洲线基准；检疫和目的港提柜另计。" },
+    { id: "base-cnnGB-innsa", originCode: "CNNGB", destinationCode: "INNSA", rangeDays: [12, 20], confidence: "baseline-lane", sourceIds: ["oocl-hksc-india-subcontinent", "maersk-point-to-point"], note: "宁波到那瓦舍瓦/JNPT 按印度西岸基准，需核是否经新加坡/巴生中转。" },
+    { id: "base-cnnGB-phmnl", originCode: "CNNGB", destinationCode: "PHMNL", rangeDays: [5, 10], confidence: "baseline-lane", sourceIds: ["oocl-hksc-philippines", "one-point-to-point"], note: "宁波到马尼拉为东南亚近洋服务，实际以承运人计划为准。" },
+
+    { id: "base-cnytn-deham", originCode: "CNYTN", destinationCode: "DEHAM", rangeDays: [28, 40], confidence: "baseline-lane", sourceIds: ["oocl-hksc-europe", "hapag-schedule-download"], note: "盐田到汉堡按华南-北欧干线基准，红海/绕航和中转需实时复核。" },
+    { id: "base-cnytn-aejea", originCode: "CNYTN", destinationCode: "AEJEA", rangeDays: [14, 22], confidence: "baseline-lane", sourceIds: ["oocl-hksc-middle-east", "maersk-point-to-point"], note: "盐田到杰贝阿里为华南-中东主通道，需核船司直航/转运。" },
+    { id: "base-cnytn-sajed", originCode: "CNYTN", destinationCode: "SAJED", rangeDays: [20, 32], confidence: "baseline-lane", sourceIds: ["oocl-hksc-middle-east", "maersk-point-to-point"], note: "盐田到吉达受红海航线调整影响明显，正式 ETA 必须查当前船期。" },
+    { id: "base-cnytn-ausyd", originCode: "CNYTN", destinationCode: "AUSYD", rangeDays: [15, 24], confidence: "baseline-lane", sourceIds: ["oocl-hksc-oceania", "one-point-to-point"], note: "盐田到悉尼按华南-澳洲线基准；目的港检疫和预约不含在航程内。" },
+    { id: "base-cnytn-innsa", originCode: "CNYTN", destinationCode: "INNSA", rangeDays: [10, 18], confidence: "baseline-lane", sourceIds: ["oocl-hksc-india-subcontinent", "maersk-point-to-point"], note: "盐田到那瓦舍瓦/JNPT 按印度西岸服务基准，需核中转港和目的港铁路。" },
+    { id: "base-cnytn-phmnl", originCode: "CNYTN", destinationCode: "PHMNL", rangeDays: [3, 7], confidence: "baseline-lane", sourceIds: ["oocl-hksc-philippines", "one-point-to-point"], note: "盐田到马尼拉为华南近洋短程，清关资料和进口商能力常比海上航程更影响交付。" },
+
+    { id: "base-cnszx-aejea", originCode: "CNSZX", destinationCode: "AEJEA", rangeDays: [14, 22], confidence: "baseline-lane", sourceIds: ["oocl-hksc-middle-east", "maersk-point-to-point"], note: "深圳/蛇口到杰贝阿里按华南-中东基准，需核是否经新加坡或巴生转运。" },
+    { id: "base-cnszx-ausyd", originCode: "CNSZX", destinationCode: "AUSYD", rangeDays: [15, 24], confidence: "baseline-lane", sourceIds: ["oocl-hksc-oceania", "one-point-to-point"], note: "深圳/蛇口到悉尼按华南-澳洲线基准；澳洲检疫和派送窗口另计。" },
+    { id: "base-cnszx-phmnl", originCode: "CNSZX", destinationCode: "PHMNL", rangeDays: [3, 7], confidence: "baseline-lane", sourceIds: ["oocl-hksc-philippines", "one-point-to-point"], note: "深圳/蛇口到马尼拉为近洋短程，实际以承运人直航/转运为准。" },
+    { id: "base-cnxmn-aejea", originCode: "CNXMN", destinationCode: "AEJEA", rangeDays: [15, 23], confidence: "baseline-lane", sourceIds: ["oocl-hksc-middle-east", "maersk-point-to-point"], note: "厦门到杰贝阿里多需看华南或东南亚衔接，正式 ETA 以当前承运人计划为准。" },
+    { id: "base-cnxmn-phmnl", originCode: "CNXMN", destinationCode: "PHMNL", rangeDays: [4, 8], confidence: "baseline-lane", sourceIds: ["oocl-hksc-philippines", "one-point-to-point"], note: "厦门到马尼拉为近洋航线，需核挂靠和目的港清关窗口。" },
+    { id: "base-cnqgd-aejea", originCode: "CNQDG", destinationCode: "AEJEA", rangeDays: [18, 28], confidence: "baseline-lane", sourceIds: ["oocl-hksc-middle-east", "maersk-point-to-point"], note: "青岛到杰贝阿里可能经华东/釜山/新加坡衔接，船司服务差异较大。" },
+
     { id: "base-cnsha-cnytn", originCode: "CNSHA", destinationCode: "CNYTN", rangeDays: [3, 5], confidence: "domestic-lane", sourceIds: ["cosco-service-schedule"], note: "上海到盐田按国内沿海华东-华南通道，内贸箱需核承运人开航和截关。" },
     { id: "base-cnsha-cnszx", originCode: "CNSHA", destinationCode: "CNSZX", rangeDays: [3, 5], confidence: "domestic-lane", sourceIds: ["cosco-service-schedule"], note: "上海到深圳/蛇口按国内沿海主通道，支线/内贸服务会影响到港窗口。" },
     { id: "base-cnsha-cnxmn", originCode: "CNSHA", destinationCode: "CNXMN", rangeDays: [2, 4], confidence: "domestic-lane", sourceIds: ["cosco-service-schedule"], note: "上海到厦门为华东-福建沿海短程，需核具体船司和码头。" },
@@ -241,6 +272,13 @@ window.LOGISTICS_SCHEDULE_DATABASE = {
     { id: "base-cnqdg-cnsha", originCode: "CNQDG", destinationCode: "CNSHA", rangeDays: [2, 4], confidence: "domestic-lane", sourceIds: ["cosco-service-schedule"], note: "青岛到上海按国内沿海短程，港区和中转安排影响 ETA。" },
     { id: "base-cntxg-cnsha", originCode: "CNTXG", destinationCode: "CNSHA", rangeDays: [3, 5], confidence: "domestic-lane", sourceIds: ["cosco-service-schedule"], note: "天津到上海按环渤海-华东内贸通道，冬季天气和港口窗口需复核。" },
     { id: "base-cndlc-cnsha", originCode: "CNDLC", destinationCode: "CNSHA", rangeDays: [3, 5], confidence: "domestic-lane", sourceIds: ["cosco-service-schedule"], note: "大连到上海按东北-华东内贸通道，具体看船司开航。" },
+    { id: "base-cnsha-cntxg", originCode: "CNSHA", destinationCode: "CNTXG", rangeDays: [3, 5], confidence: "domestic-lane", sourceIds: ["cosco-service-schedule"], note: "上海到天津为华东-环渤海内贸通道，冬季天气和港区窗口需复核。" },
+    { id: "base-cnsha-cnqdg", originCode: "CNSHA", destinationCode: "CNQDG", rangeDays: [2, 4], confidence: "domestic-lane", sourceIds: ["cosco-service-schedule"], note: "上海到青岛为国内沿海短程，实际以开航日和码头挂靠为准。" },
+    { id: "base-cnxmn-cnsha", originCode: "CNXMN", destinationCode: "CNSHA", rangeDays: [2, 4], confidence: "domestic-lane", sourceIds: ["cosco-service-schedule"], note: "厦门到上海为福建-华东沿海短程，需核具体船司和码头。" },
+    { id: "base-cnytn-cnsha", originCode: "CNYTN", destinationCode: "CNSHA", rangeDays: [3, 5], confidence: "domestic-lane", sourceIds: ["cosco-service-schedule"], note: "盐田到上海为华南-华东内贸主通道，天气和截关影响实际 ETA。" },
+    { id: "base-cnszx-cnsha", originCode: "CNSZX", destinationCode: "CNSHA", rangeDays: [3, 5], confidence: "domestic-lane", sourceIds: ["cosco-service-schedule"], note: "深圳/蛇口到上海为华南-华东内贸通道，需核驳船/支线和主线衔接。" },
+    { id: "base-cnxmn-cnytn", originCode: "CNXMN", destinationCode: "CNYTN", rangeDays: [2, 4], confidence: "domestic-lane", sourceIds: ["cosco-service-schedule"], note: "厦门到盐田为福建-华南短程，需核是否直航或经蛇口/南沙中转。" },
+    { id: "base-cnqzh-cnytn", originCode: "CNQZH", destinationCode: "CNYTN", rangeDays: [2, 4], confidence: "domestic-lane", sourceIds: ["cosco-service-schedule"], note: "钦州到盐田为北部湾-珠三角沿海通道，需核北部湾港区和华南中转。" },
     { id: "base-cnytn-cnqzh", originCode: "CNYTN", destinationCode: "CNQZH", rangeDays: [2, 4], confidence: "domestic-lane", sourceIds: ["cosco-service-schedule"], note: "盐田到钦州按华南-北部湾内贸/支线通道，需核北部湾港区。" },
     { id: "base-cnxmn-cnqzh", originCode: "CNXMN", destinationCode: "CNQZH", rangeDays: [3, 5], confidence: "domestic-lane", sourceIds: ["cosco-service-schedule"], note: "厦门到钦州按福建-北部湾沿海通道，需核是否中转华南。" }
   ],

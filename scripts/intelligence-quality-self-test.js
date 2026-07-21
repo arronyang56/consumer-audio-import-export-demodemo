@@ -66,7 +66,7 @@ const scheduleEvidenceIds = new Set([
   ...(scheduleDatabase.sources || []).map((source) => source.id),
   ...(scheduleDatabase.downloads || []).map((download) => download.id)
 ]);
-assert(baselineTransit.length >= 50, `Expected at least 50 baseline transit lanes, got ${baselineTransit.length}`);
+assert(baselineTransit.length >= 80, `Expected at least 80 baseline transit lanes, got ${baselineTransit.length}`);
 assert(scheduleDatabase.automaticRefresh?.githubWorkflow, "Schedule database must document the automatic refresh workflow");
 assert(scheduleDatabase.automaticRefresh?.qualityGate?.minimumValidatedServices >= 8, "Schedule refresh needs a service quality gate");
 assert(scheduleDatabase.updatePolicy?.keepLastGoodSnapshot, "Schedule refresh must keep the last good snapshot on source failure");
@@ -76,7 +76,13 @@ assert(scheduleDatabase.updatePolicy?.keepLastGoodSnapshot, "Schedule refresh mu
   "CNSHA->SGSIN",
   "CNSZX->THLCH",
   "CNSHA->CNSZX",
-  "CNQDG->CNSHA"
+  "CNQDG->CNSHA",
+  "CNSHA->AEJEA",
+  "CNYTN->AUSYD",
+  "CNNGB->INNSA",
+  "CNSHA->DEHAM",
+  "CNYTN->PHMNL",
+  "CNXMN->CNYTN"
 ].forEach((route) => {
   const [originCode, destinationCode] = route.split("->");
   assert(

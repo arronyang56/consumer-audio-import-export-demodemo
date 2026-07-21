@@ -11964,6 +11964,7 @@ function buildGlobalAnswerContract(query = "", target = {}, intel = {}, assessme
 
   const impactStatements = [];
   if (concernIds.has("price")) impactStatements.push("当前价格只能用于预算，正式报价必须核对有效期、附加费和包含项");
+  if (concernIds.has("schedule")) impactStatements.push(hasActual ? "同航线实绩可作为内部判断参考，但客户交期仍要核当前 ETD/ETA" : hasCarrierSchedule ? "已命中承运人计划班期，可用于订舱前判断，但不能当作实际到港" : "未命中承运人班期或实绩时，只能输出基准区间或覆盖不足");
   if (concernIds.has("risk")) impactStatements.push("风险结论影响交期承诺、备选路线和异常成本预留");
   if (concernIds.has("customs")) impactStatements.push("税号、原产国或监管条件变化会直接影响税费和放行资料");
   if (concernIds.has("docs")) impactStatements.push("文件缺失可能导致退仓、补件、查验或清关延误");
@@ -12000,6 +12001,12 @@ function buildGlobalAnswerContract(query = "", target = {}, intel = {}, assessme
       ? "先核型号、额定输入输出、是否带无线/电池、铭牌标签、说明书和测试报告；再用中国税则、CCC 目录、SRRC 型号核准和危险品运输规则逐项确认，缺一项就不要作为可申报结论。"
       : policyQuery
       ? "先进入政策模块读取最新公告正文，确认发布主体、生效日期、适用 HS、原产国、进口国和豁免条款，再决定是否调整报价、申报或出运。"
+      : concernIds.has("schedule") && routeComplete
+        ? hasActual
+          ? "先用同航线实绩判断大致时效，再复核承运人当前 ETD/ETA、截关、转运港、码头公告和天气/管制；客户承诺只写当前船期可支持的日期。"
+          : hasCarrierSchedule
+            ? "先把命中的承运人计划作为当前船期窗口，再回船司官网核 ETD/ETA、截关和是否中转；没有实际到港前不要计算平均延误。"
+            : "进入风险预警中心查看基准航程区间和实时异常；若没有承运人班期或实绩，页面只给内部预估，不建议对客户承诺固定到港日。"
       : concernIds.has("risk")
         ? "进入风险预警中心核对路线天气、海况/航空天气、管制活动和口岸公告；只有命中当前路线且有有效来源时才提高风险等级。"
         : concernIds.has("price")
@@ -13538,6 +13545,43 @@ function schedulePortWeatherRisk(origin = {}, destination = {}) {
   }, 550);
 }
 
+function buildPortRouteDecision(origin = {}, destination = {}, evidence = {}, days = null, carrierSchedule = { records: [] }) {
+  const route = `${origin.cn || origin.name || origin.code || "起运港"} → ${destination.cn || destination.name || destination.code || "目的港"}`;
+  const actualTransit = formatEvidenceTransit(evidence);
+  const actualDelay = formatEvidenceDelay(evidence);
+  const scheduleCount = carrierSchedule.records?.length || 0;
+  if (evidence.transit) {
+    return {
+      conclusion: `最终判断：${route} 已有 ${evidence.actuals.length} 票同航线实绩，实际运输区间 ${actualTransit}${actualDelay ? `，历史到港偏差 ${actualDelay}` : ""}。这类结论可作为内部交期判断，但客户承诺仍要以当前船司 ETD/ETA、截关和异常扫描为准。`,
+      impact: actualDelay ? `延误影响：已有到港偏差记录，报价和交期要预留 ${actualDelay} 的缓冲，并同步核目的港提柜/预约。` : "延误影响：有实际航程但缺少计划到达对照，不计算平均延误；暂不额外加延误天数。",
+      source: "同航线业务实绩优先；天气、海况、军演/管制和港口公告只在官方来源命中且与常规航线相关时提高风险。",
+      commitment: "可做内部判断，客户承诺前必须复核当前船期。"
+    };
+  }
+  if (scheduleCount) {
+    return {
+      conclusion: `最终判断：${route} 命中 ${scheduleCount} 条${carrierSchedule.carriers?.join("、") || "承运人"}计划航次，计划航程 ${carrierSchedule.rangeText || "待核验"}。这是比模型更强的计划船期证据，但还不是实际履约结果。`,
+      impact: "延误影响：计划班期不能推导平均延误；若实时天气/管制层没有命中当前路线，默认不增加延误天数。",
+      source: "承运人计划班期 + 港口画像；订舱前仍要回船司官网核 ETD/ETA、截关、中转港和更新时间。",
+      commitment: "可作为订舱前窗口判断，不可当作实际到港。"
+    };
+  }
+  if (days) {
+    return {
+      conclusion: `最终判断：${route} 没有同航线实绩或承运人当前班期，当前只命中${routeDaysEvidenceLabel(days)} ${routeDaysText(days)}。它能帮你避免明显离谱的天数，但不能替代船司船期。`,
+      impact: "延误影响：无实绩、无计划班期时不输出平均延误；只有下方实时异常命中当前路线时才提高风险。",
+      source: `${routeDaysEvidenceLabel(days)} + 两端港口画像；正式 ETA 需要船司/大型货代当前点到点船期。`,
+      commitment: "仅适合内部预估，不建议写进客户承诺。"
+    };
+  }
+  return {
+    conclusion: `最终判断：${route} 两端港口已识别，但航程库、承运人班期和业务实绩都没有命中。系统不会用区域默认值硬猜天数。`,
+    impact: "延误影响：覆盖不足，不输出平均延误或预计影响天数。",
+    source: "仅命中港口画像；需补船司点到点船期、货代报价单或历史订单后再判断。",
+    commitment: "不可用于交期承诺。"
+  };
+}
+
 function renderRiskPortResult(event) {
   event?.preventDefault();
   const target = $("riskPortResult");
@@ -13564,6 +13608,7 @@ function renderRiskPortResult(event) {
       : days
         ? { label: "模型待复核", tone: "warn" }
         : { label: "资料不足", tone: "warn" };
+  const routeDecision = buildPortRouteDecision(origin, destination, evidence, days, carrierSchedule);
   const actions = [
     "先确认是否直航、是否中转、船司挂靠和预计截关/开船/到港日期。",
     "把目的港免堆免箱、预约提柜、查验、港杂和内陆派送窗口一起核价。",
@@ -13577,16 +13622,16 @@ function renderRiskPortResult(event) {
       kicker: "Port Risk Brief",
       title: `${origin.cn || origin.name} → ${destination.cn || destination.name}`,
       updatedLabel: evidence.actuals.length ? "业务实绩 + 实时异常" : carrierSchedule.records.length ? "承运人班期 + 实时异常" : "模型初判 + 实时异常",
-      conclusion: evidence.transit ? `我的判断：已有 ${evidence.actuals.length} 票同航线实绩，实际运输区间 ${actualTransit}${actualDelay ? `，到港偏差 ${actualDelay}` : ""}；天气和管制仍需看下方实时扫描。` : carrierSchedule.records.length ? `我的判断：查到 ${carrierSchedule.records.length} 条${carrierSchedule.carriers.join("、") || "承运人"}计划航次，计划航程 ${carrierSchedule.rangeText}；这是计划船期，不是实际履约，因此不输出平均延误。` : days ? `我的判断：两端港口已识别，${routeDaysEvidenceLabel(days)}为 ${routeDaysText(days)}；暂无实际运输样本，不输出平均延误。` : "我的判断：两端港口已识别，但该组合没有航程模型或业务实绩，不输出默认天数。",
+      conclusion: routeDecision.conclusion,
       risk: `${evidenceLevel.label}（路线证据状态）· ${origin.cn || origin.name}：${origin.note || "待核验"}；${destination.cn || destination.name}：${destination.note || "待核验"}`,
-      cost: "延误会影响改配、堆存、滞箱、拖车等待、客户交付承诺和可能的空运替代成本。",
+      cost: `${routeDecision.impact} 延误会影响改配、堆存、滞箱、拖车等待、客户交付承诺和可能的空运替代成本。`,
       action: actions[0],
-      source: evidence.rows.length ? "同航线实际记录 + 港口画像；天气、海况、军演/管制只在官方来源命中且与常规航线相关时展示。" : carrierSchedule.records.length ? "承运人计划船期 + 港口画像；计划变化需回到船司页面重查。" : `${routeDaysEvidenceLabel(days)} + 港口画像；暂无同航线实绩时不输出平均延误。`,
+      source: routeDecision.source,
       evidenceLabel: evidence.rows.length ? "实单支持" : carrierSchedule.records.length ? "船司班期支持" : days ? "模型初判" : "资料不足",
       evidenceTone: evidence.rows.length ? "verified" : carrierSchedule.records.length ? "pending" : days ? "model" : "missing",
       evidenceBasis: evidence.rows.length ? `${evidence.rows.length} 条同航线实际记录 + 两端港口画像` : carrierSchedule.records.length ? `${carrierSchedule.records.length} 条承运人计划航次 + 两端港口画像` : days ? `${routeDaysEvidenceLabel(days)}：${scheduleSource.label} + 两端港口画像` : "仅命中两端港口，未命中航程或业务实绩",
       scope: `${origin.cn || origin.name} → ${destination.cn || destination.name} · ${cargo}`,
-      pending: "实时天气/海况、码头公告、航行管制、实际挂靠、转运港和当前船期"
+      pending: `${routeDecision.commitment}；还要核实时天气/海况、码头公告、航行管制、实际挂靠、转运港和当前船期`
     })}
     ${renderRiskLevelCard(evidenceLevel, "路线证据状态", "只反映是否有同航线实绩、承运人班期或可适用模型，不是事故概率或港口评分。")}
     <article class="risk-center-card"><span>${evidence.transit ? "历史实绩航程" : carrierSchedule.records.length ? "承运人计划航程" : routeDaysEvidenceLabel(days)}</span><strong>${escapeHtml(actualTransit || (carrierSchedule.records.length ? carrierSchedule.rangeText : routeDaysText(days)))}</strong><p>${escapeHtml(evidence.transit ? `来自 ${evidence.actuals.length} 票实际出发/到达记录。` : carrierSchedule.records.length ? `${carrierSchedule.records.length} 个计划航次；订舱前重查 ETD/ETA。` : routeDaysNote(days))}</p></article>
