@@ -11708,7 +11708,7 @@ function buildGlobalEvidenceDecisionProfile(query = "", intel = {}, context = {}
   const routeEvidence = context.routeEvidence || {};
   const routeRecognition = context.routeRecognition || {};
   const routeComplete = Boolean(intel.route?.origin && intel.route?.destination);
-  const routeModel = (intel.metrics || []).some(([label, value]) => /模型/.test(label) && !/覆盖不足/.test(String(value || "")));
+  const routeModel = (intel.metrics || []).some(([label, value]) => /模型|基准|区间/.test(label) && !/覆盖不足/.test(String(value || "")));
   const chinaCompliance = findChinaComplianceForGlobalQuery(query, intel);
   const dimensions = [];
   const toneForGrade = (grade) => grade >= 3 ? "verified" : grade === 2 ? "rules" : grade === 1 ? "model" : "missing";
@@ -11843,7 +11843,7 @@ function buildGlobalEvidenceAssessment(query = "", candidates = [], intel = {}, 
   const outcomeRows = routeEvidence?.outcomes || [];
   const scheduleRows = routeEvidence?.officialSchedules || [];
   const officialCount = sources.filter((source) => /official|port-official|terminal|carrier|standard/.test(source.sourceType || "")).length;
-  const hasModel = (intel.metrics || []).some(([label]) => /模型|预算/.test(label));
+  const hasModel = (intel.metrics || []).some(([label, value]) => /模型|预算|基准|区间/.test(label) && !/覆盖不足/.test(String(value || "")));
   const policyQuery = (intel.concerns || []).some((item) => item.id === "policy") || /特朗普|川普|trump|301|232|制裁|出口管制|政策/.test(normalize(query));
   const locationHit = Boolean(findAirportCodeProfile(query) || findPortRiskProfile(query) || routeRecognition.any);
   const used = [];
@@ -11862,7 +11862,7 @@ function buildGlobalEvidenceAssessment(query = "", candidates = [], intel = {}, 
   if (intel.hs) used.push(`用户输入 HS：${intel.hs}`);
   if (routeRecognition.any) used.push(`地点库：${intel.routeLabel}`);
   if (hasModel) {
-    const modelLabels = (intel.metrics || []).filter(([label]) => /模型|预算/.test(label)).map(([label]) => label);
+    const modelLabels = (intel.metrics || []).filter(([label]) => /模型|预算|基准|区间/.test(label)).map(([label]) => label);
     used.push(`${modelLabels.join("、") || "模型结果"}：仅用于预算或初筛`);
   }
   if (!used.length) used.push("关键词、编号格式与模块路由规则");
@@ -11928,6 +11928,7 @@ function buildGlobalAnswerContract(query = "", target = {}, intel = {}, assessme
   const routeRecognized = Boolean(assessment.routeRecognition?.complete);
   const hasActual = Boolean(assessment.routeEvidence?.rows?.length);
   const hasCarrierSchedule = Boolean(assessment.routeEvidence?.officialSchedules?.length);
+  const hasRouteModel = (intel.metrics || []).some(([label, value]) => /航程|时效|基准|区间|模型/.test(label) && !/覆盖不足/.test(String(value || "")));
   const policyQuery = concernIds.has("policy");
   const chinaCompliance = findChinaComplianceForGlobalQuery(query, intel);
   const chinaComplianceQuery = Boolean(chinaCompliance && /合规|认证|资料|准入|进口|ccc|srrc|compliance|certif/i.test(query));
@@ -11945,13 +11946,13 @@ function buildGlobalAnswerContract(query = "", target = {}, intel = {}, assessme
   } else if (routeComplete && routeRecognized && hasCarrierSchedule) {
     const schedule = assessment.routeEvidence?.schedule || {};
     conclusion = `${intel.routeLabel} 已识别，并命中 ${schedule.count || 0} 条${schedule.carriers?.join("、") || "承运人"}计划班期，计划航程 ${schedule.rangeText || "待核验"}。这不是区域模型，但仍属于计划 ETD/ETA，不能当作实际到港或平均延误。`;
-  } else if (routeComplete && routeRecognized && (intel.metrics || []).some(([label]) => /模型|预算/.test(label))) {
+  } else if (routeComplete && routeRecognized && hasRouteModel) {
     const modeledParts = [
       concernIds.has("price") ? "价格" : "",
       (intel.metrics || []).some(([label]) => /航程|时效/.test(label)) ? "航程/时效" : "",
       concernIds.has("risk") ? "风险" : ""
     ].filter(Boolean);
-    conclusion = `${intel.routeLabel} 已识别，但没有同航线实单。当前${modeledParts.join("、") || "结果"}只属于规则或模型初判，不应直接写入客户报价、交期承诺或风险定级。`;
+    conclusion = `${intel.routeLabel} 已识别，但没有同航线实单或承运人当前班期。当前${modeledParts.join("、") || "基准航程"}只属于内部预估，可用于排除明显离谱结果，不应直接写入客户交期承诺或风险定级。`;
   } else if (routeComplete && !routeRecognized) {
     conclusion = `当前地点库没有完整识别“${intel.route.origin} → ${intel.route.destination}”，因此不提供航程、价格或风险数字。请补标准港口 UN/LOCODE 或机场 IATA 代码后再查。`;
   } else if (findAirportCodeProfile(query)) {
