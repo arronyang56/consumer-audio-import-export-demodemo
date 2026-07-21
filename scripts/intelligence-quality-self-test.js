@@ -57,4 +57,37 @@ const appSource = fs.readFileSync(path.join(root, "site/app.js"), "utf8");
   assert(appSource.includes(label), `Unified conclusion contract is missing ${label}`);
 });
 
-console.log(`Intelligence quality self-test passed: ${cases.length} cases, ${meta.familyCount} families, policy evidence contract and unified conclusion contract.`);
+const scheduleContext = { window: {} };
+vm.createContext(scheduleContext);
+vm.runInContext(fs.readFileSync(path.join(root, "site/schedule-database.js"), "utf8"), scheduleContext, { filename: "schedule-database.js" });
+const scheduleDatabase = scheduleContext.window.LOGISTICS_SCHEDULE_DATABASE;
+const baselineTransit = scheduleDatabase.baselineTransit || [];
+const scheduleEvidenceIds = new Set([
+  ...(scheduleDatabase.sources || []).map((source) => source.id),
+  ...(scheduleDatabase.downloads || []).map((download) => download.id)
+]);
+assert(baselineTransit.length >= 50, `Expected at least 50 baseline transit lanes, got ${baselineTransit.length}`);
+assert(scheduleDatabase.automaticRefresh?.githubWorkflow, "Schedule database must document the automatic refresh workflow");
+assert(scheduleDatabase.automaticRefresh?.qualityGate?.minimumValidatedServices >= 8, "Schedule refresh needs a service quality gate");
+assert(scheduleDatabase.updatePolicy?.keepLastGoodSnapshot, "Schedule refresh must keep the last good snapshot on source failure");
+[
+  "CNXMN->THLCH",
+  "CNSHA->USLAX",
+  "CNSHA->SGSIN",
+  "CNSZX->THLCH",
+  "CNSHA->CNSZX",
+  "CNQDG->CNSHA"
+].forEach((route) => {
+  const [originCode, destinationCode] = route.split("->");
+  assert(
+    baselineTransit.some((item) => item.originCode === originCode && item.destinationCode === destinationCode),
+    `Baseline transit database must cover ${route}`
+  );
+});
+baselineTransit.forEach((item) => {
+  assert(Array.isArray(item.rangeDays) && item.rangeDays.length === 2, `${item.id} must include a two-point day range`);
+  assert(item.rangeDays[0] > 0 && item.rangeDays[1] >= item.rangeDays[0], `${item.id} has an invalid transit range`);
+  assert((item.sourceIds || []).every((id) => scheduleEvidenceIds.has(id)), `${item.id} references an unregistered source or download`);
+});
+
+console.log(`Intelligence quality self-test passed: ${cases.length} China cases, ${meta.familyCount} families, ${baselineTransit.length} baseline transit lanes, policy evidence contract and unified conclusion contract.`);

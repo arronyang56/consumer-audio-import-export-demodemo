@@ -45,6 +45,7 @@ jobs:
           node --check site/schedule-database.js
           node --check site/app.js
           node --check netlify/functions/schedule-records.js
+          node scripts/intelligence-quality-self-test.js
 
       - name: Commit a changed last-good snapshot
         id: commit
