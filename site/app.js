@@ -11651,12 +11651,21 @@ function evidenceAgeDays(record = {}) {
   return Math.max(0, Math.floor((Date.now() - time) / 86400000));
 }
 
+function findChinaComplianceForGlobalQuery(query = "", intel = {}) {
+  if (typeof window.findChinaComplianceCases !== "function") return null;
+  const text = `${query} ${intel.productLabel || ""} ${intel.primaryProduct?.label || ""} ${intel.primaryProduct?.keywords?.join(" ") || ""}`;
+  const isChina = /中国|大陆|进口中国|进入中国|china/i.test(`${query} ${intel.country || ""}`);
+  if (!isChina) return null;
+  return window.findChinaComplianceCases(text, 1)[0] || null;
+}
+
 function buildGlobalEvidenceDecisionProfile(query = "", intel = {}, context = {}) {
   const concernIds = new Set((intel.concerns || []).map((item) => item.id));
   const routeEvidence = context.routeEvidence || {};
   const routeRecognition = context.routeRecognition || {};
   const routeComplete = Boolean(intel.route?.origin && intel.route?.destination);
   const routeModel = (intel.metrics || []).some(([label, value]) => /模型/.test(label) && !/覆盖不足/.test(String(value || "")));
+  const chinaCompliance = findChinaComplianceForGlobalQuery(query, intel);
   const dimensions = [];
   const toneForGrade = (grade) => grade >= 3 ? "verified" : grade === 2 ? "rules" : grade === 1 ? "model" : "missing";
   const add = (id, label, grade, status, detail) => {
@@ -11735,7 +11744,17 @@ function buildGlobalEvidenceDecisionProfile(query = "", intel = {}, context = {}
   }
 
   if (concernIds.has("policy")) {
-    add("policy", "政策/准入", 0, "公告正文未读取", "当前只识别主题和官方入口；必须核发布主体、生效日期、适用范围及后续修订。");
+    if (chinaCompliance && /合规|认证|资料|准入|进口|ccc|srrc|compliance|certif/i.test(query)) {
+      add(
+        "compliance",
+        "产品合规",
+        2,
+        "中国合规案例命中",
+        `${chinaCompliance.name}：HS 先按 ${chinaCompliance.code} / ${chinaCompliance.hsDirection} 核验；CCC、SRRC、运输/DG 仍需按型号、功能和申报日复核。`
+      );
+    } else {
+      add("policy", "政策/准入", 0, "公告正文未读取", "当前只识别主题和官方入口；必须核发布主体、生效日期、适用范围及后续修订。");
+    }
   }
 
   if (!dimensions.length) add("lookup", "查询结果", 1, "已定位查询方向", "还没有足够业务字段形成可执行结论。");
@@ -11866,8 +11885,13 @@ function buildGlobalAnswerContract(query = "", target = {}, intel = {}, assessme
   const hasActual = Boolean(assessment.routeEvidence?.rows?.length);
   const hasCarrierSchedule = Boolean(assessment.routeEvidence?.officialSchedules?.length);
   const policyQuery = concernIds.has("policy");
+  const chinaCompliance = findChinaComplianceForGlobalQuery(query, intel);
+  const chinaComplianceQuery = Boolean(chinaCompliance && /合规|认证|资料|准入|进口|ccc|srrc|compliance|certif/i.test(query));
   let conclusion = intel.conclusion;
-  if (policyQuery) {
+  if (chinaComplianceQuery) {
+    const facts = (chinaCompliance.requiredFacts || []).slice(0, 4).join("、") || "型号、功能、输入输出参数、是否带无线/电池";
+    conclusion = `已识别为${chinaCompliance.name}进口中国合规问题。税号方向先按 ${chinaCompliance.code} / ${chinaCompliance.hsDirection} 核验；CCC：${chinaCompliance.compliance?.ccc || "按目录核对"}；SRRC：${chinaCompliance.compliance?.srrc || "按无线功能核对"}；运输/DG：${chinaCompliance.compliance?.dg || "按实际货物成分核对"}。正式执行前还要补齐${facts}。`;
+  } else if (policyQuery) {
     conclusion = `已识别为${intel.country ? `${intel.country}相关` : ""}政策/准入问题。当前首页尚未读取最新公告正文，因此只确认查询方向，不直接判断政策已经生效或一定适用。`;
   } else if (routeComplete && hasActual) {
     const routeEvidence = assessment.routeEvidence || {};
@@ -11928,7 +11952,9 @@ function buildGlobalAnswerContract(query = "", target = {}, intel = {}, assessme
     basis: assessment.used?.join("；") || "按当前输入做意图识别。",
     impact: `${impactStatements.join("；").replace(/[。；]+$/g, "")}。`,
     impacts: directImpacts,
-    action: policyQuery
+    action: chinaComplianceQuery
+      ? "先核型号、额定输入输出、是否带无线/电池、铭牌标签、说明书和测试报告；再用中国税则、CCC 目录、SRRC 型号核准和危险品运输规则逐项确认，缺一项就不要作为可申报结论。"
+      : policyQuery
       ? "先进入政策模块读取最新公告正文，确认发布主体、生效日期、适用 HS、原产国、进口国和豁免条款，再决定是否调整报价、申报或出运。"
       : concernIds.has("risk")
         ? "进入风险预警中心核对路线天气、海况/航空天气、管制活动和口岸公告；只有命中当前路线且有有效来源时才提高风险等级。"
