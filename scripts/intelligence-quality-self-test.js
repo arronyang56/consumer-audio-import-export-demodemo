@@ -62,6 +62,15 @@ vm.createContext(scheduleContext);
 vm.runInContext(fs.readFileSync(path.join(root, "site/schedule-database.js"), "utf8"), scheduleContext, { filename: "schedule-database.js" });
 const scheduleDatabase = scheduleContext.window.LOGISTICS_SCHEDULE_DATABASE;
 const baselineTransit = scheduleDatabase.baselineTransit || [];
+function hasBaselineRoute(originCode, destinationCode) {
+  const equivalentCodes = {
+    CNTAO: ["CNTAO", "CNQDG"],
+    CNQDG: ["CNQDG", "CNTAO"]
+  };
+  const origins = equivalentCodes[originCode] || [originCode];
+  const destinations = equivalentCodes[destinationCode] || [destinationCode];
+  return baselineTransit.some((item) => origins.includes(item.originCode) && destinations.includes(item.destinationCode));
+}
 const scheduleEvidenceIds = new Set([
   ...(scheduleDatabase.sources || []).map((source) => source.id),
   ...(scheduleDatabase.downloads || []).map((download) => download.id)
@@ -88,13 +97,11 @@ assert(scheduleDatabase.updatePolicy?.keepLastGoodSnapshot, "Schedule refresh mu
   "CNNGB->CAVAN",
   "CNYTN->LKCMB",
   "CNQDG->DEHAM",
+  "CNTAO->DEHAM",
   "CNTXG->USLAX"
 ].forEach((route) => {
   const [originCode, destinationCode] = route.split("->");
-  assert(
-    baselineTransit.some((item) => item.originCode === originCode && item.destinationCode === destinationCode),
-    `Baseline transit database must cover ${route}`
-  );
+  assert(hasBaselineRoute(originCode, destinationCode), `Baseline transit database must cover ${route}`);
 });
 baselineTransit.forEach((item) => {
   assert(Array.isArray(item.rangeDays) && item.rangeDays.length === 2, `${item.id} must include a two-point day range`);

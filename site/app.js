@@ -10090,7 +10090,13 @@ function scheduleBaselineTransitForRoute(origin = {}, destination = {}, makeRang
   const originCode = String(origin.code || "").toUpperCase();
   const destinationCode = String(destination.code || "").toUpperCase();
   if (!originCode || !destinationCode) return null;
-  const hit = baseline.find((item) => String(item.originCode || "").toUpperCase() === originCode && String(item.destinationCode || "").toUpperCase() === destinationCode);
+  const equivalentCodes = {
+    CNTAO: ["CNTAO", "CNQDG"],
+    CNQDG: ["CNQDG", "CNTAO"]
+  };
+  const originCodes = equivalentCodes[originCode] || [originCode];
+  const destinationCodes = equivalentCodes[destinationCode] || [destinationCode];
+  const hit = baseline.find((item) => originCodes.includes(String(item.originCode || "").toUpperCase()) && destinationCodes.includes(String(item.destinationCode || "").toUpperCase()));
   if (!hit || !Array.isArray(hit.rangeDays) || hit.rangeDays.length < 2) return null;
   const range = hit.rangeDays.map(Number);
   if (!range.every(Number.isFinite) || range[0] <= 0 || range[1] < range[0]) return null;
@@ -12079,7 +12085,7 @@ function globalSearchOptionsForQuery(query = "") {
   if (intel.products.length && intel.concerns.length >= 2) {
     push("decision", "综合结论", `${modeLabel(intel.mode)} · ${intel.productLabel} · ${intel.concerns.map((item) => item.label).join("/")}`, "✓");
   }
-  if (airport) {
+  if (airport && (intel.mode === "Air" || intel.mode === "Courier" || (!intel.route?.origin && !intel.route?.destination && !port))) {
     push("codes", "机场代码", `${airport.cn} · ${airport.iata}/${airport.icao}`, "✓");
     push("air-market", "空运市场价格", "查看市场空运价、报价入口和 API 接入状态", "✓");
     push("air-fees", "空运操作费用", "查看货站、安检、仓储和敏感货附加费", "✓");
