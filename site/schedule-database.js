@@ -1,5 +1,5 @@
 window.LOGISTICS_SCHEDULE_DATABASE = {
-  schemaVersion: "1.5",
+  schemaVersion: "1.6",
   updatedAt: "2026-07-21T00:00:00+08:00",
   sources: [
     {
@@ -718,6 +718,118 @@ window.LOGISTICS_SCHEDULE_DATABASE = {
     }
   ]
 };
+
+(() => {
+  const database = window.LOGISTICS_SCHEDULE_DATABASE;
+  if (!database || !Array.isArray(database.baselineTransit)) return;
+
+  const originPorts = [
+    ["CNSHA", "east", "上海"],
+    ["CNNGB", "east", "宁波舟山"],
+    ["CNYTN", "south", "盐田"],
+    ["CNSZX", "south", "深圳/蛇口"],
+    ["CNGZG", "south", "广州/南沙"],
+    ["CNXMN", "fujian", "厦门"],
+    ["CNTAO", "north", "青岛"],
+    ["CNTXG", "east", "太仓"],
+    ["CNDLC", "north", "大连"],
+    ["CNFOC", "fujian", "福州"],
+    ["CNLYG", "east", "连云港"]
+  ];
+  const destinationPorts = [
+    ["SGSIN", "southeast-asia", "新加坡", [4, 8], ["oocl-hksc-southeast-asia", "maersk-point-to-point"]],
+    ["THLCH", "southeast-asia", "林查班", [5, 10], ["oocl-hksc-thailand", "maersk-point-to-point"]],
+    ["VNSGN", "southeast-asia", "胡志明/吉莱", [4, 9], ["oocl-hksc-vietnam", "cosco-service-schedule"]],
+    ["VNHPH", "southeast-asia", "海防", [3, 8], ["oocl-hksc-vietnam", "cosco-service-schedule"]],
+    ["MYPKG", "southeast-asia", "巴生", [6, 12], ["oocl-hksc-southeast-asia", "maersk-point-to-point"]],
+    ["IDJKT", "southeast-asia", "雅加达", [8, 15], ["oocl-hksc-southeast-asia", "one-point-to-point"]],
+    ["PHMNL", "southeast-asia", "马尼拉", [4, 9], ["oocl-hksc-philippines", "one-point-to-point"]],
+    ["JPTYO", "northeast-asia", "东京", [3, 7], ["oocl-hksc-japan", "cosco-service-schedule"]],
+    ["KRPUS", "northeast-asia", "釜山", [2, 6], ["oocl-hksc-korea", "cosco-service-schedule"]],
+    ["TWKHH", "northeast-asia", "高雄", [2, 5], ["oocl-hksc-taiwan", "cosco-service-schedule"]],
+    ["LKCMB", "south-asia", "科伦坡", [8, 18], ["oocl-hksc-india-subcontinent", "maersk-point-to-point"]],
+    ["INNSA", "south-asia", "那瓦舍瓦/JNPT", [10, 22], ["oocl-hksc-india-subcontinent", "maersk-point-to-point"]],
+    ["INMUN", "south-asia", "蒙德拉", [10, 22], ["oocl-hksc-india-subcontinent", "maersk-point-to-point"]],
+    ["AEJEA", "middle-east", "杰贝阿里", [14, 26], ["oocl-hksc-middle-east", "maersk-point-to-point"]],
+    ["SADMM", "middle-east", "达曼", [16, 28], ["oocl-hksc-middle-east", "maersk-point-to-point"]],
+    ["SAJED", "red-sea", "吉达", [20, 34], ["oocl-hksc-middle-east", "maersk-point-to-point"]],
+    ["AUSYD", "oceania", "悉尼", [15, 27], ["oocl-hksc-oceania", "one-point-to-point"]],
+    ["AUMEL", "oceania", "墨尔本", [16, 28], ["oocl-hksc-oceania", "one-point-to-point"]],
+    ["USLAX", "north-america-west", "洛杉矶", [14, 24], ["oocl-hksc-north-america", "maersk-point-to-point"]],
+    ["USSEA", "north-america-west", "西雅图", [14, 24], ["oocl-hksc-north-america", "one-point-to-point"]],
+    ["CAVAN", "north-america-west", "温哥华", [15, 26], ["oocl-hksc-north-america", "one-point-to-point"]],
+    ["USNYC", "north-america-east", "纽约/纽瓦克", [29, 44], ["oocl-hksc-north-america", "maersk-point-to-point"]],
+    ["USSAV", "north-america-east", "萨凡纳", [30, 45], ["oocl-hksc-north-america", "maersk-point-to-point"]],
+    ["NLRTM", "north-europe", "鹿特丹", [28, 42], ["oocl-hksc-europe", "hapag-schedule-download"]],
+    ["DEHAM", "north-europe", "汉堡", [29, 43], ["oocl-hksc-europe", "hapag-schedule-download"]],
+    ["BEANR", "north-europe", "安特卫普/布鲁日", [29, 43], ["oocl-hksc-europe", "hapag-schedule-download"]],
+    ["GBFXT", "uk", "费利克斯托", [30, 44], ["oocl-hksc-europe", "hapag-schedule-download"]],
+    ["ESVLC", "mediterranean", "瓦伦西亚", [26, 40], ["oocl-hksc-europe", "hapag-schedule-download"]],
+    ["BRSSZ", "latin-america", "桑托斯", [32, 48], ["oocl-hksc-latin-america", "maersk-point-to-point"]],
+    ["ZADUR", "africa", "德班", [28, 44], ["oocl-hksc-africa", "maersk-point-to-point"]],
+    ["KEMBA", "africa", "蒙巴萨", [26, 42], ["oocl-hksc-africa", "maersk-point-to-point"]]
+  ];
+  const originAdjustments = {
+    south: -2,
+    fujian: -1,
+    east: 0,
+    north: 2
+  };
+  const destinationNotes = {
+    "north-america-east": "美东服务差异较大，需核巴拿马/苏伊士服务、转运港和目的港铁路/拖车。",
+    "north-america-west": "美西/加拿大西岸还要核码头预约、铁路和旺季甩柜。",
+    "north-europe": "北欧航线受红海绕航、转运和目的港内陆段影响明显。",
+    mediterranean: "地中海航线需核红海/好望角绕航、转运港和目的港清关窗口。",
+    "middle-east": "中东航线需区分自由区、本地进口和中转，正式 ETA 以承运人计划为准。",
+    "red-sea": "红海相关服务波动较大，保险、绕航和挂靠调整要单独核验。",
+    oceania: "澳洲航线还要看检疫、木包装和目的港预约窗口。",
+    "south-asia": "南亚/印度洋航线需核中转衔接、目的港铁路和进口资料。",
+    "southeast-asia": "东南亚近洋直航和中转差异较大，目的港清关和驳船窗口另计。",
+    "northeast-asia": "东北亚短程航线受开航日、港口窗口和天气影响。",
+    "latin-america": "拉美航线服务组合长，目的港清关、木包装和费用波动要逐票核。",
+    africa: "非洲航线常见中转、拥堵和内陆转运变量，不能直接承诺到门日期。",
+    uk: "英国入口需同步核 UKCA、EORI、VAT 和内陆拖车能力。"
+  };
+  const existing = new Set(database.baselineTransit.map((item) => `${String(item.originCode || "").toUpperCase()}->${String(item.destinationCode || "").toUpperCase()}`));
+  const sourceIds = new Set([
+    ...(database.sources || []).map((source) => source.id),
+    ...(database.downloads || []).map((download) => download.id)
+  ]);
+  const rangeFor = (baseRange, originBand) => {
+    const offset = originAdjustments[originBand] || 0;
+    return [
+      Math.max(1, baseRange[0] + offset),
+      Math.max(2, baseRange[1] + offset)
+    ];
+  };
+
+  originPorts.forEach(([originCode, originBand, originName]) => {
+    destinationPorts.forEach(([destinationCode, destinationGroup, destinationName, baseRange, ids]) => {
+      const key = `${originCode}->${destinationCode}`;
+      if (existing.has(key)) return;
+      const validSourceIds = ids.filter((id) => sourceIds.has(id));
+      if (!validSourceIds.length) return;
+      const rangeDays = rangeFor(baseRange, originBand);
+      database.baselineTransit.push({
+        id: `matrix-${originCode.toLowerCase()}-${destinationCode.toLowerCase()}`,
+        originCode,
+        destinationCode,
+        rangeDays,
+        confidence: "baseline-matrix",
+        sourceIds: validSourceIds,
+        note: `${originName}到${destinationName}按中国主港矩阵补全的基准区间；用于内部预估和识别明显离谱结果，不是承运人实时船期。${destinationNotes[destinationGroup] || "正式承诺前仍需核船司/大型货代当前 ETD/ETA。" }`
+      });
+      existing.add(key);
+    });
+  });
+
+  database.matrixBaseline = {
+    originCount: originPorts.length,
+    destinationCount: destinationPorts.length,
+    laneCount: database.baselineTransit.filter((item) => item.confidence === "baseline-matrix").length,
+    policy: "人工校准航线优先；矩阵补全只用于内部预估、搜索路由和风险初筛，不用于替代船司当前 ETD/ETA。"
+  };
+})();
 
 (() => {
   const generated = window.LOGISTICS_GENERATED_SCHEDULE_DATA;
