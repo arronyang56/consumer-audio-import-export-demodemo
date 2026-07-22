@@ -12,6 +12,7 @@ import urllib.parse
 import urllib.request
 from collections import defaultdict
 from datetime import date, datetime, timedelta
+from html.parser import HTMLParser
 from pathlib import Path
 
 from pypdf import PdfReader
@@ -28,6 +29,19 @@ MONTHS = {name: index for index, name in enumerate(
 
 class ScheduleImportError(RuntimeError):
     pass
+
+
+class ServiceLinkParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.links: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag.lower() != "a":
+            return
+        href = dict(attrs).get("href") or ""
+        if re.search(r"_LT\.pdf(?:$|\?)", urllib.parse.unquote(href), re.I):
+            self.links.append(href)
 
 
 def parse_args() -> argparse.Namespace:
@@ -47,6 +61,73 @@ def load_existing(path: Path) -> dict:
     if not text.startswith(PREFIX) or not text.endswith(";"):
         raise ScheduleImportError(f"Existing generated file has an invalid wrapper: {path}")
     return json.loads(text[len(PREFIX):-1])
+
+
+def configured_services(manifest: dict) -> list[dict]:
+    configured = {item["id"].upper(): dict(item) for item in manifest.get("services", [])}
+    base_url = manifest.get("pdfBaseUrl") or urllib.parse.urljoin(manifest["sourcePage"], "/SiteCollectionDocuments/OOCL/eServices/Sailing%20Schedule%20by%20Service/")
+    for raw_id in manifest.get("discoverServiceIds", []):
+        service_id = str(raw_id).upper()
+        if service_id in configured:
+            continue
+        file_name = f"{service_id}_LT.pdf"
+        configured[service_id] = {
+            "id": service_id,
+            "name": f"OOCL {service_id} Service",
+            "fileName": file_name,
+            "url": urllib.parse.urljoin(base_url, urllib.parse.quote(file_name)),
+            "minVoyages": 2,
+        }
+    ordered_ids = [item["id"].upper() for item in manifest.get("services", [])]
+    ordered_ids.extend(str(item).upper() for item in manifest.get("discoverServiceIds", []) if str(item).upper() not in ordered_ids)
+    return [configured[item] for item in ordered_ids if item in configured]
+
+
+def discover_services(manifest: dict) -> tuple[list[dict], list[str]]:
+    configured = {item["id"].upper(): dict(item) for item in configured_services(manifest)}
+    desired = {str(item).upper() for item in manifest.get("discoverServiceIds", [])}
+    if not desired:
+        return list(configured.values()), []
+
+    request = urllib.request.Request(
+        manifest["sourcePage"],
+        headers={
+            "User-Agent": "LogisMaster-Schedule-Refresh/1.1 (+official-public-PDF-validation)",
+            "Accept": "text/html,application/xhtml+xml",
+        },
+    )
+    with urllib.request.urlopen(request, timeout=30) as response:
+        html = response.read(2_000_000).decode("utf-8", errors="ignore")
+    parser = ServiceLinkParser()
+    parser.feed(html)
+
+    discovered: list[str] = []
+    for href in parser.links:
+        absolute = urllib.parse.urljoin(manifest["sourcePage"], href)
+        file_name = Path(urllib.parse.unquote(urllib.parse.urlparse(absolute).path)).name
+        match = re.search(r"([A-Z0-9]+)\s*_LT\.pdf$", file_name, re.I)
+        if not match:
+            continue
+        service_id = match.group(1).upper()
+        if service_id not in desired and service_id not in configured:
+            continue
+        if service_id in configured:
+            configured[service_id]["url"] = absolute
+            configured[service_id]["fileName"] = file_name
+        else:
+            configured[service_id] = {
+                "id": service_id,
+                "name": f"OOCL {service_id} Service",
+                "fileName": file_name,
+                "url": absolute,
+                "minVoyages": 2,
+            }
+        discovered.append(service_id)
+
+    ordered_ids = [item["id"].upper() for item in manifest.get("services", [])]
+    ordered_ids.extend(item for item in manifest.get("discoverServiceIds", []) if str(item).upper() not in ordered_ids)
+    services = [configured[item.upper()] for item in ordered_ids if item.upper() in configured]
+    return services, sorted(set(desired) - set(discovered))
 
 
 def validate_pdf_bytes(content: bytes, service: dict) -> None:
@@ -90,6 +171,11 @@ def find_local_pdf(service: dict, input_dirs: list[Path]) -> Path | None:
         for name in candidates:
             path = directory / name
             if path.is_file():
+                return path
+        target = re.sub(r"(?:%20|\s)+", "", service["fileName"], flags=re.I).lower()
+        for path in directory.glob("*.pdf"):
+            normalized = re.sub(r"(?:%20|\s)+", "", path.name, flags=re.I).lower()
+            if normalized == target:
                 return path
     return None
 
@@ -217,7 +303,7 @@ def build_records(service: dict, voyages: list[dict], ports: dict, update_day: d
             continue
         for origin_index, origin_call in enumerate(calls[:-1]):
             origin = ports.get(origin_call["port"])
-            if not origin or not origin.get("chinaOrigin"):
+            if not origin:
                 continue
             if not earliest <= origin_call["departure"] <= latest_departure:
                 continue
@@ -225,7 +311,7 @@ def build_records(service: dict, voyages: list[dict], ports: dict, update_day: d
             for destination_index in range(origin_index + 1, len(calls)):
                 destination_call = calls[destination_index]
                 destination = ports.get(destination_call["port"])
-                if not destination or destination.get("chinaOrigin") or destination["code"] == origin["code"]:
+                if not destination or destination["code"] == origin["code"]:
                     continue
                 if destination["code"] in seen_destinations:
                     continue
@@ -284,15 +370,33 @@ def parse_service(path: Path, service: dict, manifest: dict, today: date) -> dic
     voyages = parse_voyages(reader)
     if len(voyages) < int(service.get("minVoyages", 1)):
         raise ScheduleImportError(f"only {len(voyages)} valid voyages; expected at least {service['minVoyages']}")
-    records = build_records(
+    raw_records = build_records(
         service,
         voyages,
         manifest["ports"],
         update_day,
         int(manifest["futureWindowDays"]),
     )
-    if not records:
-        raise ScheduleImportError("no current China-origin records were produced")
+    if not raw_records:
+        raise ScheduleImportError("no current mapped port-to-port records were produced")
+    max_records_per_route = max(1, int(manifest.get("maxRecordsPerServiceRoute", 2)))
+    records_by_route: dict[str, list[dict]] = defaultdict(list)
+    for record in raw_records:
+        records_by_route[f"{record['originCode']}->{record['destinationCode']}"].append(record)
+    records = sorted(
+        (
+            record
+            for route_records in records_by_route.values()
+            for record in sorted(route_records, key=lambda item: item["departureDate"])[:max_records_per_route]
+        ),
+        key=lambda item: (item["departureDate"], item["originCode"], item["destinationCode"]),
+    )
+    unmapped_ports = sorted({
+        call["port"]
+        for voyage in voyages
+        for call in voyage.get("calls", [])
+        if call.get("port") and call["port"] not in manifest["ports"]
+    })
     routes = {f"{item['originCode']}->{item['destinationCode']}" for item in records}
     source_id = f"oocl-{service['id'].lower()}-service"
     return {
@@ -310,7 +414,7 @@ def parse_service(path: Path, service: dict, manifest: dict, today: date) -> dic
             "id": f"oocl-service-{service['id'].lower()}",
             "sourceId": source_id,
             "mode": "sea",
-            "originScope": "中国主要出口港",
+            "originScope": "该服务表全部已映射挂靠港（含进口、出口和跨境第三国方向）",
             "destinationScope": service["name"],
             "format": "pdf",
             "cadence": "daily",
@@ -323,8 +427,11 @@ def parse_service(path: Path, service: dict, manifest: dict, today: date) -> dic
             "fileName": service["fileName"],
             "sha256": hashlib.sha256(content).hexdigest(),
             "voyageCount": len(voyages),
+            "rawRecordCount": len(raw_records),
             "recordCount": len(records),
             "routeCount": len(routes),
+            "recordsPerRouteLimit": max_records_per_route,
+            "unmappedPorts": unmapped_ports[:40],
             "status": "validated",
         },
         "records": records,
@@ -351,7 +458,14 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="logismaster-schedules-") as temp_name:
         temp_dir = Path(temp_name)
-        for service in manifest["services"]:
+        manifest_services = configured_services(manifest)
+        discovery_missing: list[str] = []
+        if args.download and manifest.get("discoverServiceIds"):
+            try:
+                manifest_services, discovery_missing = discover_services(manifest)
+            except Exception as error:
+                failures.append({"service": "OOCL-SERVICE-DISCOVERY", "reason": str(error)})
+        for service in manifest_services:
             try:
                 path = find_local_pdf(service, input_dirs)
                 if path is None and args.download:
@@ -373,7 +487,7 @@ def main() -> int:
     all_records = [record for service in services.values() for record in service.get("records", [])]
     all_routes = {f"{item['originCode']}->{item['destinationCode']}" for item in all_records}
     payload = {
-        "schemaVersion": "1.0",
+        "schemaVersion": "1.1",
         "updatedAt": datetime.now().astimezone().isoformat(timespec="seconds"),
         "publisher": manifest["publisher"],
         "sourcePage": manifest["sourcePage"],
@@ -381,7 +495,7 @@ def main() -> int:
         "recordCount": len(all_records),
         "routeCount": len(all_routes),
         "services": services,
-        "lastRefresh": {"successes": successes, "failures": failures},
+        "lastRefresh": {"successes": successes, "failures": failures, "discoveryMissing": discovery_missing},
     }
     write_output(output_path, payload)
     print(json.dumps({

@@ -36,7 +36,9 @@ const keywordMap = [
   [/科技|消费电子|蓝牙|耳机|音箱|芯片|ai|人工智能/i, ["consumer electronics", "bluetooth", "headphones", "speaker", "chip", "AI", "technology"]],
   [/红海|苏伊士/i, ["Red Sea", "Suez", "shipping disruption"]],
   [/汇率|利率|通胀|金融|美元|人民币/i, ["currency", "exchange rate", "interest rates", "inflation", "central bank"]],
-  [/美国|大选|选举/i, ["United States", "US election", "trade policy"]],
+  [/英国.*(?:大选|选举)|(?:大选|选举).*英国|uk election|british election/i, ["United Kingdom election", "UK general election", "British election", "UK Parliament", "Electoral Commission"]],
+  [/美国.*(?:大选|选举)|(?:大选|选举).*美国|us election|united states election/i, ["United States election", "US election", "White House", "Congress", "trade policy"]],
+  [/大选|选举|election/i, ["election", "general election", "parliament", "government policy"]],
   [/欧盟|欧洲/i, ["EU", "European Union", "trade", "customs"]],
   [/中国|出口|进口/i, ["China", "export", "import", "customs"]],
   [/日本/i, ["Japan", "Japanese customs", "trade policy", "shipping"]],
@@ -98,7 +100,16 @@ const mediaFeeds = [
 const marketSources = {
   cn: { names: ["中国", "china", "大陆"], sources: [["海关总署", "http://www.customs.gov.cn/", "中国海关公告、政策法规和归类决定。"], ["国家认证认可监督管理委员会", "https://www.cnca.gov.cn/", "3C 目录和认证公告。"]] },
   us: { names: ["美国", "us", "usa", "united states"], sources: [["USITC HTS", "https://hts.usitc.gov/", "美国 HTS 税号和税率。"], ["CBP", "https://www.cbp.gov/", "美国海关政策和贸易执行。"], ["FCC", "https://www.fcc.gov/", "美国无线产品合规入口。"]] },
-  uk: { names: ["英国", "uk", "united kingdom"], sources: [["UK Trade Tariff", "https://www.trade-tariff.service.gov.uk/", "英国税则、税率和进口措施。"], ["GOV.UK Import Goods", "https://www.gov.uk/import-goods-into-uk", "英国进口流程。"]] },
+  uk: {
+    names: ["英国", "uk", "united kingdom"],
+    sources: [
+      ["UK Electoral Commission", "https://www.electoralcommission.org.uk/", "英国选举管理、选举日期和官方说明。"],
+      ["UK Parliament", "https://www.parliament.uk/business/news/", "英国议会立法、政府问责和议会动态。"],
+      ["GOV.UK", "https://www.gov.uk/search/news-and-communications", "英国政府公告和政策发布。"],
+      ["UK Trade Tariff", "https://www.trade-tariff.service.gov.uk/", "英国税则、税率和进口措施。"],
+      ["GOV.UK Import Goods", "https://www.gov.uk/import-goods-into-uk", "英国进口流程。"]
+    ]
+  },
   eu: { names: ["欧盟", "欧洲", "eu", "europe", "德国", "法国", "荷兰"], sources: [["EU Access2Markets", "https://trade.ec.europa.eu/access-to-markets/en/home", "欧盟关税和产品要求。"], ["EU Safety Gate", "https://ec.europa.eu/safety-gate-alerts/", "欧盟消费品安全风险通报。"]] },
   jp: { names: ["日本", "japan", "jp"], sources: [["Japan Customs Tariff", "https://www.customs.go.jp/english/tariff/", "日本税则和关税。"], ["METI Product Safety", "https://www.meti.go.jp/english/policy/economy/consumer/product_safety/", "日本产品安全和 PSE。"], ["MIC Radio Use", "https://www.tele.soumu.go.jp/e/index.htm", "日本无线设备监管。"]] },
   th: { names: ["泰国", "thailand", "thai"], sources: [["Thai Customs", "https://www.customs.go.th/", "泰国海关和税则。"], ["NBTC", "https://www.nbtc.go.th/", "泰国无线设备监管。"], ["TISI", "https://www.tisi.go.th/", "泰国产品标准。"]] },
@@ -283,6 +294,12 @@ function isRelevant(item = {}, keyword = "") {
   const cleaned = cleanKeyword(keyword);
   if (!cleaned) return isOfficialLike(item) || hasBusinessContext(item);
   const haystack = `${item.title || ""} ${item.description || ""} ${item.summary || ""} ${item.takeaway || ""} ${item.takeawayZh || ""} ${item.domain || ""} ${item.sourceCountry || ""} ${item.category || ""}`.toLowerCase();
+  if (isUkElectionKeyword(cleaned) && !hasUkElectionContext(item)) {
+    return false;
+  }
+  if (isElectionKeyword(cleaned) && !/election|electoral|general election|vote|voting|poll|ballot|campaign|constituency|candidate|by-election|大选|选举|投票|民调|竞选|候选人/.test(haystack)) {
+    return false;
+  }
   const market = detectMarket(cleaned);
   if (market) {
     const marketHaystack = `${item.title || ""} ${item.domain || ""} ${item.sourceCountry || ""}`.toLowerCase();
@@ -304,6 +321,25 @@ function isRelevant(item = {}, keyword = "") {
     return rawTerms.every((term) => haystack.includes(term));
   }
   return rawTerms.some((term) => haystack.includes(term));
+}
+
+function isElectionKeyword(keyword = "") {
+  return /大选|选举|election/i.test(cleanKeyword(keyword));
+}
+
+function isUkElectionKeyword(keyword = "") {
+  const cleaned = cleanKeyword(keyword);
+  return isElectionKeyword(cleaned) && /英国|united kingdom|british|\buk\b/i.test(cleaned);
+}
+
+function hasUkElectionContext(item = {}) {
+  const content = `${item.title || ""} ${item.description || ""} ${item.summary || ""}`.toLowerCase();
+  const domain = String(item.domain || "").toLowerCase();
+  const country = String(item.sourceCountry || "").toLowerCase();
+  const hasElection = /election|electoral|general election|vote|voting|poll|ballot|campaign|constituency|candidate|by-election|大选|选举|投票|民调|竞选|候选人/.test(content);
+  const hasUkEntity = /united kingdom|britain|british|\buk\b|england|scotland|wales|northern ireland|westminster|英国|英格兰|苏格兰|威尔士|北爱尔兰/.test(`${content} ${country}`)
+    || /(^|\.)(gov\.uk|parliament\.uk|electoralcommission\.org\.uk)$/.test(domain);
+  return hasElection && hasUkEntity;
 }
 
 function makeCategory(article = {}) {
@@ -407,7 +443,8 @@ async function fetchFederalRegister(keyword = "") {
 }
 
 async function fetchGovUk(keyword = "") {
-  const term = keyword ? `${keyword} tariff customs import export` : "tariff customs import export trade";
+  const expanded = expandKeywordTerms(keyword).filter((item) => /^[\x20-\x7E]+$/.test(item)).slice(0, 5).join(" ");
+  const term = keyword ? `${expanded || keyword} policy trade shipping` : "tariff customs import export trade";
   const url = new URL("https://www.gov.uk/api/search.json");
   url.searchParams.set("q", term);
   url.searchParams.set("count", "3");
@@ -443,9 +480,12 @@ async function fetchFxRates() {
 }
 
 async function fetchGoogleNews(keyword = "") {
-  const term = keyword
-    ? `${keyword} trade OR customs OR tariff OR shipping OR economy OR finance when:7d`
-    : "global economy OR trade OR tariff OR shipping OR finance when:7d";
+  const expanded = expandKeywordTerms(keyword).slice(0, 6).join(" OR ");
+  const term = isUkElectionKeyword(keyword)
+    ? '("UK general election" OR "British election" OR "United Kingdom election" OR "UK election") when:14d'
+    : keyword
+      ? `((${expanded || keyword}) AND (trade OR customs OR tariff OR shipping OR economy OR finance)) when:14d`
+      : "global economy OR trade OR tariff OR shipping OR finance when:7d";
   const url = new URL("https://news.google.com/rss/search");
   url.searchParams.set("q", term);
   url.searchParams.set("hl", "zh-CN");
@@ -618,6 +658,18 @@ function buildTrendSummary(items = [], indicators = [], keyword = "") {
   return `${keyword ? `关键词“${keyword}”：` : ""}本次综合官方公告、行业物流媒体、主流新闻、GDELT 和公开指标后，主要判断是：${conclusions.join("；")}。${indicatorText}`;
 }
 
+function buildTopicDecision(items = [], indicators = [], keyword = "") {
+  const evidenceItems = items.filter((item) => !item.baseline && !/manual checklist/i.test(String(item.domain || "")));
+  if (isUkElectionKeyword(keyword)) {
+    if (!evidenceItems.length) {
+      return "英国大选专题结论：过去 14 天的多源检索没有找到通过相关性校验的新选举发布，因此不能把历史大选报道当作当前热点。现阶段没有证据表明英国选举正在直接改变关税、清关文件或英国港口作业；业务计划可暂按现行 UK Trade Tariff 和进口规则执行，同时继续监测英国选举委员会、议会和 GOV.UK 的新公告。";
+    }
+    const officialCount = evidenceItems.filter(isOfficialLike).length;
+    return `英国大选专题结论：本次命中 ${evidenceItems.length} 条近 14 天相关发布${officialCount ? `，其中 ${officialCount} 条来自官方或公共机构` : ""}。选举消息本身不等于关税或清关规则已经变化；只有 GOV.UK、英国议会、HMRC/UK Trade Tariff 发布了明确生效日期和适用范围，才调整报价、申报资料或交付承诺。短期应重点观察汇率、政府贸易立场和英国进口政策，不据单篇竞选报道改变执行方案。`;
+  }
+  return buildTrendSummary(items, indicators, keyword);
+}
+
 function buildTrendInsights(items = [], indicators = [], keyword = "") {
   const evidenceItems = items.filter((item) => !item.baseline && !/manual checklist/i.test(String(item.domain || "")));
   const text = evidenceItems.map((item) => `${item.title} ${item.category} ${item.takeawayZh || item.takeaway}`).join(" ").toLowerCase();
@@ -693,7 +745,9 @@ exports.handler = async (event) => {
     const gdeltArticles = gdeltResponse?.ok && Array.isArray(gdeltResponse.data?.articles)
       ? gdeltResponse.data.articles.map(normalizeArticle).filter((item) => isRelevant(item, keyword))
       : [];
-    const filterForKeyword = (items = []) => keyword ? items.filter((item) => isRelevant(item, keyword)) : items;
+    const filterForKeyword = (items = []) => items
+      .filter((item) => isRecentEnough(item, 14))
+      .filter((item) => keyword ? isRelevant(item, keyword) : true);
     const federalItems = filterForKeyword(federalResult.status === "fulfilled" ? federalResult.value : []);
     const govUkItems = filterForKeyword(govUkResult.status === "fulfilled" ? govUkResult.value : []);
     const indicators = [
@@ -715,7 +769,7 @@ exports.handler = async (event) => {
         updatedAt: new Date().toISOString(),
         keyword,
         summary: keyword
-          ? `暂时没有拿到“${keyword}”相关公开新闻，但已尝试补充官方公告、宏观指标和汇率数据。`
+          ? buildTopicDecision([], indicators, keyword)
           : "公开新闻接口暂时没有返回结果，先按基础观察清单和公开指标观察。",
         indicators,
         insights: buildTrendInsights([], indicators, keyword),
@@ -739,7 +793,7 @@ exports.handler = async (event) => {
       source: "Google News + industry RSS + GDELT + official APIs",
       updatedAt: new Date().toISOString(),
       keyword,
-      summary: buildTrendSummary(articles, indicators, keyword),
+      summary: buildTopicDecision(articles, indicators, keyword),
       indicators,
       insights: buildTrendInsights(articles, indicators, keyword),
       sourceBreakdown: [
@@ -773,3 +827,5 @@ exports.handler = async (event) => {
     });
   }
 };
+
+exports._test = { expandKeywordTerms, detectMarket, isRelevant, buildTopicDecision, isUkElectionKeyword, hasUkElectionContext };

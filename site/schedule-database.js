@@ -1,5 +1,5 @@
 window.LOGISTICS_SCHEDULE_DATABASE = {
-  schemaVersion: "1.6",
+  schemaVersion: "1.7",
   updatedAt: "2026-07-21T00:00:00+08:00",
   sources: [
     {
@@ -131,6 +131,36 @@ window.LOGISTICS_SCHEDULE_DATABASE = {
       cadence: "live",
       automation: "api-key-required",
       note: "免费注册 key 的全球 AIS 流；用于船位，不提供订舱船期。"
+    },
+    {
+      id: "vesselfinder-vessels-api",
+      mode: "sea-position",
+      name: "VesselFinder Vessels API",
+      url: "https://api.vesselfinder.com/docs/vessels.html",
+      format: "rest/json",
+      cadence: "live",
+      automation: "api-key-required",
+      note: "按 MMSI/IMO 自动补充全球 AIS 船位；仅在实际返回时间和坐标时进入结果选择。"
+    },
+    {
+      id: "marinetraffic-single-vessel",
+      mode: "sea-position",
+      name: "MarineTraffic Single Vessel Positions API",
+      url: "https://servicedocs.marinetraffic.com/",
+      format: "rest/json",
+      cadence: "live",
+      automation: "commercial-api-key-required",
+      note: "可作为船位和航次信息的自动换源；需商业授权。"
+    },
+    {
+      id: "shipfinder-position-api",
+      mode: "sea-position",
+      name: "ShipFinder Vessel Position API",
+      url: "https://docs.shipfinder.com/428990613e0",
+      format: "rest/json",
+      cadence: "live",
+      automation: "api-key-required",
+      note: "按 MMSI 自动查询单船位置，参与多源时效评分。"
     },
     {
       id: "opensky",
@@ -823,11 +853,34 @@ window.LOGISTICS_SCHEDULE_DATABASE = {
     });
   });
 
+  destinationPorts.forEach(([originCode, originGroup, originName, baseRange, ids]) => {
+    originPorts.forEach(([destinationCode, destinationBand, destinationName]) => {
+      const key = `${originCode}->${destinationCode}`;
+      if (existing.has(key)) return;
+      const validSourceIds = ids.filter((id) => sourceIds.has(id));
+      if (!validSourceIds.length) return;
+      const outboundEquivalent = rangeFor(baseRange, destinationBand);
+      const rangeDays = [outboundEquivalent[0], outboundEquivalent[1] + 2];
+      database.baselineTransit.push({
+        id: `matrix-inbound-${originCode.toLowerCase()}-${destinationCode.toLowerCase()}`,
+        originCode,
+        destinationCode,
+        rangeDays,
+        confidence: "baseline-matrix-inbound",
+        sourceIds: validSourceIds,
+        note: `${originName}到${destinationName}按全球主港进口中国矩阵补全的宽区间；用于识别路线和初筛，不是承运人当前航次。${destinationNotes[originGroup] || "正式承诺前仍需核承运人 ETD/ETA、转运和目的港作业。"}`
+      });
+      existing.add(key);
+    });
+  });
+
   database.matrixBaseline = {
     originCount: originPorts.length,
     destinationCount: destinationPorts.length,
-    laneCount: database.baselineTransit.filter((item) => item.confidence === "baseline-matrix").length,
-    policy: "人工校准航线优先；矩阵补全只用于内部预估、搜索路由和风险初筛，不用于替代船司当前 ETD/ETA。"
+    exportLaneCount: database.baselineTransit.filter((item) => item.confidence === "baseline-matrix").length,
+    inboundLaneCount: database.baselineTransit.filter((item) => item.confidence === "baseline-matrix-inbound").length,
+    laneCount: database.baselineTransit.filter((item) => /^baseline-matrix/.test(item.confidence || "")).length,
+    policy: "人工校准和承运人当前航次优先；矩阵补全覆盖中国出口与进口方向，只用于内部预估、搜索路由和风险初筛。"
   };
 })();
 

@@ -405,6 +405,156 @@ function findPortProfile(port = "", region = "") {
   };
 }
 
+function getPortCode(port = "", profile = null) {
+  const coordinate = findPortCoordinate(port) || findPortCoordinate(profile?.name || "");
+  return coordinate?.code || (profile?.aliases || []).find((item) => /^[A-Z]{5}$/i.test(item))?.toUpperCase() || "";
+}
+
+async function fetchProviderJson(url, timeoutMs = 10000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      cache: "no-store",
+      headers: { Accept: "application/json", "User-Agent": "consumer-audio-import-export-demo/1.0" }
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(`Provider returned HTTP ${response.status}`);
+    return data;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function isoWeek(date = new Date()) {
+  const target = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const day = target.getUTCDay() || 7;
+  target.setUTCDate(target.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
+  return {
+    year: target.getUTCFullYear(),
+    week: Math.ceil((((target - yearStart) / 86400000) + 1) / 7)
+  };
+}
+
+function numeric(value) {
+  if (value === null || value === undefined || String(value).trim() === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function parseMarineTrafficPortIds() {
+  try {
+    const parsed = JSON.parse(process.env.MARINETRAFFIC_PORT_IDS || "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+async function getMarineTrafficCongestion(port = "", profile = null) {
+  const apiKey = process.env.MARINETRAFFIC_API_KEY || "";
+  const portCode = getPortCode(port, profile);
+  const portIdMap = parseMarineTrafficPortIds();
+  const portId = portIdMap[portCode] || portIdMap[portCode.toLowerCase()] || "";
+  if (!apiKey || !portId) return null;
+  const completedWeekDate = new Date(Date.now() - 7 * 86400000);
+  const { year, week } = isoWeek(completedWeekDate);
+  const url = new URL(`https://services.marinetraffic.com/api/port-congestion/${encodeURIComponent(apiKey)}`);
+  url.searchParams.set("portid", String(portId));
+  url.searchParams.set("year", String(year));
+  url.searchParams.set("week", String(week));
+  url.searchParams.set("agg_market", "1");
+  url.searchParams.set("agg_shipclass", "1");
+  url.searchParams.set("protocol", "jsono");
+  const payload = await fetchProviderJson(url);
+  const rows = Array.isArray(payload) ? payload : Array.isArray(payload?.DATA) ? payload.DATA : [];
+  const row = rows.find((item) => String(item.PORT_ID || item.port_id || "") === String(portId)) || rows[0];
+  if (!row) return null;
+  const anchorageDays = numeric(row.TIME_ANCH ?? row.time_anch);
+  const portDays = numeric(row.TIME_PORT ?? row.time_port);
+  const anchorageDiffDays = numeric(row.TIME_ANCH_DIFF ?? row.time_anch_diff);
+  const anchorageDiffPercent = numeric(row.TIME_ANCH_DIFF_PERC ?? row.time_anch_diff_perc);
+  const vessels = numeric(row.VESSELS ?? row.vessels);
+  const calls = numeric(row.CALLS ?? row.calls);
+  if (anchorageDays === null && portDays === null) return null;
+  const direction = anchorageDiffDays !== null
+    ? anchorageDiffDays > 0.2 ? "rising" : anchorageDiffDays < -0.2 ? "falling" : "stable"
+    : anchorageDiffPercent !== null
+      ? anchorageDiffPercent > 15 ? "rising" : anchorageDiffPercent < -15 ? "falling" : "stable"
+      : "unknown";
+  const directionText = direction === "rising" ? "较上周上升" : direction === "falling" ? "较上周下降" : direction === "stable" ? "与上周大致持平" : "缺少上周对比";
+  return {
+    provider: "MarineTraffic Port Congestion API",
+    evidenceType: "weekly-port-metrics",
+    portCode,
+    period: `${year}-W${String(week).padStart(2, "0")}`,
+    anchorageDays,
+    portDays,
+    anchorageDiffDays,
+    anchorageDiffPercent,
+    vessels,
+    calls,
+    direction,
+    conclusion: `最近完整周锚地等待中位数${anchorageDays === null ? "未返回" : ` ${anchorageDays} 天`}，港内停留中位数${portDays === null ? "未返回" : ` ${portDays} 天`}；锚地等待${directionText}。`,
+    url: "https://servicedocs.marinetraffic.com/tag/Ports-Information/"
+  };
+}
+
+async function getShipFinderPortPressure(port = "", profile = null) {
+  const apiKey = process.env.SHIPFINDER_API_KEY || "";
+  const canonicalPortCode = getPortCode(port, profile);
+  const providerPortCodes = {
+    CNSHA: "CNSHG",
+    CNTAO: "CNQDG"
+  };
+  const portCode = providerPortCodes[canonicalPortCode] || canonicalPortCode;
+  if (!apiKey || !portCode) return null;
+  const endpoint = (path) => {
+    const url = new URL(`https://api.elaneglobal.com/v1/Voyage/${path}`);
+    url.searchParams.set("key", apiKey);
+    url.searchParams.set("port_code", portCode);
+    return url;
+  };
+  const settled = await Promise.allSettled([
+    fetchProviderJson(endpoint("PortAnchoredVessels")),
+    fetchProviderJson(endpoint("PortBerthedVessels"))
+  ]);
+  const anchoredPayload = settled[0].status === "fulfilled" ? settled[0].value : null;
+  const berthedPayload = settled[1].status === "fulfilled" ? settled[1].value : null;
+  const valid = (payload) => payload && Number(payload.status) === 0;
+  if (!valid(anchoredPayload) && !valid(berthedPayload)) return null;
+  const count = (payload) => {
+    const total = numeric(payload?.total);
+    return total === null ? (Array.isArray(payload?.data) ? payload.data.length : null) : total;
+  };
+  const anchored = valid(anchoredPayload) ? count(anchoredPayload) : null;
+  const berthed = valid(berthedPayload) ? count(berthedPayload) : null;
+  const observed = [anchored, berthed].filter((item) => item !== null).reduce((sum, item) => sum + item, 0);
+  const anchoredShare = anchored !== null && observed > 0 ? Number((anchored / observed).toFixed(2)) : null;
+  return {
+    provider: "ShipFinder Port/Voyage API",
+    evidenceType: "live-anchored-berthed-counts",
+    portCode,
+    anchored,
+    berthed,
+    anchoredShare,
+    conclusion: `当前 AIS 识别到锚地船舶${anchored === null ? "未返回" : ` ${anchored} 艘`}、靠泊船舶${berthed === null ? "未返回" : ` ${berthed} 艘`}。该结构用于判断当前排队压力，但没有历史基线时不单独等同于塞港。`,
+    url: "https://docs.shipfinder.com/"
+  };
+}
+
+async function getObjectiveCongestionEvidence(port = "", profile = null) {
+  const settled = await Promise.allSettled([
+    getMarineTrafficCongestion(port, profile),
+    getShipFinderPortPressure(port, profile)
+  ]);
+  return settled
+    .map((item) => item.status === "fulfilled" ? item.value : null)
+    .filter(Boolean);
+}
+
 function expandPort(port = "") {
   const cleaned = clean(port);
   const profile = findPortProfile(cleaned);
@@ -761,13 +911,15 @@ exports.handler = async (event) => {
   url.searchParams.set("maxrecords", "8");
   url.searchParams.set("sort", "datedesc");
 
-  const [newsResult, weatherResult, googleNewsResult, mediaFeedsResult] = await Promise.allSettled([
+  const [newsResult, weatherResult, googleNewsResult, mediaFeedsResult, objectiveResult] = await Promise.allSettled([
     getJson(url),
     getMarineWeather(profile),
     fetchGooglePortNews(port, profile),
-    fetchPortMediaFeeds(port, profile)
+    fetchPortMediaFeeds(port, profile),
+    getObjectiveCongestionEvidence(port, profile)
   ]);
   const weather = weatherResult.status === "fulfilled" ? weatherResult.value : null;
+  const congestionEvidence = objectiveResult.status === "fulfilled" ? objectiveResult.value : [];
 
   try {
     const response = newsResult.status === "fulfilled" ? newsResult.value : null;
@@ -780,7 +932,7 @@ exports.handler = async (event) => {
     const articles = dedupeArticles([...googleArticles, ...mediaArticles, ...gdeltArticles]).slice(0, 12);
     const displayArticles = articles.filter(hasDisplayRiskContext).slice(0, 8);
 
-    if (!articles.length && !weather) {
+    if (!articles.length && !weather && !congestionEvidence.length) {
       const result = fallback(port, cargoForDg || cargo, profile);
       result.weather = weather;
       if (newsResult.status === "rejected") result.message = newsResult.reason?.message || "Port news query failed.";
@@ -791,10 +943,13 @@ exports.handler = async (event) => {
     const batteryCargo = /battery|电池|危险|dg|hazard|un38\.3|un\d{4}|lithium/i.test(cargoForDg);
     const dgAdvice = buildDgAdvice(profile, cargoForDg || cargo, weather, articles);
     const marineWatch = weather?.notes?.some((note) => /浪高偏大|洋流速度偏高/.test(note));
+    const weeklyCongestion = congestionEvidence.find((item) => item.evidenceType === "weekly-port-metrics") || null;
+    const livePortPressure = congestionEvidence.find((item) => item.evidenceType === "live-anchored-berthed-counts") || null;
     const hasPortOperationEvidence = displayArticles.length > 0;
     const hasCongestion = hasPortOperationEvidence && allSignals.has("拥堵/等待");
+    const objectiveTrendRisk = weeklyCongestion?.direction === "rising";
     const hasOperationRisk = allSignals.has("罢工/劳工") || allSignals.has("天气") || marineWatch;
-    const level = allSignals.has("罢工/劳工") || allSignals.has("天气") || allSignals.has("拥堵/等待") || marineWatch
+    const level = objectiveTrendRisk || allSignals.has("罢工/劳工") || allSignals.has("天气") || allSignals.has("拥堵/等待") || marineWatch
       ? "Watch"
       : batteryCargo
         ? "Medium"
@@ -805,7 +960,13 @@ exports.handler = async (event) => {
     const base = fallback(port, cargo, profile);
     return json(200, {
       ok: true,
-      source: "Open-Meteo Marine + Google News + industry RSS + GDELT",
+      source: [
+        ...congestionEvidence.map((item) => item.provider),
+        "Open-Meteo Marine",
+        "Google News",
+        "industry RSS",
+        "GDELT"
+      ].join(" + "),
       updatedAt: new Date().toISOString(),
       port: profile?.name || port,
       region: profile?.region || region,
@@ -818,15 +979,37 @@ exports.handler = async (event) => {
       dgAdvice,
       operationGuide: buildOperationGuide(profile, dgAdvice),
       level,
-      congestionStatus: hasCongestion ? "可能存在拥堵/等待" : hasPortOperationEvidence && hasOperationRisk ? "港口作业需关注" : hasPortOperationEvidence ? "未见直接拥堵信号" : "未取得拥堵证据",
-      congestionSummary: hasCongestion
+      congestionStatus: weeklyCongestion
+        ? weeklyCongestion.direction === "rising"
+          ? "锚地等待较上周上升"
+          : weeklyCongestion.direction === "falling"
+            ? "锚地等待较上周下降"
+            : weeklyCongestion.direction === "stable"
+              ? "锚地等待与上周大致持平"
+              : "已取得本周等待数据"
+        : hasCongestion
+          ? "公开消息提示可能存在拥堵/等待"
+          : livePortPressure
+            ? "已取得实时锚地/靠泊结构"
+            : hasPortOperationEvidence && hasOperationRisk
+              ? "港口作业需关注"
+              : hasPortOperationEvidence
+                ? "未见直接拥堵信号"
+                : "未取得拥堵证据",
+      congestionSummary: weeklyCongestion
+        ? [weeklyCongestion.conclusion, livePortPressure?.conclusion].filter(Boolean).join(" ")
+        : hasCongestion
         ? `${profile?.name || port} 的公开消息出现拥堵、等待或压港相关信号，需要向货代确认实际靠泊和提箱安排。`
+        : livePortPressure
+          ? livePortPressure.conclusion
         : hasPortOperationEvidence && hasOperationRisk
           ? `${profile?.name || port} 未见明确塞港，但存在天气/劳工/海况等作业风险信号。`
           : hasPortOperationEvidence
             ? `${profile?.name || port} 的直接相关公开消息未出现拥堵关键词；这不等同于码头实时无排队。`
             : `${profile?.name || port} 本次未命中直接相关港口运营消息；正常海况不能证明码头无拥堵。`,
-      impact: Array.from(allSignals).length
+      impact: objectiveTrendRisk
+        ? `客观周度数据表明锚地等待在上升；会增加靠泊时间不确定性，但在取得具体船舶排队和码头计划前不换算为固定延误天数。${Array.from(allSignals).length ? ` 同时命中：${Array.from(allSignals).join("、")}。` : ""}`
+        : Array.from(allSignals).length
         ? `风险信号：${Array.from(allSignals).join("、")}。可能影响 ETA、靠泊、提箱预约或清关节奏。`
         : marineWatch
           ? `海况提示：${(weather?.notes || []).join("、")}。建议向货代确认靠泊和提箱安排。`
@@ -840,6 +1023,7 @@ exports.handler = async (event) => {
       profileSummary: profile?.baseline || "",
       links: base.links,
       weather,
+      congestionEvidence,
       articles: displayArticles
     });
   } catch (error) {
@@ -849,3 +1033,5 @@ exports.handler = async (event) => {
     return json(200, result);
   }
 };
+
+exports._test = { isoWeek, numeric };

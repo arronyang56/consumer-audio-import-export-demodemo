@@ -2618,6 +2618,9 @@ const freeApiOptions = [
   ["IATA / ICAO 官方入口", "空运规则/危险品", "公开网页", "已加入来源", "用于空运锂电池、危险品、航空货运市场和操作规则的人工核验；真正自动状态查询仍需承运商 API。", "https://www.iata.org/en/programs/cargo/"],
   ["DHL/UPS/FedEx/SF 官方追踪", "快件状态", "免费网页/可能验证码", "已加入入口", "适合快件单号核验。若需要在平台内直接返回状态，需要承运商账号 API 或授权接口。", "#air"],
   ["AISstream", "AIS 船舶位置流", "免费注册 key", "可接入", "WebSocket 实时 AIS，适合关注某个 MMSI 或港口区域；必须放后端，且 beta 无 SLA。", "https://aisstream.io/documentation.html"],
+  ["VesselFinder Vessels API", "全球 AIS 船位", "需 API key", "已支持自动换源", "当首选船位缺失或超过时效阈值时，后端按 MMSI/IMO 自动查询；只展示实际返回且身份匹配的数据。", "https://api.vesselfinder.com/docs/vessels.html"],
+  ["MarineTraffic Single Vessel API", "全球 AIS 船位/航次", "需商业 key", "已支持自动换源", "后端可自动查询单船位置并与其他来源比较时间；未配置授权时不会在结果页制造占位数据。", "https://servicedocs.marinetraffic.com/"],
+  ["ShipFinder Vessel Position API", "全球 AIS 船位", "需 API key", "已支持自动换源", "按 MMSI 自动补充船位；与 ShipXY、VesselFinder、MarineTraffic、AISstream 共同参与新鲜度选择。", "https://docs.shipfinder.com/428990613e0"],
   ["USITC HTS REST", "美国 HTS 税号/税率", "免费、无需 key", "可直接接入", "官方 HTS 数据可 JSON/CSV/XLSX 查询，美国进口税号核验优先级高。", "https://hts.usitc.gov/reststop"],
   ["UK Trade Tariff API", "英国税号/措施", "官方 API", "可直接接入", "英国商品编码、税率、VAT、配额和措施，适合目的国要求查询。", "https://api.trade-tariff.service.gov.uk"],
 	  ["Trade.gov CSL API", "受限方/出口管制筛查", "开放 API/下载", "可接入", "美国 Consolidated Screening List，用于客户/供应商/收货人名称初筛；命中后仍需人工尽调。", "https://www.trade.gov/consolidated-screening-list"],
@@ -9065,7 +9068,7 @@ async function queryShipment(event) {
 
   $("shipmentApiState").textContent = "查询中";
   $("shipmentSourceLabel").textContent = "Live Query";
-  $("shipmentApiNote").textContent = "正在通过船讯网按船名/MMSI 查询；只填船名和目的港也可以，航次作为备注字段。";
+  $("shipmentApiNote").textContent = "正在自动查询多源 AIS；系统会优先展示满足身份和时效要求的数据，并在首选来源过期或缺失时自动换源。";
   loadShippingSources(payload);
   addHistory("船期查询", `${payload.vessel} -> ${payload.destination}`, "已查询船舶位置和第三方入口");
   showQueryOverlay("正在查询船期和船位", `${payload.vessel} -> ${payload.destination}。正在读取船位、数据时间和 ETA 相关信息。`, "Shipment Desk");
@@ -9073,7 +9076,7 @@ async function queryShipment(event) {
   try {
     const apiData = await fetchShipxyEta(payload);
     if (apiData.ok) {
-      renderShipxyResult(payload, apiData.result, apiData.updatedAt, apiData.source, apiData.freshness);
+      renderShipxyResult(payload, apiData.result, apiData.updatedAt, apiData.source, apiData.freshness, apiData.sourceChain);
       return;
     }
     const scriptData = await fetchShippingBrowserQuery("shipfinder", payload);
@@ -9416,7 +9419,7 @@ function renderShipmentJudgement(brief = {}) {
   `;
 }
 
-function renderShipxyResult(payload = {}, result = {}, updatedAt = "", source = "ShipXY", freshness = {}) {
+function renderShipxyResult(payload = {}, result = {}, updatedAt = "", source = "ShipXY", freshness = {}, sourceChain = []) {
   const vessel = result.shipName || payload.vessel || "UNKNOWN VESSEL";
   const voyage = payload.voyage || "TBD";
   const origin = payload.origin || result.previousPort?.name || "Origin Port";
@@ -9427,7 +9430,10 @@ function renderShipxyResult(payload = {}, result = {}, updatedAt = "", source = 
     result.remainingDistanceNm !== "" ? ` · 剩余约 ${result.remainingDistanceNm} NM` : "";
   const destinationEta = estimateDestinationArrival(result.position, destination, result.position?.speed);
   const isWebFallback = /web|myshiptracking|public/i.test(source);
-  const sourceName = isWebFallback ? "网页抓取兜底" : "船讯网 API";
+  const sourceName = source || (isWebFallback ? "公开 AIS 页面" : "自动 AIS 来源");
+  const attemptedSources = Array.isArray(sourceChain)
+    ? sourceChain.filter((item) => item && item.status !== "not-configured")
+    : [];
   const dataTime = getVesselDataTime(result, updatedAt);
   const dataAge = formatDataAge(dataTime);
   const freshnessLabel = shipmentFreshnessText(freshness, dataTime);
@@ -9449,13 +9455,13 @@ function renderShipxyResult(payload = {}, result = {}, updatedAt = "", source = 
   $("shipmentStatus").textContent = hasLivePosition ? nextPort : "未取得实时坐标";
   $("shipmentDataTime").textContent = dataAge;
   $("shipmentReminder").textContent = hasLivePosition
-    ? `${sourceName}已返回船位${remaining}；${freshnessLabel}。`
+    ? `${sourceName} 已返回船位${remaining}；${freshnessLabel}。`
     : `${sourceName}没有返回可用实时坐标；需要用箱号/提单号走船司或码头自动/人工核验。`;
   $("mapOrigin").textContent = origin;
   $("mapDestination").textContent = destination;
   $("shipmentApiState").textContent = freshness?.level === "stale" ? "数据过期" : hasLivePosition ? "实时结果" : "未取得实时结果";
-  $("shipmentSourceLabel").textContent = isWebFallback ? "Public Web AIS" : source.includes("GetManyShip") ? "ShipXY Vessel Result" : "ShipXY ETA Result";
-  $("shipmentApiNote").textContent = `自动查询结果：数据源 ${source}；船位/接口时间 ${dataAge}；新鲜度 ${freshnessLabel}。${hasEta ? "ETA 为接口返回值。" : "当前接口未返回 ETA，平台不会补写 ETA。"}${staleWarning}。`;
+  $("shipmentSourceLabel").textContent = sourceName;
+  $("shipmentApiNote").textContent = `自动查询结果：${attemptedSources.length ? `已检查 ${attemptedSources.length} 个可用来源，` : ""}选用 ${sourceName}；船位/接口时间 ${dataAge}；新鲜度 ${freshnessLabel}。${hasEta ? "ETA 为接口返回值。" : "当前来源未返回 ETA，平台不会补写 ETA。"}${staleWarning}。`;
   renderShipmentJudgement(buildShipmentJudgement({ payload, result, updatedAt, source, freshness }));
   setVesselMap(result.position, result.nextPort?.name || destination);
   if (stalePosition) {
@@ -9864,12 +9870,16 @@ function findAirportRiskProfile(query = "") {
   const value = String(query || "").trim();
   if (!value) return null;
   const direct = airportRiskProfiles.find((item) => textMatchesAliases(value, item));
-  if (direct) return direct;
+  if (direct) {
+    const directory = airportCodeData.find((item) => item.iata === direct.iata);
+    return { ...direct, country: direct.country || directory?.country || "" };
+  }
   const code = findAirportCodeProfile(value);
   if (!code) return null;
   return {
     iata: code.iata,
     cn: code.cn,
+    country: code.country || "",
     region: "generic-air",
     aliases: code.aliases || [],
     batteryRate: null,
@@ -9886,13 +9896,17 @@ function findPortRiskProfile(query = "") {
   const value = String(query || "").trim();
   if (!value) return null;
   const direct = majorPortRiskProfiles.find((item) => textMatchesAliases(value, item));
-  if (direct) return direct;
+  if (direct) {
+    const directory = seaPortCodeData.find((item) => item.code === direct.code);
+    return { ...direct, country: direct.country || directory?.country || "" };
+  }
   const code = matchCodeRows(seaPortCodeData, value, ["code", "name", "cn", "country", "aliases"])[0];
   if (!code) return null;
   return {
     code: code.code,
     name: code.name,
     cn: code.cn,
+    country: code.country || "",
     region: "generic-port",
     aliases: code.aliases || [],
     baseDelay: null,
@@ -10084,19 +10098,36 @@ function domesticCoastalRouteDays(origin = {}, destination = {}, makeRange = (ra
   return null;
 }
 
+function canonicalSeaScheduleCode(value = "") {
+  const code = String(value || "").trim().toUpperCase();
+  const portAreaCodes = {
+    CNQDG: "CNTAO",
+    CNSHG: "CNSHA",
+    CNSGH: "CNSHA",
+    CNYTN: "CNSZX",
+    CNSHK: "CNSZX",
+    CNNSA: "CNGZG",
+    CNZOS: "CNNGB",
+    CNTXG: "CNTSN",
+    USLGB: "USLAX",
+    USEWR: "USNYC",
+    USTIW: "USSEA",
+    VNHCM: "VNSGN",
+    GBFXS: "GBFXT"
+  };
+  return portAreaCodes[code] || code;
+}
+
 function scheduleBaselineTransitForRoute(origin = {}, destination = {}, makeRange = (range) => range) {
   const database = window.LOGISTICS_SCHEDULE_DATABASE || {};
   const baseline = Array.isArray(database.baselineTransit) ? database.baselineTransit : [];
-  const originCode = String(origin.code || "").toUpperCase();
-  const destinationCode = String(destination.code || "").toUpperCase();
+  const originCode = canonicalSeaScheduleCode(origin.code);
+  const destinationCode = canonicalSeaScheduleCode(destination.code);
   if (!originCode || !destinationCode) return null;
-  const equivalentCodes = {
-    CNTAO: ["CNTAO", "CNQDG"],
-    CNQDG: ["CNQDG", "CNTAO"]
-  };
-  const originCodes = equivalentCodes[originCode] || [originCode];
-  const destinationCodes = equivalentCodes[destinationCode] || [destinationCode];
-  const hit = baseline.find((item) => originCodes.includes(String(item.originCode || "").toUpperCase()) && destinationCodes.includes(String(item.destinationCode || "").toUpperCase()));
+  const hit = baseline.find((item) => (
+    canonicalSeaScheduleCode(item.originCode) === originCode
+    && canonicalSeaScheduleCode(item.destinationCode) === destinationCode
+  ));
   if (!hit || !Array.isArray(hit.rangeDays) || hit.rangeDays.length < 2) return null;
   const range = hit.rangeDays.map(Number);
   if (!range.every(Number.isFinite) || range[0] <= 0 || range[1] < range[0]) return null;
@@ -10264,7 +10295,8 @@ function evidenceEndpointKey(value = "", mode = "sea") {
   const canonical = profile
     ? (mode === "air" ? profile.iata || profile.icao : profile.code)
     : raw;
-  return normalize(String(canonical || "")).replace(/[^a-z0-9\u4e00-\u9fff]/g, "").toUpperCase();
+  const normalized = normalize(String(canonical || "")).replace(/[^a-z0-9\u4e00-\u9fff]/g, "").toUpperCase();
+  return mode === "sea" ? canonicalSeaScheduleCode(normalized) : normalized;
 }
 
 function evidenceRecordTime(sample = {}) {
@@ -10389,7 +10421,9 @@ function carrierScheduleEvidenceForRoute(mode = "sea", origin = {}, destination 
         ? "仅有旧班期，不进入当前结论"
         : "暂无承运人班期",
     rangeText: transitHours.length
-      ? `${scheduleTransitDuration(Math.min(...transitHours))}-${scheduleTransitDuration(Math.max(...transitHours))}`
+      ? Math.min(...transitHours) === Math.max(...transitHours)
+        ? scheduleTransitDuration(Math.min(...transitHours))
+        : `${scheduleTransitDuration(Math.min(...transitHours))}-${scheduleTransitDuration(Math.max(...transitHours))}`
       : "班期时长待核验"
   };
 }
@@ -11270,7 +11304,8 @@ function detectGlobalConcerns(query = "") {
   if (/风险|预警|查验|延误|拥堵|退仓|塞港|delay|risk|inspection|congestion/.test(text)) push("risk", "风险/时效");
   if (/税号|hs|hscode|归类|关税|税率|申报|监管条件|tariff|duty|customs/.test(text)) push("customs", "关务/税则");
   if (/单证|文件|资料|发票|箱单|报关单|产地证|msds|un38|鉴定|invoice|packing|declaration|certificate|document/.test(text)) push("docs", "单证/文件");
-  if (/政策|热点|特朗普|川普|301|232|制裁|出口管制|合规|准入|认证|ccc|srrc|fcc|ce|rohs|reach|anatel|inmetro|saber|policy|sanction|compliance/.test(text)) push("policy", "政策/准入");
+  if (/热点|特朗普|川普|拜登|习近平|普京|泽连斯基|总统|首相|国会|白宫|大选|选举|地缘|贸易战|trump|biden|putin|election|president|congress|geopolitic|trade war/.test(text)) push("policy", "政策/热点");
+  if (/政策|301|232|制裁|出口管制|合规|准入|认证|ccc|srrc|fcc|ce|rohs|reach|anatel|inmetro|saber|policy|sanction|compliance/.test(text)) push("policy", "政策/准入");
   if (!concerns.length) push("lookup", "代码/状态查询");
   return concerns;
 }
@@ -11305,9 +11340,19 @@ function countryFromLocation(location = {}) {
   return location.country || (/us-|美国|洛杉矶|纽约|芝加哥/i.test(`${location.region || ""} ${location.cn || ""}`) ? "美国" : "");
 }
 
+function normalizeBusinessCountry(country = "") {
+  if (/荷兰|德国|法国|西班牙|意大利|比利时|欧盟/.test(country)) return "欧盟";
+  return country;
+}
+
 function inferDestinationCountry(query = "", mode = "Mixed", route = {}) {
   const text = normalize(query);
   if (/进口(?:到|进|至)?中国|进入中国(?:市场)?|销往中国|运往中国|目的国(?:是|为|：|:)?中国|china import|import(?:ed)? into china/.test(text)) return "中国";
+  const routeDestination = mode === "Air" || mode === "Courier"
+    ? findAirportRiskProfile(route.destination || "")
+    : findPortRiskProfile(route.destination || "");
+  const routeDestinationCountry = route.destination ? countryFromLocation(routeDestination || {}) : "";
+  if (routeDestinationCountry) return normalizeBusinessCountry(routeDestinationCountry);
   const explicit = [
     ["美国", /美国|洛杉矶|纽约|芝加哥|特朗普|川普|trump|ustr|cbp|lax|jfk|ord|us\b|usa|los angeles|new york|chicago/],
     ["欧盟", /欧盟|德国|荷兰|法国|西班牙|意大利|鹿特丹|汉堡|法兰克福|阿姆斯特丹|eu|europe|germany|netherlands|france/],
@@ -11326,10 +11371,7 @@ function inferDestinationCountry(query = "", mode = "Mixed", route = {}) {
     ["中国", /中国|中国大陆|大陆|china|mainland|cn\b/]
   ].find(([, pattern]) => pattern.test(text));
   if (explicit) return explicit[0];
-  const destination = mode === "Air" || mode === "Courier"
-    ? findAirportRiskProfile(route.destination || "")
-    : findPortRiskProfile(route.destination || "");
-  return countryFromLocation(destination || {});
+  return "";
 }
 
 function intelligenceRouteLabel(intel = {}) {
@@ -11345,14 +11387,20 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
   const value = String(query || "").trim();
   const text = normalize(value);
   let route = splitRouteQuery(value);
+  const topicOnly = /政策|关税|301|232|制裁|出口管制|公告|认证|热点|特朗普|川普|拜登|习近平|普京|泽连斯基|总统|首相|国会|白宫|大选|选举|地缘|贸易战|trump|biden|putin|election|president|congress|geopolitic|trade war/.test(text)
+    && !/海运|空运|快件|港口|机场|船期|航班|码头|价格|运费|报价|vessel|ocean|air cargo|freight|rate/.test(text);
   const policyWithoutTransport = /政策|关税|301|232|制裁|出口管制|公告|认证|特朗普|川普|trump/.test(text)
     && !/海运|空运|快件|港口|机场|船期|航班|码头|vessel|ocean|air cargo/.test(text);
   const codeWithoutTransport = /\b\d{8,10}\b/.test(value) && /税号|税率|归类|申报|关税|hs|hscode/.test(text);
-  if (policyWithoutTransport || codeWithoutTransport) route = { origin: "", destination: "" };
+  if (topicOnly || policyWithoutTransport || codeWithoutTransport) route = { origin: "", destination: "" };
   const airport = findAirportCodeProfile(value);
   const port = findPortRiskProfile(value);
   const products = findChinaKnowledgeProfiles(value);
   const concerns = detectGlobalConcerns(value);
+  const hasRoutePair = Boolean(route.origin && route.destination);
+  if (hasRoutePair && concerns.length === 1 && concerns[0].id === "lookup") {
+    concerns.splice(0, 1, { id: "schedule", label: "船期/时效" });
+  }
   const hs = value.match(/\b\d{8,10}\b/)?.[0] || "";
   const mode = inferTransportMode(value, airport, port);
   const originAir = findAirportRiskProfile(route.origin || "") || (mode === "Air" || mode === "Courier" ? findAirportRiskProfile(value) : null);
@@ -11380,7 +11428,7 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
     concerns.some((item) => item.id === "customs") ? "hs" : ""
   ].filter(Boolean));
   const missing = [];
-  if (!primaryProduct && !hs && !/pvg|lax|cnsha|uslax/i.test(value)) missing.push("补真实品名、用途、材质、是否整机/配件。");
+  if (!topicOnly && !primaryProduct && !hs && !hasRoutePair && !airport && !port) missing.push("补真实品名、用途、材质、是否整机/配件。");
   const routeRequired = concerns.some((item) => /price|risk/.test(item.id)) || /海运|空运|快件|港口|机场|船期|航班|码头|ocean|air cargo/.test(text);
   if (routeRequired && (!route.origin || !route.destination)) missing.push("补起运地和目的地，价格/风险会更准。");
   const routeProfilesKnown = mode === "Air" || mode === "Courier"
@@ -11395,7 +11443,6 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
   if (concerns.some((item) => item.id === "policy") && !country) missing.push("补目的国/进口地区、原产国和 HS。");
 
   const metrics = [];
-  const hasRoutePair = Boolean(route.origin && route.destination);
   const wantsPrice = concerns.some((item) => item.id === "price");
   const wantsRisk = concerns.some((item) => item.id === "risk");
   if ((mode === "Air" || mode === "Courier") && hasRoutePair && originAir && destinationAir) {
@@ -11422,13 +11469,18 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
     metrics.push([evidence.transit ? "历史实绩航程" : routeDaysEvidenceLabel(days), evidence.transit ? formatEvidenceTransit(evidence) : routeDaysText(days)]);
     if (wantsRisk && evidence.delay) metrics.push(["历史到港偏差", formatEvidenceDelay(evidence)]);
   }
-  const productLabel = primaryProduct?.label || (hs ? `HS ${hs}` : hasRoutePair ? "货物待补" : airport?.cn || port?.cn || "待识别货物");
+  const topicLabel = country ? `${country}政策/热点` : "全球政策/热点";
+  const productLabel = topicOnly ? topicLabel : primaryProduct?.label || (hs ? `HS ${hs}` : hasRoutePair ? "路线查询" : airport?.cn || port?.cn || "待识别货物");
   const concernText = concerns.map((item) => item.label).join(" + ");
-  const routeLabel = intelligenceRouteLabel({ originLabel, destinationLabel, route });
-  const conclusion = primaryProduct
+  const routeLabel = topicOnly ? "不涉及运输路线" : intelligenceRouteLabel({ originLabel, destinationLabel, route });
+  const conclusion = topicOnly
+    ? `${topicLabel}专题已识别。系统会自动检索近期发布，并把新闻事件、官方公告和已生效业务规则分开；没有直接证据时明确写“未发现变化”，不要求补货物或运输路线。`
+    : primaryProduct
     ? `${routeLabel}，我会按「${modeLabel(mode)} + ${primaryProduct.label} + ${concernText}」处理。${primaryProduct.summary}`
     : `${routeLabel}，我会先按「${modeLabel(mode)} + ${concernText}」处理；如果补充真实品名、HS 或货型，结论会更可靠。`;
-  const action = primaryProduct
+  const action = topicOnly
+    ? "先看近 14 天自动检索结论；只有官方发布明确生效日期和适用范围时，才调整报价、申报资料、运输方案或交付承诺。"
+    : primaryProduct
     ? mode === "Sea"
       ? /battery|锂|电池/.test(normalize(`${primaryProduct.id || ""} ${primaryProduct.label || ""} ${value}`))
         ? "海运先确认电池是否构成 IMDG 危险品、UN 编号、SDS/MSDS、包装和船司 DG 接收；再核对箱型、直航/中转、有效报价和目的港费用。"
@@ -11454,7 +11506,8 @@ function buildLogisticsIntelligence(query = "", candidates = []) {
     missing: missing.slice(0, 5),
     metrics,
     conclusion,
-    action
+    action,
+    topicOnly
   };
 }
 
@@ -11709,6 +11762,10 @@ function findChinaComplianceForGlobalQuery(query = "", intel = {}) {
   return window.findChinaComplianceCases(text, 1)[0] || null;
 }
 
+let globalSearchPreviewTimer = null;
+let globalSearchPreviewSequence = 0;
+const globalSearchPreviewCache = new Map();
+
 function buildGlobalEvidenceDecisionProfile(query = "", intel = {}, context = {}) {
   const concernIds = new Set((intel.concerns || []).map((item) => item.id));
   const routeEvidence = context.routeEvidence || {};
@@ -11716,6 +11773,10 @@ function buildGlobalEvidenceDecisionProfile(query = "", intel = {}, context = {}
   const routeComplete = Boolean(intel.route?.origin && intel.route?.destination);
   const routeModel = (intel.metrics || []).some(([label, value]) => /模型|基准|区间/.test(label) && !/覆盖不足/.test(String(value || "")));
   const chinaCompliance = findChinaComplianceForGlobalQuery(query, intel);
+  const liveTopicData = intel.topicOnly ? globalSearchPreviewCache.get(normalize(query))?.data : null;
+  const liveTopicItems = Array.isArray(liveTopicData?.items)
+    ? liveTopicData.items.filter((item) => !/manual checklist/i.test(String(item.domain || "")))
+    : [];
   const dimensions = [];
   const toneForGrade = (grade) => grade >= 3 ? "verified" : grade === 2 ? "rules" : grade === 1 ? "model" : "missing";
   const add = (id, label, grade, status, detail) => {
@@ -11802,6 +11863,10 @@ function buildGlobalEvidenceDecisionProfile(query = "", intel = {}, context = {}
         "中国合规案例命中",
         `${chinaCompliance.name}：HS 先按 ${chinaCompliance.code} / ${chinaCompliance.hsDirection} 核验；CCC、SRRC、运输/DG 仍需按型号、功能和申报日复核。`
       );
+    } else if (liveTopicData) {
+      add("policy", "政策/热点", 2, "近 14 天多源检索完成", liveTopicItems.length ? `命中 ${liveTopicItems.length} 条通过相关性和日期校验的发布；仍需区分新闻与已生效规则。` : "未命中通过日期和相关性校验的新发布；不使用历史报道补足结果。");
+    } else if (intel.topicOnly) {
+      add("policy", "政策/热点", 1, "正在检索近期发布", "输入停止后自动检索近 14 天来源；新闻事件不会直接等同于关税、清关或认证规则已经变化。");
     } else {
       add("policy", "政策/准入", 0, "公告正文未读取", "当前只识别主题和官方入口；必须核发布主体、生效日期、适用范围及后续修订。");
     }
@@ -11851,6 +11916,10 @@ function buildGlobalEvidenceAssessment(query = "", candidates = [], intel = {}, 
   const officialCount = sources.filter((source) => /official|port-official|terminal|carrier|standard/.test(source.sourceType || "")).length;
   const hasModel = (intel.metrics || []).some(([label, value]) => /模型|预算|基准|区间/.test(label) && !/覆盖不足/.test(String(value || "")));
   const policyQuery = (intel.concerns || []).some((item) => item.id === "policy") || /特朗普|川普|trump|301|232|制裁|出口管制|政策/.test(normalize(query));
+  const liveTopicData = intel.topicOnly ? globalSearchPreviewCache.get(normalize(query))?.data : null;
+  const liveTopicItems = Array.isArray(liveTopicData?.items)
+    ? liveTopicData.items.filter((item) => !/manual checklist/i.test(String(item.domain || "")))
+    : [];
   const locationHit = Boolean(findAirportCodeProfile(query) || findPortRiskProfile(query) || routeRecognition.any);
   const used = [];
   if (evidenceRows.length) {
@@ -11863,6 +11932,9 @@ function buildGlobalEvidenceAssessment(query = "", candidates = [], intel = {}, 
   }
   if (scheduleRows.length) {
     used.push(`承运人计划班期：${scheduleRows.length} 条 · ${routeEvidence.schedule?.carriers?.join("、") || "承运人待核"}`);
+  }
+  if (liveTopicData) {
+    used.push(`近 14 天多源检索：${liveTopicItems.length} 条通过日期和相关性校验的发布`);
   }
   if (intel.primaryProduct) used.push(`产品规则库：${intel.primaryProduct.label}`);
   if (intel.hs) used.push(`用户输入 HS：${intel.hs}`);
@@ -11882,9 +11954,11 @@ function buildGlobalEvidenceAssessment(query = "", candidates = [], intel = {}, 
     tone = "verified";
     explanation = `本次只有${evidenceKinds.join("、")}维度命中同航线实单；其他维度仍按规则或模型处理。还需核对记录日期、承运人和适用条件。`;
   } else if (policyQuery) {
-    label = "待查公告正文";
-    tone = "pending";
-    explanation = "当前只完成政策主题与适用范围识别；核验入口不等于已经读取最新公告正文。";
+    label = liveTopicData ? "多源检索完成" : "待查公告正文";
+    tone = liveTopicData ? "rules" : "pending";
+    explanation = liveTopicData
+      ? (liveTopicItems.length ? `已取得 ${liveTopicItems.length} 条近期相关发布；新闻本身仍不等于业务规则已经变化。` : "多源检索未命中近期相关发布；不使用历史报道或通用模板补成当前热点。")
+      : "当前只完成政策主题与适用范围识别；核验入口不等于已经读取最新公告正文。";
   } else if (scheduleRows.length) {
     label = "船司班期支持";
     tone = "pending";
@@ -11936,6 +12010,10 @@ function buildGlobalAnswerContract(query = "", target = {}, intel = {}, assessme
   const hasCarrierSchedule = Boolean(assessment.routeEvidence?.officialSchedules?.length);
   const hasRouteModel = (intel.metrics || []).some(([label, value]) => /航程|时效|基准|区间|模型/.test(label) && !/覆盖不足/.test(String(value || "")));
   const policyQuery = concernIds.has("policy");
+  const liveTopicData = intel.topicOnly ? globalSearchPreviewCache.get(normalize(query))?.data : null;
+  const liveTopicItems = Array.isArray(liveTopicData?.items)
+    ? liveTopicData.items.filter((item) => !/manual checklist/i.test(String(item.domain || "")))
+    : [];
   const chinaCompliance = findChinaComplianceForGlobalQuery(query, intel);
   const chinaComplianceQuery = Boolean(chinaCompliance && /合规|认证|资料|准入|进口|ccc|srrc|compliance|certif/i.test(query));
   let conclusion = intel.conclusion;
@@ -11943,7 +12021,7 @@ function buildGlobalAnswerContract(query = "", target = {}, intel = {}, assessme
     const facts = (chinaCompliance.requiredFacts || []).slice(0, 4).join("、") || "型号、功能、输入输出参数、是否带无线/电池";
     conclusion = `已识别为${chinaCompliance.name}进口中国合规问题。税号方向先按 ${chinaCompliance.code} / ${chinaCompliance.hsDirection} 核验；CCC：${chinaCompliance.compliance?.ccc || "按目录核对"}；SRRC：${chinaCompliance.compliance?.srrc || "按无线功能核对"}；运输/DG：${chinaCompliance.compliance?.dg || "按实际货物成分核对"}。正式执行前还要补齐${facts}。`;
   } else if (policyQuery) {
-    conclusion = `已识别为${intel.country ? `${intel.country}相关` : ""}政策/准入问题。当前首页尚未读取最新公告正文，因此只确认查询方向，不直接判断政策已经生效或一定适用。`;
+    conclusion = liveTopicData?.summary || `已识别为${intel.country ? `${intel.country}相关` : ""}政策/准入问题。当前首页尚未读取最新公告正文，因此只确认查询方向，不直接判断政策已经生效或一定适用。`;
   } else if (routeComplete && hasActual) {
     const routeEvidence = assessment.routeEvidence || {};
     const supported = [routeEvidence.quotes?.length ? "价格" : "", routeEvidence.actuals?.length ? "实际时效" : "", routeEvidence.outcomes?.length ? "查验/预审结果" : ""].filter(Boolean);
@@ -11977,7 +12055,13 @@ function buildGlobalAnswerContract(query = "", target = {}, intel = {}, assessme
   if (concernIds.has("docs")) impactStatements.push("文件缺失可能导致退仓、补件、查验或清关延误");
   if (policyQuery) impactStatements.push("政策是否影响当前订单，取决于生效日期、HS、原产国、进口国和豁免条款");
   if (!impactStatements.length) impactStatements.push(target.reason || "系统已识别最相关的查询方向");
-  const directImpacts = {
+  const directImpacts = intel.topicOnly ? {
+    quote: "仅当官方发布明确税费、制裁或贸易措施变化时才重算报价",
+    schedule: "仅当事件实际触发管制、罢工、港口或航线异常时才调整船期判断",
+    customs: "未发现官方规则变化前继续按现行税则和清关要求执行",
+    certification: "热点或选举消息本身不改变现行认证要求",
+    documents: "热点或选举消息本身不改变现行单证要求"
+  } : {
     quote: concernIds.has("price") || policyQuery || concernIds.has("customs")
       ? "需重算税费、运价、附加费并确认报价有效期"
       : "未取得直接影响证据",
@@ -12001,13 +12085,19 @@ function buildGlobalAnswerContract(query = "", target = {}, intel = {}, assessme
   ].filter(Boolean).map((item) => String(item).trim().replace(/[。；\s]+$/g, ""))));
   return {
     conclusion,
-    basis: assessment.used?.join("；") || "按当前输入做意图识别。",
+    basis: liveTopicData
+      ? [`近 14 天自动检索 ${liveTopicItems.length} 条有效发布`, ...(liveTopicData.sourceBreakdown || []).slice(0, 5).map((item) => `${item.source} ${item.status}`)].join("；")
+      : assessment.used?.join("；") || "按当前输入做意图识别。",
     impact: `${impactStatements.join("；").replace(/[。；]+$/g, "")}。`,
     impacts: directImpacts,
     action: chinaComplianceQuery
       ? "先核型号、额定输入输出、是否带无线/电池、铭牌标签、说明书和测试报告；再用中国税则、CCC 目录、SRRC 型号核准和危险品运输规则逐项确认，缺一项就不要作为可申报结论。"
       : policyQuery
-      ? "先进入政策模块读取最新公告正文，确认发布主体、生效日期、适用 HS、原产国、进口国和豁免条款，再决定是否调整报价、申报或出运。"
+      ? intel.topicOnly
+        ? liveTopicData
+          ? "近 14 天检索已完成；可进入趋势/政策模块查看完整证据。只有官方公告明确生效日期和适用范围时，才调整报价、申报或出运。"
+          : "首页正在自动检索近 14 天来源；先看检索结论，再进入趋势/政策模块查看完整证据。只有官方公告明确生效日期和适用范围时，才调整报价、申报或出运。"
+        : "先进入政策模块读取最新公告正文，确认发布主体、生效日期、适用 HS、原产国、进口国和豁免条款，再决定是否调整报价、申报或出运。"
       : concernIds.has("schedule") && routeComplete
         ? hasActual
           ? "先用同航线实绩判断大致时效，再复核承运人当前 ETD/ETA、截关、转运港、码头公告和天气/管制；客户承诺只写当前船期可支持的日期。"
@@ -12281,8 +12371,8 @@ function buildGlobalSearchAnswer(query = "", candidates = []) {
         </div>
       ` : ""}
       <div class="global-ai-signal-row">
-        <span>货物：${escapeHtml(intel.productLabel)}</span>
-        <span>路线：${escapeHtml(intel.routeLabel)}</span>
+        <span>${intel.topicOnly ? "主题" : "货物"}：${escapeHtml(intel.productLabel)}</span>
+        <span>${intel.topicOnly ? "范围" : "路线"}：${escapeHtml(intel.routeLabel)}</span>
         <span>关注：${escapeHtml(intel.concerns.map((item) => item.label).join(" / "))}</span>
         ${intel.country ? `<span>目的地：${escapeHtml(intel.country)}</span>` : ""}
       </div>
@@ -12310,6 +12400,54 @@ function buildGlobalSearchAnswer(query = "", candidates = []) {
   `;
 }
 
+function renderGlobalSearchPreview(query = "", data = {}) {
+  if (($("globalSearchInput")?.value || "").trim() !== query) return;
+  const target = $("globalSearchLiveAssist")?.querySelector("[data-live-preview]");
+  if (!target) return;
+  const items = Array.isArray(data.items) ? data.items.filter((item) => !/manual checklist/i.test(String(item.domain || ""))) : [];
+  const sourceRows = Array.isArray(data.sourceBreakdown) ? data.sourceBreakdown.slice(0, 5) : [];
+  const status = items.length ? `命中 ${items.length} 条通过相关性校验的近期发布` : "未命中可核验的新发布";
+  target.innerHTML = `
+    <div class="live-preview-head">
+      <span>近 14 天自动检索</span>
+      <strong>${escapeHtml(status)}</strong>
+      <small>${escapeHtml(data.updatedAt ? formatEta(data.updatedAt) : "刚刚查询")}</small>
+    </div>
+    <p>${escapeHtml(data.summary || data.message || "实时来源暂未返回结论；系统不会用历史新闻补成当前热点。")}</p>
+    ${items.length ? `<ul>${items.slice(0, 2).map((item) => `<li>${escapeHtml(item.title || "近期发布")}<small>${escapeHtml([item.domain, item.seendate].filter(Boolean).join(" · "))}</small></li>`).join("")}</ul>` : ""}
+    ${sourceRows.length ? `<div class="live-preview-sources">${sourceRows.map((item) => `<span>${escapeHtml(`${item.source}：${item.status}`)}</span>`).join("")}</div>` : ""}
+  `;
+}
+
+function scheduleGlobalSearchPreview(query = "", candidates = []) {
+  if (globalSearchPreviewTimer) window.clearTimeout(globalSearchPreviewTimer);
+  const value = String(query || "").trim();
+  const target = candidates[0] || {};
+  const isTopic = /^(trends|policy)$/.test(target.module || "") && /政策|热点|大选|选举|总统|首相|地缘|贸易战|关税|制裁|出口管制|election|president|geopolitic|tariff|sanction/i.test(value);
+  if (!isTopic) return;
+  const sequence = ++globalSearchPreviewSequence;
+  const cacheKey = normalize(value);
+  const cached = globalSearchPreviewCache.get(cacheKey);
+  if (cached && Date.now() - cached.savedAt < 3 * 60 * 1000) {
+    renderGlobalSearchPreview(value, cached.data);
+    return;
+  }
+  globalSearchPreviewTimer = window.setTimeout(async () => {
+    const preview = $("globalSearchLiveAssist")?.querySelector("[data-live-preview]");
+    if (!preview || ($("globalSearchInput")?.value || "").trim() !== value) return;
+    preview.innerHTML = `<div class="live-preview-loading"><span></span><strong>正在检索官方、行业和主流新闻来源...</strong></div>`;
+    const data = await fetchJsonOrFallback(
+      `/.netlify/functions/global-trends?keyword=${encodeURIComponent(value)}&_ts=${Date.now()}`,
+      { ok: false, updatedAt: new Date().toISOString(), summary: "实时来源暂时不可用，本次不把历史报道或通用模板当作当前结论。", items: [], sourceBreakdown: [] },
+      { timeoutMs: 16000 }
+    );
+    if (sequence !== globalSearchPreviewSequence) return;
+    globalSearchPreviewCache.set(cacheKey, { savedAt: Date.now(), data });
+    renderGlobalSearchPreview(value, data);
+    renderGlobalSearchResult(value);
+  }, 550);
+}
+
 function renderGlobalSearchLiveAssist(query = "") {
   const target = $("globalSearchLiveAssist");
   if (!target) return;
@@ -12326,8 +12464,12 @@ function renderGlobalSearchLiveAssist(query = "") {
   const insights = buildLiveIntentInsights(value, intel, options);
   const sources = selectEvidenceSourcesForQuery(value, candidates, intel);
   const assessment = buildGlobalEvidenceAssessment(value, candidates, intel, sources);
-  const title = intel.products.length
+  const title = intel.topicOnly
+    ? `正在分析：${intel.productLabel}`
+    : intel.products.length
     ? `正在判断：${intel.productLabel}`
+    : intel.route?.origin && intel.route?.destination
+    ? `你想查询：${intel.routeLabel}`
     : airport
     ? `你想查询：${airport.cn}`
     : port && intel.mode !== "Air" && intel.mode !== "Courier"
@@ -12346,6 +12488,7 @@ function renderGlobalSearchLiveAssist(query = "") {
         <span data-tone="${escapeHtml(assessment.tone)}">证据：${escapeHtml(assessment.label)}</span>
         ${intel.missing.length ? `<span data-tone="pending">待补 ${intel.missing.length} 项</span>` : ""}
       </div>
+      <div class="live-intent-preview" data-live-preview></div>
       ${insights.length ? `
         <div class="live-intent-insight-grid">
           ${insights.map((item) => `
@@ -12367,6 +12510,7 @@ function renderGlobalSearchLiveAssist(query = "") {
       </div>
     </section>
   `;
+  scheduleGlobalSearchPreview(value, candidates);
 }
 
 function classifyGlobalSearch(raw = "") {
@@ -17537,6 +17681,7 @@ function renderPortRisk(data = {}) {
   const articles = Array.isArray(data.articles) ? data.articles : [];
   const links = Array.isArray(data.links) ? data.links : [];
   const weather = data.weather || {};
+  const congestionEvidence = Array.isArray(data.congestionEvidence) ? data.congestionEvidence : [];
   const dg = data.dgAdvice || {};
   const dgSources = Array.isArray(dg.sources) ? dg.sources : [];
   const dgDocs = Array.isArray(dg.documents) ? dg.documents : [];
@@ -17584,6 +17729,11 @@ function renderPortRisk(data = {}) {
       <strong>${escapeHtml(data.congestionStatus || "需关注")}</strong>
       <p>${escapeHtml(data.congestionSummary || data.summary || "请结合货代和码头信息确认。")}</p>
     </article>
+    ${congestionEvidence.length ? `<article class="risk-card">
+      <span>客观港口数据</span>
+      <strong>自动取得 ${congestionEvidence.length} 组证据</strong>
+      <ul>${congestionEvidence.map((item) => `<li><b>${escapeHtml(item.provider || "港口数据源")}</b>：${escapeHtml(item.conclusion || "已返回数据")}${item.period ? ` <small>${escapeHtml(item.period)}</small>` : ""}</li>`).join("")}</ul>
+    </article>` : ""}
     <article class="risk-card">
       <span>影响判断</span>
       <strong>${escapeHtml(data.level || "Watch")}</strong>

@@ -510,18 +510,269 @@ async function findShipByName(apiKey, shipname, destination, portcode) {
   };
 }
 
-exports.handler = async (event) => {
-  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: corsHeaders, body: "" };
-  if (event.httpMethod !== "GET") return json(405, { ok: false, message: "Method not allowed" });
+function hasVesselPosition(result = {}) {
+  return Number.isFinite(Number(result.position?.lat)) && Number.isFinite(Number(result.position?.lon));
+}
 
-  const apiKey = process.env.SHIPXY_API_KEY || process.env.SHIPXY_KEY;
-  if (!apiKey) {
-    const params = event.queryStringParameters || {};
-    const fallback = await webFallback(params.shipname || params.vessel || params.name || "", clean(params.mmsi).replace(/\D/g, ""), "ShipXY API key is not configured.");
-    return json(200, fallback);
+function providerScore(payload = {}) {
+  if (!payload?.ok) return -1000;
+  const freshness = payload.freshness || buildFreshness(payload.result || {}, payload.updatedAt || "");
+  let score = hasVesselPosition(payload.result) ? 60 : 0;
+  if (freshness.level === "live") score += 40;
+  else if (freshness.level === "recent") score += 25;
+  else if (freshness.level === "stale") score -= 30;
+  if (payload.result?.eta) score += 8;
+  if (payload.result?.mmsi || payload.result?.imo) score += 5;
+  return score - Math.min(20, Number(freshness.ageHours || 0) / 6);
+}
+
+function normalizeVesselFinder(data = {}) {
+  const ais = data.AIS || {};
+  const voyage = data.VOYAGE || {};
+  return {
+    shipName: ais.NAME || "",
+    mmsi: ais.MMSI || "",
+    imo: ais.IMO || "",
+    callSign: ais.CALLSIGN || "",
+    shipType: ais.TYPE || "",
+    position: {
+      lon: ais.LONGITUDE ?? "",
+      lat: ais.LATITUDE ?? "",
+      speed: ais.SPEED ?? "",
+      seaArea: ais.ZONE || "",
+      city: "",
+      updatedAt: asFlexibleDate(ais.TIMESTAMP || "")
+    },
+    previousPort: {
+      code: voyage.LOCODE || "",
+      name: voyage.LASTPORT || "",
+      country: voyage.LASTCOUNTRY || "",
+      atd: asFlexibleDate(voyage.DEPARTURE || "")
+    },
+    nextPort: { code: ais.LOCODE || "", name: ais.DESTINATION || "", country: "" },
+    eta: asFlexibleDate(ais.ETA || ""),
+    lastReportAt: asFlexibleDate(ais.TIMESTAMP || ""),
+    remainingDistanceNm: "",
+    sailedDistanceNm: "",
+    avgSpeedKn: "",
+    etaSpeedKn: ""
+  };
+}
+
+async function queryVesselFinder(params = {}, identity = {}) {
+  const apiKey = process.env.VESSELFINDER_API_KEY || "";
+  const mmsi = clean(identity.mmsi || params.mmsi).replace(/\D/g, "");
+  const imo = clean(identity.imo || params.imo).replace(/\D/g, "");
+  if (!apiKey || (!/^\d{9}$/.test(mmsi) && !/^\d{7}$/.test(imo))) return null;
+  const url = new URL("https://api.vesselfinder.com/vessels");
+  url.searchParams.set("userkey", apiKey);
+  url.searchParams.set("format", "json");
+  url.searchParams.set("interval", "1440");
+  url.searchParams.set("extradata", "voyage");
+  if (process.env.VESSELFINDER_SATELLITE === "true") url.searchParams.set("sat", "1");
+  if (/^\d{9}$/.test(mmsi)) url.searchParams.set("mmsi", mmsi);
+  else url.searchParams.set("imo", imo);
+  const response = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
+  const data = await response.json();
+  if (!response.ok || !Array.isArray(data) || !data[0]?.AIS) throw new Error(data?.error || "VesselFinder returned no position within 24 hours.");
+  return withFreshness({
+    ok: true,
+    source: "VesselFinder Vessels API",
+    updatedAt: new Date().toISOString(),
+    result: normalizeVesselFinder(data[0]),
+    sourceLinks: [{ name: "VesselFinder API", url: "https://api.vesselfinder.com/docs/vessels.html" }]
+  });
+}
+
+function normalizeMarineTraffic(row = {}) {
+  return {
+    shipName: row.SHIPNAME || "",
+    mmsi: row.MMSI || "",
+    imo: row.IMO || "",
+    callSign: row.CALLSIGN || "",
+    shipType: row.TYPE_NAME || row.SHIPTYPE || "",
+    position: {
+      lon: row.LON ?? "",
+      lat: row.LAT ?? "",
+      speed: Number.isFinite(Number(row.SPEED)) ? Number(row.SPEED) / 10 : "",
+      seaArea: row.MARKET || "",
+      city: row.CURRENT_PORT || "",
+      updatedAt: asFlexibleDate(row.TIMESTAMP || "")
+    },
+    previousPort: {
+      code: row.LAST_PORT_UNLOCODE || "",
+      name: row.LAST_PORT || "",
+      country: row.LAST_PORT_COUNTRY || "",
+      atd: asFlexibleDate(row.LAST_PORT_TIME || "")
+    },
+    nextPort: {
+      code: row.NEXT_PORT_UNLOCODE || "",
+      name: row.NEXT_PORT_NAME || row.DESTINATION || "",
+      country: row.NEXT_PORT_COUNTRY || ""
+    },
+    eta: asFlexibleDate(row.ETA_CALC || row.ETA || ""),
+    lastReportAt: asFlexibleDate(row.TIMESTAMP || ""),
+    remainingDistanceNm: row.DISTANCE_TO_GO || "",
+    sailedDistanceNm: row.DISTANCE_TRAVELLED || "",
+    avgSpeedKn: row.AVG_SPEED || "",
+    etaSpeedKn: ""
+  };
+}
+
+async function queryMarineTraffic(params = {}, identity = {}) {
+  const apiKey = process.env.MARINETRAFFIC_API_KEY || "";
+  const mmsi = clean(identity.mmsi || params.mmsi).replace(/\D/g, "");
+  const imo = clean(identity.imo || params.imo).replace(/\D/g, "");
+  if (!apiKey || (!/^\d{9}$/.test(mmsi) && !/^\d{7}$/.test(imo))) return null;
+  const url = new URL(`https://services.marinetraffic.com/api/exportvessel/${encodeURIComponent(apiKey)}`);
+  url.searchParams.set("v", "6");
+  url.searchParams.set("timespan", "1440");
+  url.searchParams.set("protocol", "jsono");
+  if (/^\d{9}$/.test(mmsi)) url.searchParams.set("mmsi", mmsi);
+  else url.searchParams.set("imo", imo);
+  const response = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
+  const data = await response.json();
+  const row = Array.isArray(data) ? data[0] : data?.DATA?.[0];
+  if (!response.ok || !row) throw new Error("MarineTraffic returned no position within 24 hours.");
+  return withFreshness({
+    ok: true,
+    source: "MarineTraffic Single Vessel Positions API",
+    updatedAt: new Date().toISOString(),
+    result: normalizeMarineTraffic(row),
+    sourceLinks: [{ name: "MarineTraffic AIS API", url: "https://servicedocs.marinetraffic.com/" }]
+  });
+}
+
+function normalizeShipFinder(data = {}) {
+  return {
+    shipName: data.ship_name || data.ship_cnname || "",
+    mmsi: data.mmsi || "",
+    imo: data.imo || "",
+    callSign: data.call_sign || "",
+    shipType: data.ship_type || "",
+    position: {
+      lon: data.lng ?? "",
+      lat: data.lat ?? "",
+      speed: data.sog ?? "",
+      seaArea: "",
+      city: "",
+      updatedAt: asUnixDate(data.last_time)
+    },
+    previousPort: { code: "", name: "", country: "", atd: "" },
+    nextPort: { code: data.destcode || "", name: data.dest || "", country: "" },
+    eta: asUnixDate(data.eta),
+    lastReportAt: asUnixDate(data.last_time),
+    remainingDistanceNm: "",
+    sailedDistanceNm: "",
+    avgSpeedKn: "",
+    etaSpeedKn: ""
+  };
+}
+
+async function queryShipFinder(params = {}, identity = {}) {
+  const apiKey = process.env.SHIPFINDER_API_KEY || "";
+  const mmsi = clean(identity.mmsi || params.mmsi).replace(/\D/g, "");
+  if (!apiKey || !/^\d{9}$/.test(mmsi)) return null;
+  const url = new URL("https://api.elaneglobal.com/v1/AIS/VesselPositionSingle");
+  url.searchParams.set("key", apiKey);
+  url.searchParams.set("mmsi", mmsi);
+  const response = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
+  const body = await response.json();
+  if (!response.ok || Number(body.status) !== 0 || !body.data) throw new Error(body.msg || "ShipFinder returned no vessel position.");
+  return withFreshness({
+    ok: true,
+    source: "ShipFinder Single Vessel Position API",
+    updatedAt: new Date().toISOString(),
+    result: normalizeShipFinder(body.data),
+    sourceLinks: [{ name: "ShipFinder API", url: "https://docs.shipfinder.com/428990613e0" }]
+  });
+}
+
+async function queryAisstream(params = {}, identity = {}) {
+  const apiKey = process.env.AISSTREAM_API_KEY || "";
+  const mmsi = clean(identity.mmsi || params.mmsi).replace(/\D/g, "");
+  if (!apiKey || !/^\d{9}$/.test(mmsi) || typeof WebSocket !== "function") return null;
+  return new Promise((resolve, reject) => {
+    const socket = new WebSocket("wss://stream.aisstream.io/v0/stream");
+    const timer = setTimeout(() => {
+      socket.close();
+      reject(new Error("AISstream did not receive a new position during the live query window."));
+    }, 8000);
+    socket.onopen = () => socket.send(JSON.stringify({
+      APIKey: apiKey,
+      BoundingBoxes: [[[-90, -180], [90, 180]]],
+      FiltersShipMMSI: [mmsi],
+      FilterMessageTypes: ["PositionReport", "ExtendedClassBPositionReport", "StandardClassBPositionReport"]
+    }));
+    socket.onerror = () => {
+      clearTimeout(timer);
+      reject(new Error("AISstream connection failed."));
+    };
+    socket.onmessage = (event) => {
+      let message;
+      try {
+        message = JSON.parse(String(event.data || "{}"));
+      } catch {
+        return;
+      }
+      const body = message.Message?.[message.MessageType] || {};
+      const metadata = message.MetaData || message.Metadata || {};
+      const lat = body.Latitude ?? metadata.latitude ?? metadata.Latitude;
+      const lon = body.Longitude ?? metadata.longitude ?? metadata.Longitude;
+      if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lon))) return;
+      clearTimeout(timer);
+      socket.close();
+      const reportedAt = asFlexibleDate(metadata.time_utc || metadata.TimeUtc || new Date().toISOString());
+      resolve(withFreshness({
+        ok: true,
+        source: "AISstream live WebSocket",
+        updatedAt: new Date().toISOString(),
+        result: {
+          shipName: metadata.ShipName || identity.shipName || params.shipname || "",
+          mmsi,
+          imo: identity.imo || "",
+          callSign: "",
+          shipType: "",
+          position: { lon, lat, speed: body.Sog ?? "", seaArea: "", city: "", updatedAt: reportedAt },
+          previousPort: { code: "", name: "", country: "", atd: "" },
+          nextPort: { code: "", name: "", country: "" },
+          eta: "",
+          lastReportAt: reportedAt,
+          remainingDistanceNm: "",
+          sailedDistanceNm: "",
+          avgSpeedKn: "",
+          etaSpeedKn: ""
+        },
+        sourceLinks: [{ name: "AISstream", url: "https://aisstream.io/documentation.html" }]
+      }));
+    };
+  });
+}
+
+async function queryPublicAisPage(params = {}, identity = {}) {
+  let ship = {
+    n: identity.shipName || params.shipname || params.vessel || params.name || "",
+    m: identity.mmsi || params.mmsi || "",
+    i: identity.imo || params.imo || ""
+  };
+  if (!ship.n || !/^\d{9}$/.test(clean(ship.m).replace(/\D/g, "")) || !/^\d{7}$/.test(clean(ship.i).replace(/\D/g, ""))) {
+    const search = await findShipByShipxyWeb(ship.n, clean(ship.m).replace(/\D/g, ""));
+    if (!search.ok) throw new Error(search.message || "Public AIS identity search failed.");
+    ship = search.ship;
   }
+  const scraped = await scrapeMyShipTracking(ship);
+  if (!scraped.ok) throw new Error(scraped.message || "Public AIS page returned no position.");
+  return withFreshness({
+    ok: true,
+    source: "MyShipTracking public AIS page",
+    updatedAt: new Date().toISOString(),
+    result: scraped.result,
+    sourceLinks: [{ name: "MyShipTracking", url: scraped.url }]
+  });
+}
 
-  const params = event.queryStringParameters || {};
+async function queryShipxyPrimary(params = {}) {
+  const apiKey = process.env.SHIPXY_API_KEY || process.env.SHIPXY_KEY;
   const mmsi = clean(params.mmsi).replace(/\D/g, "");
   const shipname = cleanShipName(params.shipname || params.vessel || params.name);
   const destination = clean(params.destination || params.dest || "");
@@ -529,12 +780,15 @@ exports.handler = async (event) => {
   const speed = clean(params.speed).replace(/[^\d.]/g, "");
 
   if (!/^\d{9}$/.test(mmsi) && !shipname) {
-    return json(200, {
+    return {
       ok: false,
       fallback: true,
       code: "VESSEL_REQUIRED",
-      message: "A vessel name or a valid 9-digit MMSI is required for ShipXY query."
-    });
+      message: "A vessel name or a valid 9-digit MMSI is required for vessel query."
+    };
+  }
+  if (!apiKey) {
+    return webFallback(shipname, mmsi, "ShipXY API key is not configured.");
   }
 
   try {
@@ -544,7 +798,7 @@ exports.handler = async (event) => {
     if (!/^\d{9}$/.test(targetMmsi)) {
       shipnameResult = await findShipByName(apiKey, shipname, destination, portcode);
       if (!shipnameResult.ok) {
-        return json(200, await webFallback(shipname, mmsi, shipnameResult.message));
+        return webFallback(shipname, mmsi, shipnameResult.message);
       }
       targetMmsi = clean(shipnameResult.ship.mmsi || shipnameResult.ship.ShipID).replace(/\D/g, "");
     }
@@ -557,12 +811,12 @@ exports.handler = async (event) => {
     });
 
     if (precise.response.ok && precise.data.status === 0) {
-      return json(200, withFreshness({
+      return withFreshness({
         ok: true,
         source: "ShipXY GetSingleETAPrecise",
         updatedAt: new Date().toISOString(),
         result: normalizeShipxyEta(precise.data)
-      }));
+      });
     }
 
     const basic = await callShipxy("GetManyShip", {
@@ -573,7 +827,7 @@ exports.handler = async (event) => {
     });
 
     if (shipnameResult?.ship) {
-      return json(200, withFreshness({
+      return withFreshness({
         ok: true,
         source: "ShipXY SearchShip + GetManyShip",
         fallbackFrom: "GetSingleETAPrecise",
@@ -581,7 +835,7 @@ exports.handler = async (event) => {
         updatedAt: new Date().toISOString(),
         result: normalizeManyShip(shipnameResult.ship),
         candidates: shipnameResult.candidates || []
-      }));
+      });
     }
 
     if (!basic.response.ok || basic.data.status !== 0 || !Array.isArray(basic.data.data) || !basic.data.data.length) {
@@ -591,18 +845,76 @@ exports.handler = async (event) => {
         precise.data.msg ||
         precise.data.message ||
         "ShipXY did not return a successful vessel result.";
-      return json(200, await webFallback(shipname, targetMmsi, reason));
+      return webFallback(shipname, targetMmsi, reason);
     }
 
-    return json(200, withFreshness({
+    return withFreshness({
       ok: true,
       source: "ShipXY GetManyShip",
       fallbackFrom: "GetSingleETAPrecise",
       preciseStatus: precise.data.status ?? precise.response.status,
       updatedAt: new Date().toISOString(),
       result: normalizeManyShip(basic.data)
-    }));
+    });
   } catch (error) {
-    return json(200, await webFallback(shipname, mmsi, error.message || "ShipXY request failed."));
+    return webFallback(shipname, mmsi, error.message || "ShipXY request failed.");
   }
+}
+
+async function queryVesselMultiSource(params = {}) {
+  const primary = await queryShipxyPrimary(params);
+  const primaryFresh = primary?.ok && primary.freshness?.isFresh && hasVesselPosition(primary.result);
+  if (primaryFresh) {
+    return { ...primary, automaticSourceSelection: true, sourceChain: [{ source: primary.source, status: primary.freshness.level, selected: true }] };
+  }
+
+  const identity = {
+    mmsi: primary?.result?.mmsi || params.mmsi || "",
+    imo: primary?.result?.imo || params.imo || "",
+    shipName: primary?.result?.shipName || params.shipname || params.vessel || params.name || ""
+  };
+  const providers = [
+    ["ShipFinder API", queryShipFinder],
+    ["VesselFinder API", queryVesselFinder],
+    ["MarineTraffic API", queryMarineTraffic],
+    ["AISstream", queryAisstream],
+    ["Public AIS page", queryPublicAisPage]
+  ];
+  const settled = await Promise.allSettled(providers.map(([, provider]) => provider(params, identity)));
+  const alternatives = settled
+    .map((outcome) => outcome.status === "fulfilled" ? outcome.value : null)
+    .filter(Boolean);
+  const candidates = [primary, ...alternatives].filter(Boolean).sort((a, b) => providerScore(b) - providerScore(a));
+  const selected = candidates[0] || primary || { ok: false, message: "No vessel data source returned a usable result." };
+  const sourceChain = [
+    primary ? { source: primary.source || "ShipXY", status: primary.freshness?.level || (primary.ok ? "identity-only" : "failed"), selected: selected === primary } : null,
+    ...providers.map(([source], index) => {
+      const outcome = settled[index];
+      if (outcome.status === "rejected") return { source, status: "failed", selected: false };
+      if (!outcome.value) return { source, status: "not-configured", selected: false };
+      return { source: outcome.value.source || source, status: outcome.value.freshness?.level || "returned", selected: selected === outcome.value };
+    })
+  ].filter(Boolean);
+  return {
+    ...selected,
+    automaticSourceSelection: true,
+    automaticFallbackUsed: selected !== primary,
+    sourceChain,
+    fallbackFrom: selected !== primary ? `${primary?.source || "primary source"} did not return a fresh position` : selected.fallbackFrom
+  };
+}
+
+exports.handler = async (event) => {
+  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: corsHeaders, body: "" };
+  if (event.httpMethod !== "GET") return json(405, { ok: false, message: "Method not allowed" });
+  return json(200, await queryVesselMultiSource(event.queryStringParameters || {}));
+};
+
+exports._test = {
+  buildFreshness,
+  providerScore,
+  normalizeVesselFinder,
+  normalizeMarineTraffic,
+  normalizeShipFinder,
+  queryVesselMultiSource
 };
